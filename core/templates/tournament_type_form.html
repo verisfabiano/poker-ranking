@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if tipo %}Editar{% else %}Novo{% endif %} Tipo de Torneio</title>
+    <style>
+        body { background:#050505; color:#fff; font-family:Arial; margin:0; }
+        .container { max-width:600px; margin:40px auto; background:#121212; padding:20px; border-radius:10px; }
+        label { display:block; margin-top:10px; }
+        input[type="text"], textarea {
+            width:100%; padding:7px; margin-top:4px;
+            border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff;
+        }
+        textarea { min-height:80px; }
+        button {
+            margin-top:20px; padding:8px 16px;
+            background:#6a1b9a; color:#fff; border:none; border-radius:6px;
+        }
+        a { color:#90caf9; text-decoration:none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>{% if tipo %}Editar{% else %}Novo{% endif %} Tipo de Torneio</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <label>Nome</label>
+        <input type="text" name="nome" required value="{{ tipo.nome|default:'' }}">
+
+        <label>Descrição</label>
+        <textarea name="descricao">{{ tipo.descricao|default:'' }}</textarea>
+
+        <label>Multiplicador de Pontos (peso)</label>
+        <input type="text" name="multiplicador"
+               value="{{ tipo.multiplicador_pontos|default:'1' }}">
+
+        <label>
+            <input type="checkbox" name="usa_regras_padrao"
+                   {% if tipo and tipo.usa_regras_padrao %}checked{% endif %}>
+            Usa regras padrão de pontuação
+        </label>
+
+        <button type="submit">Salvar</button>
+    </form>
+
+    <br>
+    <a href="{% url 'tournament_types_list' %}">← Voltar</a>
+</div>
+</body>
+</html>

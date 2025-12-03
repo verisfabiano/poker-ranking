@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login do Jogador</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1b1b1b 0, #050505 55%);
+            color: #f5f5f5;
+        }
+        .topbar {
+            background: #111;
+            padding: 14px 26px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar-title { font-size: 15px; color: #f5f5f5; }
+        .topbar-sub {
+            font-size: 13px; color: #bbbbbb;
+        }
+        .topbar-sub a { color: #ffb300; text-decoration: none; }
+        .topbar-sub a:hover { text-decoration: underline; }
+
+        .page {
+            min-height: calc(100vh - 50px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+        .card {
+            background: #111216;
+            border-radius: 14px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
+            width: 100%;
+            max-width: 380px;
+            padding: 22px 24px 24px;
+        }
+        .card-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .chip {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid #ffb300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+        .card-title { font-size: 22px; margin: 0; }
+        .card-subtitle {
+            font-size: 13px; color: #bdbdbd;
+            margin: 2px 0 16px;
+        }
+
+        form { margin-top: 6px; }
+        .field { margin-bottom: 12px; }
+        label {
+            display: block; font-size: 12px;
+            color: #c1c1c1; margin-bottom: 4px;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%; padding: 9px 10px;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            background: #181920;
+            color: #f5f5f5;
+            font-size: 14px;
+        }
+        input::placeholder { color: #7c7c7c; }
+        input:focus {
+            outline: none;
+            border-color: #ffb300;
+            box-shadow: 0 0 0 1px rgba(255,179,0,0.35);
+        }
+
+        .btn-primary {
+            width: 100%; padding: 10px 14px;
+            border-radius: 999px; border: none;
+            cursor: pointer; margin-top: 4px;
+            font-size: 14px; font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff9800, #ffb300);
+            color: #111;
+        }
+        .btn-primary:hover { filter: brightness(1.04); }
+
+        .footer-text {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #9e9e9e;
+            text-align: center;
+        }
+        .footer-text a {
+            color: #ffb300;
+            text-decoration: none;
+        }
+        .footer-text a:hover { text-decoration: underline; }
+
+        .alert {
+            margin: 0 0 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            background: #3e2723;
+            color: #ffccbc;
+            border: 1px solid #bf360c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-title">Espaço Poker · Login do Jogador</div>
+    <div class="topbar-sub">
+        Ainda não tem cadastro?
+        <a href="{% url 'player_register' %}">Criar conta</a>
+    </div>
+</div>
+
+<div class="page">
+    <div class="card">
+        <div class="card-logo">
+            <div class="chip">♣</div>
+            <div>
+                <h1 class="card-title">Entrar</h1>
+                <p class="card-subtitle">
+                    Use seu e-mail e senha cadastrados para acessar os torneios e o ranking.
+                </p>
+            </div>
+        </div>
+
+        {% if mensagem %}
+            <div class="alert">{{ mensagem }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="field">
+                <label for="id_email">E-mail</label>
+                <input type="text" name="email" placeholder="E-mail ou usuário" required>
+            </div>
+
+            <div class="field">
+                <label for="id_senha">Senha</label>
+                <input id="id_senha" name="senha" type="password" placeholder="Sua senha" required>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                Entrar
+            </button>
+        </form>
+
+        <div class="footer-text">
+            Em caso de dúvida, fale com a organização do clube.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

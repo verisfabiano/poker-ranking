@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</title>
+    <style>
+        body { background:#050505; color:#fff; font-family:Arial; margin:0; }
+        .container { max-width:700px; margin:40px auto; background:#121212; padding:20px; border-radius:10px; }
+        label { display:block; margin-top:10px; }
+        input[type="text"], input[type="datetime-local"], select {
+            width:100%; padding:7px; margin-top:4px;
+            border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff;
+        }
+        button {
+            margin-top:20px; padding:8px 16px;
+            background:#2e7d32; color:#fff; border:none; border-radius:6px;
+        }
+        a { color:#90caf9; text-decoration:none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Nome</label>
+        <input type="text" name="nome" required value="{{ tournament.nome|default:'' }}">
+
+        <label>Data e hora</label>
+        <input type="datetime-local" name="data"
+               value="{% if tournament %}{{ data_str }}{% endif %}">
+
+        <label>Tipo de torneio</label>
+        <select name="tipo_id" required>
+            <option value="">Selecione...</option>
+            {% for t in tipos %}
+                <option value="{{ t.id }}"
+                    {% if tournament and tournament.tipo.id == t.id %}selected{% endif %}>
+                    {{ t.nome }} (peso {{ t.multiplicador_pontos }})
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Buy-in (opcional)</label>
+        <input type="text" name="buy_in"
+               value="{{ tournament.buy_in|default:'' }}">
+
+        <label>Garantido (opcional)</label>
+        <input type="text" name="garantido"
+               value="{{ tournament.garantido|default:'' }}">
+
+        <label>Status</label>
+        <select name="status">
+            <option value="AGENDADO"
+                    {% if tournament and tournament.status == "AGENDADO" %}selected{% endif %}>
+                Agendado
+            </option>
+            <option value="EM_ANDAMENTO"
+                    {% if tournament and tournament.status == "EM_ANDAMENTO" %}selected{% endif %}>
+                Em andamento
+            </option>
+            <option value="FINALIZADO"
+                    {% if tournament and tournament.status == "FINALIZADO" %}selected{% endif %}>
+                Finalizado
+            </option>
+        </select>
+
+        <button type="submit">Salvar</button>
+    </form>
+
+    <br>
+    <a href="{% url 'season_tournaments' season.id %}">← Voltar</a>
+</div>
+</body>
+</html>

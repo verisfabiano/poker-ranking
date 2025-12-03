@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Próximos torneios</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1b1b1b 0, #050505 55%);
+            color: #f5f5f5;
+        }
+        .topbar {
+            background: #111;
+            padding: 14px 26px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar-title {
+            font-size: 15px;
+            color: #f5f5f5;
+        }
+        .topbar-sub {
+            font-size: 13px;
+            color: #bbbbbb;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 24px auto 40px;
+            padding: 0 22px;
+        }
+        h1 {
+            margin: 0 0 4px;
+            font-size: 24px;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #bdbdbd;
+            margin-bottom: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #111216;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+        }
+        th, td {
+            padding: 10px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #272727;
+        }
+        th {
+            background: #1c1c1c;
+            text-align: left;
+        }
+        th.num, td.num {
+            text-align: center;
+            width: 80px;
+        }
+        tr:nth-child(even) {
+            background: #151515;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid transparent;
+        }
+        .tag-nao {
+            border-color: #616161;
+            color: #e0e0e0;
+        }
+        .tag-pendente {
+            border-color: #ffb300;
+            color: #ffecb3;
+        }
+        .tag-ok {
+            border-color: #66bb6a;
+            color: #c8e6c9;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-confirm {
+            background: linear-gradient(90deg, #ff9800, #ffb300);
+            color: #111;
+        }
+        .btn-confirm:hover {
+            filter: brightness(1.05);
+        }
+        .btn-disabled {
+            background: #333;
+            color: #aaa;
+            cursor: default;
+        }
+
+        .empty {
+            padding: 16px 0;
+            font-size: 13px;
+            color: #bdbdbd;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-title">Espaço Poker · Próximos torneios</div>
+    <div class="topbar-sub">
+    Você está logado como jogador.
+    <a href="{% url 'player_logout' %}" style="color:#ffb300;text-decoration:none;margin-left:8px;">
+        Sair
+    </a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Próximos torneios</h1>
+    <div class="subtitle">
+        Aqui aparecem apenas torneios <strong>agendados</strong>. A confirmação aqui é um pedido;
+        a organização ainda fará a validação oficial da sua vaga.
+    </div>
+
+    {% if torneios %}
+        <table>
+            <thead>
+            <tr>
+                <th>Torneio</th>
+                <th class="num">Data</th>
+                <th class="num">Status</th>
+                <th class="num">Ação</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in torneios %}
+                <tr>
+                    <td>
+                        <strong>{{ item.torneio.nome }}</strong><br>
+                        <span style="font-size:11px;color:#9e9e9e">
+                            {{ item.torneio.tipo.nome }} • Temporada {{ item.torneio.season.nome }}
+                        </span>
+                    </td>
+                    <td class="num">
+                        {{ item.torneio.data|date:"d/m/Y H:i" }}
+                    </td>
+                    <td class="num">
+                        {% if item.confirmado %}
+                            <span class="tag tag-ok">Vaga confirmada</span>
+                        {% elif item.inscrito %}
+                            <span class="tag tag-pendente">Aguardando confirmação</span>
+                        {% else %}
+                            <span class="tag tag-nao">Não inscrito</span>
+                        {% endif %}
+                    </td>
+                    <td class="num">
+                        {% if not item.inscrito %}
+                            <a class="btn btn-confirm"
+                               href="{% url 'confirm_presence' item.torneio.id %}">
+                                Confirmar presença
+                            </a>
+                        {% else %}
+                            <span class="btn btn-disabled">Já solicitado</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">
+            Nenhum torneio agendado no momento. Fique de olho na programação do clube. 🃏
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

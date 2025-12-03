@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Temporadas</title>
+    <style>
+        body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
+        .container { max-width:900px; margin:30px auto 40px; padding:0 20px; }
+
+        h1 { margin:0 0 10px; font-size:28px; }
+
+        .back-link { color:#90caf9; text-decoration:none; font-size:14px; }
+        .back-link:hover { text-decoration:underline; }
+
+        .btn-new {
+            display:inline-block; margin:18px 0 14px; padding:9px 16px;
+            border-radius:8px; background:#2e7d32; color:#fff;
+            text-decoration:none; font-size:14px;
+        }
+        .btn-new:hover { background:#388e3c; }
+
+        .table { width:100%; border-collapse:collapse; background:#121212;
+                 border-radius:10px; overflow:hidden; }
+        .table th, .table td {
+            padding:10px 14px; border-bottom:1px solid #333; font-size:14px;
+        }
+        .table th { background:#1f1f1f; text-align:left; }
+        .table th.num, .table td.num { text-align:center; }
+        .table th.actions, .table td.actions { text-align:center; white-space:nowrap; }
+        .table tr:nth-child(even) { background:#151515; }
+        .table a { color:#90caf9; text-decoration:none; font-size:13px; }
+        .table a:hover { text-decoration:underline; }
+
+        .pill {
+            display:inline-block; padding:2px 8px; border-radius:10px;
+            font-size:11px; border:1px solid #555; margin-left:4px;
+        }
+        .pill-ativa { border-color:#43a047; color:#a5d6a7; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Temporadas</h1>
+    <a class="back-link" href="{% url 'painel_home' %}">← Voltar ao painel</a>
+
+    <a class="btn-new" href="{% url 'season_create' %}">+ Nova temporada</a>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Período</th>
+            <th class="num">Ativa?</th>
+            <th class="actions">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for s in seasons %}
+            <tr>
+                <td>
+                    {{ s.nome }}
+                    {% if s.ativo %}
+                        <span class="pill pill-ativa">ativa</span>
+                    {% endif %}
+                </td>
+                <td>{{ s.data_inicio }} até {{ s.data_fim }}</td>
+                <td class="num">{{ s.ativo|yesno:"Sim,Não" }}</td>
+                <td class="actions">
+                    <a href="{% url 'season_edit' s.id %}">Editar</a> |
+                    <a href="{% url 'season_initial_points' s.id %}">Pontos iniciais</a> |
+                    <a href="{% url 'season_tournaments' s.id %}">Torneios</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">Nenhuma temporada cadastrada.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

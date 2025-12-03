@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Telão de Ranking - {{ season.nome }}</title>
+    <style>
+        body {
+            margin:0;
+            background: radial-gradient(circle at top, #263238 0, #000 55%);
+            color:#f5f5f5;
+            font-family:Arial, sans-serif;
+        }
+
+        .header {
+            text-align:center;
+            padding:24px 10px 10px;
+        }
+
+        .header-title {
+            font-size:30px;
+            font-weight:bold;
+            letter-spacing:1px;
+        }
+
+        .header-sub {
+            font-size:16px;
+            color:#b0bec5;
+            margin-top:4px;
+        }
+
+        .board {
+            max-width:900px;
+            margin:20px auto 40px;
+            background:rgba(10,10,10,0.9);
+            border-radius:14px;
+            border:1px solid #37474f;
+            box-shadow:0 0 25px rgba(0,0,0,0.7);
+            padding:10px 16px 18px;
+        }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+        }
+        th, td {
+            padding:10px 12px;
+            font-size:18px;
+            border-bottom:1px solid #263238;
+        }
+        th {
+            text-align:left;
+            color:#cfd8dc;
+            font-size:16px;
+        }
+        th.num, td.num { text-align:right; }
+
+        tr.leader-row {
+            background:linear-gradient(90deg, #1a237e, #0d47a1);
+        }
+        tr:nth-child(even):not(.leader-row) {
+            background:#111;
+        }
+
+        .pos {
+            width:90px;
+            font-weight:bold;
+        }
+
+        .medal {
+            font-size:24px;
+            margin-right:6px;
+        }
+
+        .nome {
+            font-weight:bold;
+            font-size:18px;
+        }
+
+        .pontos {
+            font-weight:bold;
+            font-size:20px;
+        }
+
+        .footer-note {
+            text-align:center;
+            font-size:13px;
+            color:#b0bec5;
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-title">Ranking - {{ season.nome }}</div>
+    <div class="header-sub">Atualizado automaticamente a cada torneio</div>
+</div>
+
+<div class="board">
+    <table>
+        <thead>
+        <tr>
+            <th class="pos">Pos</th>
+            <th>Jogador</th>
+            <th class="num">Pontos</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in ranking %}
+            {% with pos=item.posicao %}
+            <tr class="{% if pos == 1 %}leader-row{% endif %}">
+                <td class="pos">
+                    {% if pos == 1 %}
+                        <span class="medal">🥇</span>{{ pos }}
+                    {% elif pos == 2 %}
+                        <span class="medal">🥈</span>{{ pos }}
+                    {% elif pos == 3 %}
+                        <span class="medal">🥉</span>{{ pos }}
+                    {% else %}
+                        {{ pos }}
+                    {% endif %}
+                </td>
+                <td class="nome">
+                    {{ item.nome }}
+                </td>
+                <td class="num pontos">
+                    {{ item.pontos }}
+                </td>
+            </tr>
+            {% endwith %}
+        {% empty %}
+            <tr>
+                <td colspan="3">Sem jogadores no ranking ainda.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer-note">
+        Critério de desempate: pontos totais &gt; pontos de torneios &gt; pontos iniciais &gt; nome.
+    </div>
+</div>
+
+</body>
+</html>

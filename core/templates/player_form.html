@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ player|default:"Novo jogador" }}</title>
+    <style>
+        body { background:#050505; color:#fff; font-family: Arial; }
+        .container { max-width:600px; margin:40px auto; background:#121212; padding:25px; border-radius:10px; }
+        label { display:block; margin-top:12px; }
+        input { width:100%; padding:8px; margin-top:4px; border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff; }
+        button { margin-top:20px; padding:10px 20px; background:#2e7d32; color:#fff; border:none; border-radius:8px; }
+        a { color:#90caf9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>{% if player %}Editar{% else %}Novo{% endif %} Jogador</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Nome</label>
+        <input name="nome" value="{{ player.nome|default:'' }}" required>
+
+        <label>Apelido</label>
+        <input name="apelido" value="{{ player.apelido|default:'' }}">
+
+        <label>CPF</label>
+        <input name="cpf" value="{{ player.cpf|default:'' }}">
+
+        <label>Telefone</label>
+        <input name="telefone" value="{{ player.telefone|default:'' }}">
+
+        <label>
+            <input type="checkbox" name="ativo" {% if player and player.ativo %}checked{% endif %}>
+            Jogador ativo
+        </label>
+
+        <button type="submit">Salvar</button>
+    </form>
+
+    <br>
+    <a href="{% url 'players_list' %}">← Voltar</a>
+</div>
+
+</body>
+</html>

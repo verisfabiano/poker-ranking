@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Organizador</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #050505;
+            color: #f5f5f5;
+        }
+
+        .topbar {
+            background: #111;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: #ffb300;
+        }
+
+        .top-links a {
+            color: #ddd;
+            text-decoration: none;
+            margin-left: 16px;
+            font-size: 14px;
+        }
+
+        .top-links a:hover {
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px 40px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+
+        p.desc {
+            color: #bdbdbd;
+            margin-bottom: 25px;
+        }
+
+        .season-card {
+            background: #121212;
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            border: 1px solid #2c2c2c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .season-info h2 {
+            margin: 0 0 6px;
+            font-size: 20px;
+        }
+
+        .season-info span {
+            font-size: 14px;
+            color: #9e9e9e;
+        }
+
+        .season-actions a {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-left: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+
+        .btn-torneios {
+            background: #424242;
+            color: #fff;
+        }
+
+        .btn-torneios:hover {
+            background: #616161;
+        }
+
+        .btn-ranking {
+            background: #1976d2;
+            color: #fff;
+        }
+
+        .btn-ranking:hover {
+            background: #1e88e5;
+        }
+
+        .btn-tv {
+            background: #2e7d32;
+            color: #fff;
+        }
+
+        .btn-tv:hover {
+            background: #388e3c;
+        }
+
+        .btn-iniciais {
+            background: #6a1b9a;
+            color: #fff;
+        }
+
+        .btn-iniciais:hover {
+            background: #7b1fa2;
+        }
+
+        .empty {
+            color: #bdbdbd;
+            margin-top: 20px;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            font-size: 18px;
+            color: #ccc;
+        }
+
+        .link-row a {
+            display: inline-block;
+            margin-right: 12px;
+            margin-top: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #1f1f1f;
+            color: #eee;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .link-row a:hover {
+            background: #2c2c2c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo">
+        🃏 <span>Ranking Poker</span> - Painel
+    </div>
+    <div class="top-links">
+        <a href="{% url 'players_list' %}">Jogadores</a>
+        <a href="{% url 'seasons_list' %}">Temporadas</a>
+        <a href="{% url 'tournament_types_list' %}">Tipos de torneio</a>
+        <a href="/admin/" target="_blank">Admin (avançado)</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Temporadas de Ranking</h1>
+    <p class="desc">
+        Escolha uma temporada para ver o ranking, abrir o telão, gerenciar torneios
+        e ajustar pontos iniciais da migração.
+    </p>
+
+    {% if seasons %}
+        {% for season in seasons %}
+            <div class="season-card">
+                <div class="season-info">
+                    <h2>{{ season.nome }}</h2>
+                    <span>{{ season.data_inicio }} até {{ season.data_fim }}
+                        {% if season.ativo %} • Ativa{% endif %}
+                    </span>
+                </div>
+                <div class="season-actions">
+                    <a class="btn-torneios" href="{% url 'season_tournaments' season.id %}">
+                        Torneios
+                    </a>
+                    <a class="btn-iniciais" href="{% url 'season_initial_points' season.id %}">
+                        Pontos iniciais
+                    </a>
+                    <a class="btn-ranking" href="{% url 'ranking_season' season.id %}" target="_blank">
+                        Ver ranking
+                    </a>
+                    <a class="btn-tv" href="{% url 'tv_ranking_season' season.id %}" target="_blank">
+                        Abrir telão
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            Nenhuma temporada cadastrada ainda. Use o menu "Temporadas" acima para criar.
+        </div>
+    {% endif %}
+
+    <div class="section-title">
+        Atalhos rápidos
+    </div>
+    <div class="link-row">
+        <a href="{% url 'players_list' %}">Gerenciar jogadores</a>
+        <a href="{% url 'seasons_list' %}">Gerenciar temporadas</a>
+        <a href="{% url 'tournament_types_list' %}">Gerenciar tipos de torneio</a>
+    </div>
+</div>
+
+</body>
+</html>
