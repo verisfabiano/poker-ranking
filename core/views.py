@@ -26,6 +26,23 @@ User = get_user_model()
 #  PERMISSÕES
 # ============================================================
 
+@login_required
+def home_redirect(request):
+    """
+    View da URL base (/):
+    - se não estiver logado, o @login_required manda pro LOGIN_URL
+    - se estiver logado e for staff/superuser -> admin
+    - se estiver logado e for jogador -> portal do jogador
+    """
+    # Admin / organização
+    if request.user.is_staff or request.user.is_superuser:
+        # pode ser o admin padrão do Django
+        return redirect("/admin/")
+
+    # Jogador comum -> manda pro portal do jogador
+    # AJUSTE ESSA URL para a sua página de "Próximos torneios" do jogador
+    return redirect("/jogador/torneios/")
+
 def is_admin(user):
     """
     Admin é qualquer usuário autenticado com is_staff ou is_superuser.
