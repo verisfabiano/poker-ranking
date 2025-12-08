@@ -1,5 +1,8 @@
 from django.urls import path
+from django.views.generic import RedirectView
+
 from .views import (
+    home_redirect,
     ranking_season,
     tv_ranking_season,
     painel_home,
@@ -29,18 +32,30 @@ from .views import (
     players_list,
     player_create,
     player_edit,
-    player_register,          
+    player_register,
     player_tournaments,
     confirm_presence,
 )
 
 urlpatterns = [
-    path("", painel_home, name="painel_home"),
+    # Raiz do site -> decide pra onde mandar (admin x jogador)
+    path("", home_redirect, name="home_redirect"),
 
+    # Painel do admin
+    path("painel/", painel_home, name="painel_home"),
+
+    # Atalho /login/ (usado por next=? ou links antigos) -> login do jogador
+    path(
+        "login/",
+        RedirectView.as_view(pattern_name="player_login", permanent=False),
+        name="login_redirect",
+    ),
+
+    # Ranking público
     path("ranking/<int:season_id>/", ranking_season, name="ranking_season"),
     path("tv/ranking/<int:season_id>/", tv_ranking_season, name="tv_ranking_season"),
 
-    # Temporadas
+    # Temporadas (admin)
     path("temporadas/", seasons_list, name="seasons_list"),
     path("temporadas/nova/", season_create, name="season_create"),
     path("temporadas/editar/<int:season_id>/", season_edit, name="season_edit"),
@@ -55,7 +70,7 @@ urlpatterns = [
         name="player_progress_season",
     ),
 
-    # Tipos de torneio
+    # Tipos de torneio (admin)
     path("tipos-torneio/", tournament_types_list, name="tournament_types_list"),
     path("tipos-torneio/novo/", tournament_type_create, name="tournament_type_create"),
     path(
@@ -64,7 +79,7 @@ urlpatterns = [
         name="tournament_type_edit",
     ),
 
-    # Torneios
+    # Torneios (admin)
     path(
         "season/<int:season_id>/torneios/",
         season_tournaments,
@@ -91,7 +106,7 @@ urlpatterns = [
         name="tournament_results",
     ),
 
-    # Jogadores
+    # Jogadores (site público / portal)
     path("jogador/login/", player_login, name="player_login"),
     path("jogador/logout/", player_logout, name="player_logout"),
     path("jogadores/", players_list, name="players_list"),
@@ -100,5 +115,9 @@ urlpatterns = [
 
     path("jogador/cadastro/", player_register, name="player_register"),
     path("jogador/torneios/", player_tournaments, name="player_tournaments"),
-    path("jogador/confirmar/<int:tournament_id>/", confirm_presence, name="confirm_presence"),
+    path(
+        "jogador/confirmar/<int:tournament_id>/",
+        confirm_presence,
+        name="confirm_presence",
+    ),
 ]

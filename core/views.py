@@ -2,7 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import Sum
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
@@ -37,7 +37,7 @@ def home_redirect(request):
     # Admin / organização
     if request.user.is_staff or request.user.is_superuser:
         # pode ser o admin padrão do Django
-        return redirect("/admin/")
+        return redirect("/")
 
     # Jogador comum -> manda pro portal do jogador
     # AJUSTE ESSA URL para a sua página de "Próximos torneios" do jogador
