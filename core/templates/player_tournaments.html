@@ -110,6 +110,13 @@
         .btn-confirm:hover {
             filter: brightness(1.05);
         }
+        .btn-cancel {
+            background: linear-gradient(90deg, #d50000, #ff1744);
+            color: #fff;
+        }
+        .btn-cancel:hover {
+            filter: brightness(1.05);
+        }
         .btn-disabled {
             background: #333;
             color: #aaa;
@@ -129,10 +136,10 @@
 <div class="topbar">
     <div class="topbar-title">Espaço Poker · Próximos torneios</div>
     <div class="topbar-sub">
-    Você está logado como jogador.
-    <a href="{% url 'player_logout' %}" style="color:#ffb300;text-decoration:none;margin-left:8px;">
-        Sair
-    </a>
+        Você está logado como jogador.
+        <a href="{% url 'player_logout' %}" style="color:#ffb300;text-decoration:none;margin-left:8px;">
+            Sair
+        </a>
     </div>
 </div>
 
@@ -181,7 +188,10 @@
                                 Confirmar presença
                             </a>
                         {% else %}
-                            <span class="btn btn-disabled">Já solicitado</span>
+                            <a class="btn btn-cancel"
+                               href="{% url 'confirm_presence' item.torneio.id %}">
+                                Cancelar presença
+                            </a>
                         {% endif %}
                     </td>
                 </tr>

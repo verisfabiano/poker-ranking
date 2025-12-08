@@ -846,18 +846,25 @@ def confirm_presence(request, tournament_id):
     if tournament.status != "AGENDADO":
         return HttpResponseRedirect(reverse("player_tournaments"))
 
-    entry, created = TournamentEntry.objects.get_or_create(
+    entry = TournamentEntry.objects.filter(
         tournament=tournament,
         player=player,
-        defaults={
-            "confirmou_presenca": True,
-            "confirmado_pelo_admin": False,
-        },
-    )
+    ).first()
 
-    if not created:
-        entry.confirmou_presenca = True
-        entry.save()
+    # SE JÁ EXISTE → CANCELA
+    if entry:
+        entry.confirmou_presenca = False
+        entry.confirmado_pelo_admin = False
+        entry.delete()
+
+    # SE NÃO EXISTE → CONFIRMA
+    else:
+        TournamentEntry.objects.create(
+            tournament=tournament,
+            player=player,
+            confirmou_presenca=True,
+            confirmado_pelo_admin=False,
+        )
 
     return HttpResponseRedirect(reverse("player_tournaments"))
 
