@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Próximos torneios</title>
+    <!-- Torna a página responsiva no mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
         * {
             box-sizing: border-box;
@@ -12,6 +15,7 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: radial-gradient(circle at top, #1b1b1b 0, #050505 55%);
             color: #f5f5f5;
+            font-size: 15px;
         }
         .topbar {
             background: #111;
@@ -20,6 +24,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
         }
         .topbar-title {
             font-size: 15px;
@@ -33,7 +38,7 @@
         .container {
             max-width: 1000px;
             margin: 24px auto 40px;
-            padding: 0 22px;
+            padding: 0 16px;
         }
         h1 {
             margin: 0 0 4px;
@@ -45,6 +50,12 @@
             margin-bottom: 18px;
         }
 
+        /* Wrapper pra permitir scroll horizontal no mobile */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -52,6 +63,7 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+            min-width: 600px; /* evita quebrar demais em telas estreitas */
         }
         th, td {
             padding: 10px 12px;
@@ -102,6 +114,7 @@
             text-decoration: none;
             border: none;
             cursor: pointer;
+            white-space: nowrap;
         }
         .btn-confirm {
             background: linear-gradient(90deg, #ff9800, #ffb300);
@@ -129,6 +142,42 @@
             color: #bdbdbd;
             text-align: center;
         }
+
+        /* Ajustes específicos para telas pequenas */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 14px;
+            }
+            .topbar-title {
+                font-size: 14px;
+            }
+            .topbar-sub {
+                font-size: 12px;
+            }
+            .container {
+                margin-top: 18px;
+                padding: 0 12px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .subtitle {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 8px 8px;
+                font-size: 12px;
+            }
+            .btn {
+                font-size: 11px;
+                padding: 5px 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -151,53 +200,55 @@
     </div>
 
     {% if torneios %}
-        <table>
-            <thead>
-            <tr>
-                <th>Torneio</th>
-                <th class="num">Data</th>
-                <th class="num">Status</th>
-                <th class="num">Ação</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in torneios %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
                 <tr>
-                    <td>
-                        <strong>{{ item.torneio.nome }}</strong><br>
-                        <span style="font-size:11px;color:#9e9e9e">
-                            {{ item.torneio.tipo.nome }} • Temporada {{ item.torneio.season.nome }}
-                        </span>
-                    </td>
-                    <td class="num">
-                        {{ item.torneio.data|date:"d/m/Y H:i" }}
-                    </td>
-                    <td class="num">
-                        {% if item.confirmado %}
-                            <span class="tag tag-ok">Vaga confirmada</span>
-                        {% elif item.inscrito %}
-                            <span class="tag tag-pendente">Aguardando confirmação</span>
-                        {% else %}
-                            <span class="tag tag-nao">Não inscrito</span>
-                        {% endif %}
-                    </td>
-                    <td class="num">
-                        {% if not item.inscrito %}
-                            <a class="btn btn-confirm"
-                               href="{% url 'confirm_presence' item.torneio.id %}">
-                                Confirmar presença
-                            </a>
-                        {% else %}
-                            <a class="btn btn-cancel"
-                               href="{% url 'confirm_presence' item.torneio.id %}">
-                                Cancelar presença
-                            </a>
-                        {% endif %}
-                    </td>
+                    <th>Torneio</th>
+                    <th class="num">Data</th>
+                    <th class="num">Status</th>
+                    <th class="num">Ação</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for item in torneios %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.torneio.nome }}</strong><br>
+                            <span style="font-size:11px;color:#9e9e9e">
+                                {{ item.torneio.tipo.nome }} • Temporada {{ item.torneio.season.nome }}
+                            </span>
+                        </td>
+                        <td class="num">
+                            {{ item.torneio.data|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="num">
+                            {% if item.confirmado %}
+                                <span class="tag tag-ok">Vaga confirmada</span>
+                            {% elif item.inscrito %}
+                                <span class="tag tag-pendente">Aguardando confirmação</span>
+                            {% else %}
+                                <span class="tag tag-nao">Não inscrito</span>
+                            {% endif %}
+                        </td>
+                        <td class="num">
+                            {% if not item.inscrito %}
+                                <a class="btn btn-confirm"
+                                   href="{% url 'confirm_presence' item.torneio.id %}">
+                                    Confirmar presença
+                                </a>
+                            {% else %}
+                                <a class="btn btn-cancel"
+                                   href="{% url 'confirm_presence' item.torneio.id %}">
+                                    Cancelar presença
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
         <div class="empty">
             Nenhum torneio agendado no momento. Fique de olho na programação do clube. 🃏
