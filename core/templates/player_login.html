@@ -19,12 +19,10 @@
             justify-content: space-between;
             align-items: center;
         }
-        .topbar-title { font-size: 15px; color: #f5f5f5; }
-        .topbar-sub {
-            font-size: 13px; color: #bbbbbb;
+        .topbar-title {
+            font-size: 15px;
+            color: #f5f5f5;
         }
-        .topbar-sub a { color: #ffb300; text-decoration: none; }
-        .topbar-sub a:hover { text-decoration: underline; }
 
         .page {
             min-height: calc(100vh - 50px);
@@ -60,18 +58,22 @@
         }
         .card-title { font-size: 22px; margin: 0; }
         .card-subtitle {
-            font-size: 13px; color: #bdbdbd;
+            font-size: 13px;
+            color: #bdbdbd;
             margin: 2px 0 16px;
         }
 
         form { margin-top: 6px; }
         .field { margin-bottom: 12px; }
         label {
-            display: block; font-size: 12px;
-            color: #c1c1c1; margin-bottom: 4px;
+            display: block;
+            font-size: 12px;
+            color: #c1c1c1;
+            margin-bottom: 4px;
         }
-        input[type="email"], input[type="password"] {
-            width: 100%; padding: 9px 10px;
+        input[type="email"], input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 9px 10px;
             border-radius: 8px;
             border: 1px solid #3a3a3a;
             background: #181920;
@@ -86,16 +88,36 @@
         }
 
         .btn-primary {
-            width: 100%; padding: 10px 14px;
-            border-radius: 999px; border: none;
-            cursor: pointer; margin-top: 4px;
-            font-size: 14px; font-weight: 600;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            margin-top: 4px;
+            font-size: 14px;
+            font-weight: 600;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             background: linear-gradient(90deg, #ff9800, #ffb300);
             color: #111;
         }
         .btn-primary:hover { filter: brightness(1.04); }
+
+        .login-register-link {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #cfcfcf;
+            text-align: center;
+        }
+        .login-register-link a {
+            color: #ffb300;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 4px;
+        }
+        .login-register-link a:hover {
+            text-decoration: underline;
+        }
 
         .footer-text {
             margin-top: 14px;
@@ -124,10 +146,6 @@
 
 <div class="topbar">
     <div class="topbar-title">Espaço Poker · Login do Jogador</div>
-    <div class="topbar-sub">
-        Ainda não tem cadastro?
-        <a href="{% url 'player_register' %}">Criar conta</a>
-    </div>
 </div>
 
 <div class="page">
@@ -151,7 +169,7 @@
 
             <div class="field">
                 <label for="id_email">E-mail</label>
-                <input type="text" name="email" placeholder="E-mail ou usuário" required>
+                <input id="id_email" type="text" name="email" placeholder="E-mail ou usuário" required>
             </div>
 
             <div class="field">
@@ -163,6 +181,11 @@
                 Entrar
             </button>
         </form>
+
+        <div class="login-register-link">
+            Ainda não tem cadastro?
+            <a href="{% url 'player_register' %}">Criar conta</a>
+        </div>
 
         <div class="footer-text">
             Em caso de dúvida, fale com a organização do clube.
