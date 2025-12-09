@@ -1,22 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Jogadores do torneio - {{ tournament.nome }}</title>
-    <style>
-        body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
-        .topbar {
-            background:#111; padding:14px 26px;
-            display:flex; justify-content:space-between; align-items:center;
-            border-bottom:1px solid #333;
-        }
-        .topbar a { color:#ddd; text-decoration:none; font-size:14px; }
-        .topbar a:hover { color:#fff; }
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        .topbar-info {
-            font-size:13px;
-            color:#bdbdbd;
-        }
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <style>
         .status-pill {
             display:inline-block;
             padding:3px 10px;
@@ -25,69 +17,48 @@
             border:1px solid #555;
             margin-left:8px;
         }
-        .status-agendado {
-            border-color:#43a047;
-            color:#c8e6c9;
-        }
-        .status-andamento {
-            border-color:#ffb300;
-            color:#ffecb3;
-        }
-        .status-finalizado {
-            border-color:#ef5350;
-            color:#ffcdd2;
-        }
+        .status-agendado { border-color:#43a047; color:#c8e6c9; }
+        .status-andamento { border-color:#ffb300; color:#ffecb3; }
+        .status-finalizado { border-color:#ef5350; color:#ffcdd2; }
 
-        .container { max-width:1000px; margin:24px auto 40px; padding:0 22px; }
-
-        h1 { margin:0 0 6px; font-size:24px; }
-        .subtitle { color:#bdbdbd; margin-bottom:16px; font-size:14px; }
-
-        .alert {
-            padding:8px 12px; border-radius:6px; margin-bottom:10px;
-            font-size:13px;
-        }
-        .alert-ok {
-            background:#1b5e20; color:#e8f5e9; border:1px solid #2e7d32;
-        }
-        .alert-erro {
-            background:#3e2723; color:#ffccbc; border:1px solid #bf360c;
-        }
-        .alert-info {
-            background:#263238; color:#eceff1; border:1px solid #455a64;
-        }
-
-        .row {
-            display:flex;
-            gap:18px;
-            align-items:flex-start;
+        .resume-box {
+            background:#121212;
+            border-radius:10px;
+            padding:12px 14px;
+            border:1px solid #333;
             margin-bottom:16px;
         }
 
+        .alert {
+            padding:8px 12px;
+            border-radius:6px;
+            margin-bottom:10px;
+            font-size:13px;
+        }
+        .alert-ok { background:#1b5e20; color:#e8f5e9; border:1px solid #2e7d32; }
+        .alert-erro { background:#3e2723; color:#ffccbc; border:1px solid #bf360c; }
+        .alert-info { background:#263238; color:#eceff1; border:1px solid #455a64; }
+
         .box {
-            background:#121212; border-radius:10px; padding:12px 14px;
+            background:#121212;
+            border-radius:10px;
+            padding:12px 14px;
             border:1px solid #333;
+            margin-bottom:14px;
         }
 
         .box h2 {
-            margin:0 0 8px; font-size:16px;
-        }
-
-        select, button {
-            font-size:13px;
+            margin:0 0 8px;
+            font-size:16px;
         }
 
         select {
-            padding:6px 8px;
+            width:100%;
+            padding:8px;
             border-radius:6px;
             border:1px solid #555;
             background:#1e1e1e;
             color:#f5f5f5;
-            min-width:220px;
-        }
-        select:disabled {
-            opacity:0.5;
-            cursor:not-allowed;
         }
 
         .btn {
@@ -97,45 +68,19 @@
             cursor:pointer;
             font-size:13px;
         }
+
+        .btn-add { background:#2e7d32; color:#fff; }
+        .btn-remove { background:#c62828; color:#fff; }
+        .btn-save { background:#1565c0; color:#fff; }
+        .btn-confirm-all { background:#f57c00; color:#111; }
+
         .btn:disabled {
-            opacity:0.45;
+            opacity:0.4;
             cursor:not-allowed;
         }
-        .btn-add { background:#2e7d32; color:#fff; }
-        .btn-add:hover { background:#388e3c; }
-        .btn-remove { background:#c62828; color:#fff; }
-        .btn-remove:hover { background:#d32f2f; }
-        .btn-save { background:#1565c0; color:#fff; }
-        .btn-save:hover { background:#1976d2; }
-        .btn-confirm-all { background:#f57c00; color:#111; }
-        .btn-confirm-all:hover { background:#fb8c00; }
 
-        table {
-            width:100%;
-            border-collapse:collapse;
-            background:#121212;
-            border-radius:10px;
-            overflow:hidden;
-            margin-top:10px;
-        }
-        th, td {
-            padding:8px 10px;
-            border-bottom:1px solid #333;
-            font-size:13px;
-        }
-        th {
-            background:#1f1f1f;
-        }
-        th.num, td.num { text-align:center; }
-        tr:nth-child(even) { background:#151515; }
-
-        /* destaque visual */
-        tr.pendente td {
-            background:linear-gradient(90deg, #212121, #1b1304);
-        }
-        tr.confirmado td {
-            background:#102012;
-        }
+        tr.pendente td { background:linear-gradient(90deg, #212121, #1b1304); }
+        tr.confirmado td { background:#102012; }
 
         .tag {
             display:inline-block;
@@ -144,35 +89,38 @@
             font-size:11px;
             border:1px solid #555;
         }
-        .tag-confirm-jogador {
-            border-color:#ffb300;
-            color:#ffecb3;
-        }
-        .tag-nao {
-            border-color:#757575;
-            color:#e0e0e0;
-        }
-        .tag-ok {
-            border-color:#66bb6a;
-            color:#c8e6c9;
-        }
+
+        .tag-confirm-jogador { border-color:#ffb300; color:#ffecb3; }
+        .tag-nao { border-color:#757575; color:#e0e0e0; }
+        .tag-ok { border-color:#66bb6a; color:#c8e6c9; }
 
         .actions-row {
-            margin-top:10px;
+            margin-top:12px;
             display:flex;
             justify-content:space-between;
             gap:10px;
+            flex-wrap:wrap;
+        }
+
+        @media (max-width: 768px) {
+            .actions-row {
+                flex-direction:column;
+            }
+
+            .actions-row button {
+                width:100%;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div>
+    <div class="topbar-sub">
         <a href="{% url 'season_tournaments' season.id %}">← Voltar aos torneios</a>
     </div>
-    <div class="topbar-info">
-        Temporada: <strong>{{ season.nome }}</strong> • Torneio: <strong>{{ tournament.nome }}</strong>
+    <div class="topbar-sub">
+        {{ season.nome }} • {{ tournament.nome }}
         {% if tournament.status == "AGENDADO" %}
             <span class="status-pill status-agendado">Agendado</span>
         {% elif tournament.status == "EM_ANDAMENTO" %}
@@ -185,110 +133,110 @@
 
 <div class="container">
     <h1>Jogadores do torneio</h1>
+
     <div class="subtitle">
-        Administre inscrições e valide a presença dos jogadores.<br>
-        Linhas em <strong>amarelo</strong> são pedidos de vaga ainda não confirmados pela organização; 
-        linhas em <strong>verde escuro</strong> são vagas já confirmadas pelo admin.
+        Administre inscrições e valide a presença dos jogadores.
     </div>
 
     {% if mensagem %}
         <div class="alert alert-ok">{{ mensagem }}</div>
     {% endif %}
+
     {% if mensagem_erro %}
         <div class="alert alert-erro">{{ mensagem_erro }}</div>
     {% endif %}
+
     {% if edicao_bloqueada %}
         <div class="alert alert-info">
-            Este torneio está <strong>{{ tournament.get_status_display }}</strong>.<br>
-            Edição de jogadores e confirmações está desativada — apenas leitura.
+            Este torneio está <strong>{{ tournament.get_status_display }}</strong>.
+            Apenas leitura.
         </div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
 
-        <div class="row">
-            <div class="box">
-                <h2>Adicionar jogador</h2>
-                <select name="novo_player_id" {% if edicao_bloqueada %}disabled{% endif %}>
-                    <option value="">-- selecione um jogador --</option>
-                    {% for p in players_disponiveis %}
-                        <option value="{{ p.id }}">{{ p.apelido|default:p.nome }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" name="add_player" class="btn btn-add"
-                        {% if edicao_bloqueada %}disabled{% endif %}>
-                    + Adicionar ao torneio
-                </button>
-            </div>
+        <div class="box">
+            <h2>Adicionar jogador</h2>
+
+            <select name="novo_player_id" {% if edicao_bloqueada %}disabled{% endif %}>
+                <option value="">-- selecione um jogador --</option>
+                {% for p in players_disponiveis %}
+                    <option value="{{ p.id }}">{{ p.apelido|default:p.nome }}</option>
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+            <button type="submit" name="add_player" class="btn btn-add"
+                    {% if edicao_bloqueada %}disabled{% endif %}>
+                + Adicionar ao torneio
+            </button>
         </div>
 
-        <table>
-            <thead>
-            <tr>
-                <th class="num">Remover</th>
-                <th>Jogador</th>
-                <th class="num">Conf. jogador</th>
-                <th class="num">Conf. admin</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for entry in entries %}
-                <tr class="{% if entry.confirmado_pelo_admin %}confirmado{% elif entry.confirmou_presenca %}pendente{% endif %}">
-                    <td class="num">
-                        <input type="checkbox" name="remover_entry_id" value="{{ entry.id }}"
-                               {% if edicao_bloqueada %}disabled{% endif %}>
-                    </td>
-                    <td>
-                        {{ entry.player.apelido|default:entry.player.nome }}
-                    </td>
-                    <td class="num">
-                        {% if entry.confirmou_presenca %}
-                            <span class="tag tag-confirm-jogador">pedido pelo jogador</span>
-                        {% else %}
-                            <span class="tag tag-nao">não pediu</span>
-                        {% endif %}
-                    </td>
-                    <td class="num">
-                        {% if entry.confirmado_pelo_admin %}
-                            <span class="tag tag-ok">vaga confirmada</span><br>
-                        {% endif %}
-                        <input type="checkbox"
-                               name="conf_admin_{{ entry.id }}"
-                               {% if entry.confirmado_pelo_admin %}checked{% endif %}
-                               {% if edicao_bloqueada %}disabled{% endif %}>
-                    </td>
-                </tr>
-            {% empty %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
                 <tr>
-                    <td colspan="4">Nenhum jogador inscrito neste torneio.</td>
+                    <th class="num">Remover</th>
+                    <th>Jogador</th>
+                    <th class="num">Conf. jogador</th>
+                    <th class="num">Conf. admin</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for entry in entries %}
+                    <tr class="{% if entry.confirmado_pelo_admin %}confirmado{% elif entry.confirmou_presenca %}pendente{% endif %}">
+                        <td class="num">
+                            <input type="checkbox" name="remover_entry_id" value="{{ entry.id }}"
+                                   {% if edicao_bloqueada %}disabled{% endif %}>
+                        </td>
+                        <td>{{ entry.player.apelido|default:entry.player.nome }}</td>
+                        <td class="num">
+                            {% if entry.confirmou_presenca %}
+                                <span class="tag tag-confirm-jogador">pedido</span>
+                            {% else %}
+                                <span class="tag tag-nao">não pediu</span>
+                            {% endif %}
+                        </td>
+                        <td class="num">
+                            {% if entry.confirmado_pelo_admin %}
+                                <span class="tag tag-ok">confirmado</span><br>
+                            {% endif %}
+                            <input type="checkbox"
+                                   name="conf_admin_{{ entry.id }}"
+                                   {% if entry.confirmado_pelo_admin %}checked{% endif %}
+                                   {% if edicao_bloqueada %}disabled{% endif %}>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4">Nenhum jogador inscrito.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div class="actions-row">
-            <div>
-                <button type="submit" name="remove_selected"
-                        class="btn btn-remove"
-                        {% if edicao_bloqueada %}disabled{% endif %}>
-                    Remover selecionados
-                </button>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button type="submit" name="confirm_all_requests"
-                        class="btn btn-confirm-all"
-                        {% if edicao_bloqueada %}disabled{% endif %}>
-                    Confirmar todos que pediram
-                </button>
-                <button type="submit" name="save_admin_confirm"
-                        class="btn btn-save"
-                        {% if edicao_bloqueada %}disabled{% endif %}>
-                    Salvar confirmações do admin
-                </button>
-            </div>
-        </div>
+            <button type="submit" name="remove_selected"
+                    class="btn btn-remove"
+                    {% if edicao_bloqueada %}disabled{% endif %}>
+                Remover selecionados
+            </button>
 
+            <button type="submit" name="confirm_all_requests"
+                    class="btn btn-confirm-all"
+                    {% if edicao_bloqueada %}disabled{% endif %}>
+                Confirmar pedidos
+            </button>
+
+            <button type="submit" name="save_admin_confirm"
+                    class="btn btn-save"
+                    {% if edicao_bloqueada %}disabled{% endif %}>
+                Salvar confirmações
+            </button>
+        </div>
     </form>
 </div>
 

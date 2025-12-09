@@ -1,47 +1,127 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>{{ player|default:"Novo jogador" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
     <style>
-        body { background:#050505; color:#fff; font-family: Arial; }
-        .container { max-width:600px; margin:40px auto; background:#121212; padding:25px; border-radius:10px; }
-        label { display:block; margin-top:12px; }
-        input { width:100%; padding:8px; margin-top:4px; border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff; }
-        button { margin-top:20px; padding:10px 20px; background:#2e7d32; color:#fff; border:none; border-radius:8px; }
-        a { color:#90caf9; }
+        .form-card {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #121212;
+            padding: 25px 22px;
+            border-radius: 10px;
+            border: 1px solid #2c2c2c;
+        }
+        .form-card h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .form-card label {
+            display: block;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+        .form-card input[type="text"],
+        .form-card input[type="tel"],
+        .form-card input[type="email"],
+        .form-card input:not([type]) {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 4px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1c1c1c;
+            color: #fff;
+            font-size: 14px;
+        }
+        .form-card input::placeholder {
+            color: #777;
+        }
+        .form-card input:focus {
+            outline: none;
+            border-color: #ffb300;
+        }
+        .form-card .checkbox-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .form-card .checkbox-row input[type="checkbox"] {
+            width: auto;
+        }
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .link-voltar {
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                margin: 24px auto;
+                padding: 20px 16px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>{% if player %}Editar{% else %}Novo{% endif %} Jogador</h1>
+<div class="form-card">
+    <h1>
+        {% if player %}Editar{% else %}Novo{% endif %} jogador
+    </h1>
 
     <form method="post">
         {% csrf_token %}
 
-        <label>Nome</label>
-        <input name="nome" value="{{ player.nome|default:'' }}" required>
+        <label for="id_nome">Nome</label>
+        <input id="id_nome" name="nome"
+               type="text"
+               value="{{ player.nome|default:'' }}"
+               required>
 
-        <label>Apelido</label>
-        <input name="apelido" value="{{ player.apelido|default:'' }}">
+        <label for="id_apelido">Apelido</label>
+        <input id="id_apelido" name="apelido"
+               type="text"
+               value="{{ player.apelido|default:'' }}">
 
-        <label>CPF</label>
-        <input name="cpf" value="{{ player.cpf|default:'' }}">
+        <label for="id_cpf">CPF</label>
+        <input id="id_cpf" name="cpf"
+               type="text"
+               value="{{ player.cpf|default:'' }}">
 
-        <label>Telefone</label>
-        <input name="telefone" value="{{ player.telefone|default:'' }}">
+        <label for="id_telefone">Telefone</label>
+        <input id="id_telefone" name="telefone"
+               type="text"
+               value="{{ player.telefone|default:'' }}">
 
-        <label>
-            <input type="checkbox" name="ativo" {% if player and player.ativo %}checked{% endif %}>
+        <label class="checkbox-row">
+            <input type="checkbox" name="ativo"
+                   {% if player and player.ativo %}checked{% endif %}>
             Jogador ativo
         </label>
 
-        <button type="submit">Salvar</button>
-    </form>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-confirm">
+                Salvar
+            </button>
 
-    <br>
-    <a href="{% url 'players_list' %}">← Voltar</a>
+            <a href="{% url 'players_list' %}" class="link-voltar">
+                ← Voltar
+            </a>
+        </div>
+    </form>
 </div>
 
 </body>

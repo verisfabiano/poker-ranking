@@ -1,147 +1,177 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Ranking - {{ season.nome }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
     <style>
-        body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
-
-        .topbar {
-            background:#111; padding:14px 26px;
-            display:flex; justify-content:space-between; align-items:center;
-            border-bottom:1px solid #333;
+        h1 {
+            font-size: 24px;
+            margin: 0 0 6px;
         }
-        .topbar a { color:#ddd; text-decoration:none; font-size:14px; }
-        .topbar a:hover { color:#fff; }
 
-        .container { max-width:1000px; margin:25px auto 40px; padding:0 22px; }
+        .subtitle {
+            color: #bdbdbd;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
 
-        h1 { font-size:26px; margin:0 0 6px; }
-        .subtitle { color:#bdbdbd; margin-bottom:16px; }
+        tr.leader-row {
+            background: #283593;
+        }
 
-        table { width:100%; border-collapse:collapse; background:#121212;
-                border-radius:10px; overflow:hidden; }
-        th, td { padding:10px 12px; border-bottom:1px solid #333; font-size:14px; }
-        th { background:#1f1f1f; text-align:left; }
-        th.num, td.num { text-align:center; }
-        tr:nth-child(even) { background:#151515; }
-
-        tr.leader-row { background:#283593; }
-        tr.leader-row td { border-bottom-color:#3949ab; }
+        tr.leader-row td {
+            border-bottom-color: #3949ab;
+        }
 
         .pos {
-            font-weight:bold;
-            width:70px;
+            font-weight: bold;
+            width: 70px;
         }
+
         .medal {
-            font-size:18px;
-            margin-right:4px;
+            font-size: 18px;
+            margin-right: 4px;
         }
+
         .tie-mark {
-            font-size:11px;
-            color:#ffeb3b;
-            margin-left:3px;
+            font-size: 11px;
+            color: #ffeb3b;
+            margin-left: 3px;
         }
 
         .nome-jogador {
-            font-weight:600;
+            font-weight: 600;
         }
 
         .detalhe-pontos {
-            font-size:12px;
-            color:#bdbdbd;
+            font-size: 12px;
+            color: #bdbdbd;
         }
 
         .link-evolucao {
-            font-size:12px;
-            text-decoration:none;
-            color:#90caf9;
+            font-size: 12px;
+            text-decoration: none;
+            color: #90caf9;
         }
+
         .link-evolucao:hover {
-            text-decoration:underline;
+            text-decoration: underline;
         }
 
         .hint {
-            font-size:12px;
-            color:#bdbdbd;
-            margin-top:10px;
+            font-size: 12px;
+            color: #bdbdbd;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+            }
+
+            .pos {
+                width: auto;
+            }
+
+            .detalhe-pontos {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div>
-        <a href="{% url 'painel_home' %}">← Voltar ao painel</a>
+    <div class="topbar-title">
+        Ranking da temporada
     </div>
-    <div>
-        Temporada: <strong>{{ season.nome }}</strong>
+    <div class="topbar-sub">
+        <a href="{% url 'painel_home' %}">← Voltar ao painel</a>
     </div>
 </div>
 
 <div class="container">
     <h1>Ranking da temporada</h1>
+
     <div class="subtitle">
+        Temporada: <strong>{{ season.nome }}</strong><br>
         Pontuação total = (pontos iniciais) + (pontos de torneios) + (participação/time chip/confirmação).
     </div>
 
-    <table>
-        <thead>
-        <tr>
-            <th class="num">Posição</th>
-            <th>Jogador</th>
-            <th class="num">Pontos</th>
-            <th class="num">Detalhe</th>
-            <th class="num">Evolução</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for item in ranking %}
-            {% with pos=item.posicao %}
-            <tr class="{% if pos == 1 %}leader-row{% endif %}">
-                <td class="num pos">
-                    {% if pos == 1 %}
-                        <span class="medal">🥇</span>{{ pos }}
-                    {% elif pos == 2 %}
-                        <span class="medal">🥈</span>{{ pos }}
-                    {% elif pos == 3 %}
-                        <span class="medal">🥉</span>{{ pos }}
-                    {% else %}
-                        {{ pos }}
-                    {% endif %}
-                    {% if item.empatado %}
-                        <span class="tie-mark">=</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <span class="nome-jogador">{{ item.nome }}</span>
-                </td>
-                <td class="num">
-                    {{ item.pontos }}
-                </td>
-                <td class="num">
-                    <div class="detalhe-pontos">
-                        Ini: {{ item.pontos_iniciais }} •
-                        Torneios: {{ item.pontos_resultado }} •
-                        Part.: {{ item.pontos_participacao }}
-                    </div>
-                </td>
-                <td class="num">
-                    <a class="link-evolucao"
-                       href="{% url 'player_progress_season' season.id item.player_id %}"
-                       target="_blank">
-                        📈 ver
-                    </a>
-                </td>
-            </tr>
-            {% endwith %}
-        {% empty %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
             <tr>
-                <td colspan="5">Nenhum jogador pontuando ainda nesta temporada.</td>
+                <th class="num">Posição</th>
+                <th>Jogador</th>
+                <th class="num">Pontos</th>
+                <th class="num">Detalhe</th>
+                <th class="num">Evolução</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for item in ranking %}
+                {% with pos=item.posicao %}
+                <tr class="{% if pos == 1 %}leader-row{% endif %}">
+                    <td class="num pos">
+                        {% if pos == 1 %}
+                            <span class="medal">🥇</span>{{ pos }}
+                        {% elif pos == 2 %}
+                            <span class="medal">🥈</span>{{ pos }}
+                        {% elif pos == 3 %}
+                            <span class="medal">🥉</span>{{ pos }}
+                        {% else %}
+                            {{ pos }}
+                        {% endif %}
+                        {% if item.empatado %}
+                            <span class="tie-mark">=</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="nome-jogador">{{ item.nome }}</span>
+                    </td>
+
+                    <td class="num">
+                        {{ item.pontos }}
+                    </td>
+
+                    <td class="num">
+                        <div class="detalhe-pontos">
+                            Ini: {{ item.pontos_iniciais }} •
+                            Torneios: {{ item.pontos_resultado }} •
+                            Part.: {{ item.pontos_participacao }}
+                        </div>
+                    </td>
+
+                    <td class="num">
+                        <a class="link-evolucao"
+                           href="{% url 'player_progress_season' season.id item.player_id %}"
+                           target="_blank">
+                            📈 ver
+                        </a>
+                    </td>
+                </tr>
+                {% endwith %}
+            {% empty %}
+                <tr>
+                    <td colspan="5">
+                        Nenhum jogador pontuando ainda nesta temporada.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <div class="hint">
         • Critério de desempate: 1º pontos totais, 2º mais pontos de torneios, 3º mais pontos iniciais, 4º nome alfabético.<br>

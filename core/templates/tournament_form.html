@@ -1,77 +1,200 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
     <style>
-        body { background:#050505; color:#fff; font-family:Arial; margin:0; }
-        .container { max-width:700px; margin:40px auto; background:#121212; padding:20px; border-radius:10px; }
-        label { display:block; margin-top:10px; }
-        input[type="text"], input[type="datetime-local"], select {
-            width:100%; padding:7px; margin-top:4px;
-            border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff;
+        .form-card {
+            max-width: 720px;
+            margin: 40px auto;
+            background: #111216;
+            padding: 22px 24px;
+            border-radius: 14px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
         }
-        button {
-            margin-top:20px; padding:8px 16px;
-            background:#2e7d32; color:#fff; border:none; border-radius:6px;
+
+        .form-title {
+            margin: 0 0 6px;
+            font-size: 22px;
         }
-        a { color:#90caf9; text-decoration:none; }
+
+        .form-subtitle {
+            font-size: 13px;
+            color: #bdbdbd;
+            margin-bottom: 18px;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #c1c1c1;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        select {
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            background: #181920;
+            color: #f5f5f5;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #ffb300;
+            box-shadow: 0 0 0 1px rgba(255, 179, 0, 0.35);
+        }
+
+        .actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff9800, #ffb300);
+            color: #111;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.04);
+        }
+
+        .back-link {
+            color: #90caf9;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                margin: 24px 14px;
+                padding: 18px;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-primary {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</h1>
+
+<div class="topbar">
+    <div class="topbar-title">
+        Espaço Poker · {% if tournament %}Editar{% else %}Novo{% endif %} Torneio
+    </div>
+</div>
+
+<div class="form-card">
+    <h1 class="form-title">{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</h1>
+    <div class="form-subtitle">
+        Preencha os dados do torneio para exibição no ranking e confirmações.
+    </div>
 
     <form method="post">
         {% csrf_token %}
 
-        <label>Nome</label>
-        <input type="text" name="nome" required value="{{ tournament.nome|default:'' }}">
+        <div class="field">
+            <label>Nome</label>
+            <input type="text" name="nome" required value="{{ tournament.nome|default:'' }}">
+        </div>
 
-        <label>Data e hora</label>
-        <input type="datetime-local" name="data"
-               value="{% if tournament %}{{ data_str }}{% endif %}">
+        <div class="field">
+            <label>Data e hora</label>
+            <input type="datetime-local" name="data"
+                   value="{% if tournament %}{{ data_str }}{% endif %}">
+        </div>
 
-        <label>Tipo de torneio</label>
-        <select name="tipo_id" required>
-            <option value="">Selecione...</option>
-            {% for t in tipos %}
-                <option value="{{ t.id }}"
-                    {% if tournament and tournament.tipo.id == t.id %}selected{% endif %}>
-                    {{ t.nome }} (peso {{ t.multiplicador_pontos }})
+        <div class="field">
+            <label>Tipo de torneio</label>
+            <select name="tipo_id" required>
+                <option value="">Selecione...</option>
+                {% for t in tipos %}
+                    <option value="{{ t.id }}"
+                        {% if tournament and tournament.tipo.id == t.id %}selected{% endif %}>
+                        {{ t.nome }} (peso {{ t.multiplicador_pontos }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Buy-in (opcional)</label>
+            <input type="text" name="buy_in"
+                   value="{{ tournament.buy_in|default:'' }}">
+        </div>
+
+        <div class="field">
+            <label>Garantido (opcional)</label>
+            <input type="text" name="garantido"
+                   value="{{ tournament.garantido|default:'' }}">
+        </div>
+
+        <div class="field">
+            <label>Status</label>
+            <select name="status">
+                <option value="AGENDADO"
+                        {% if tournament and tournament.status == "AGENDADO" %}selected{% endif %}>
+                    Agendado
                 </option>
-            {% endfor %}
-        </select>
+                <option value="EM_ANDAMENTO"
+                        {% if tournament and tournament.status == "EM_ANDAMENTO" %}selected{% endif %}>
+                    Em andamento
+                </option>
+                <option value="FINALIZADO"
+                        {% if tournament and tournament.status == "FINALIZADO" %}selected{% endif %}>
+                    Finalizado
+                </option>
+            </select>
+        </div>
 
-        <label>Buy-in (opcional)</label>
-        <input type="text" name="buy_in"
-               value="{{ tournament.buy_in|default:'' }}">
+        <div class="actions">
+            <a class="back-link" href="{% url 'season_tournaments' season.id %}">
+                ← Voltar
+            </a>
 
-        <label>Garantido (opcional)</label>
-        <input type="text" name="garantido"
-               value="{{ tournament.garantido|default:'' }}">
-
-        <label>Status</label>
-        <select name="status">
-            <option value="AGENDADO"
-                    {% if tournament and tournament.status == "AGENDADO" %}selected{% endif %}>
-                Agendado
-            </option>
-            <option value="EM_ANDAMENTO"
-                    {% if tournament and tournament.status == "EM_ANDAMENTO" %}selected{% endif %}>
-                Em andamento
-            </option>
-            <option value="FINALIZADO"
-                    {% if tournament and tournament.status == "FINALIZADO" %}selected{% endif %}>
-                Finalizado
-            </option>
-        </select>
-
-        <button type="submit">Salvar</button>
+            <button type="submit" class="btn-primary">
+                Salvar
+            </button>
+        </div>
     </form>
-
-    <br>
-    <a href="{% url 'season_tournaments' season.id %}">← Voltar</a>
 </div>
+
 </body>
 </html>

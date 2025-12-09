@@ -1,74 +1,168 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Lançar resultados - {{ tournament.nome }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
     <style>
-        body { margin:0; background:#050505; color:#f5f5f5; font-family:Arial, sans-serif; }
-
-        .topbar {
-            background:#111; padding:14px 26px;
-            display:flex; justify-content:space-between; align-items:center;
-            border-bottom:1px solid #333;
+        .subtitle {
+            color:#bdbdbd;
+            margin-bottom:16px;
+            font-size:14px;
         }
-        .topbar a { color:#ddd; text-decoration:none; font-size:14px; }
-        .topbar a:hover { color:#fff; }
-
-        .container { max-width:1200px; margin:25px auto 40px; padding:0 22px; }
-
-        h1 { font-size:24px; margin:0 0 8px; }
-        .subtitle { color:#bdbdbd; margin-bottom:16px; }
 
         .badge {
-            display:inline-block; padding:3px 8px; border-radius:4px;
-            font-size:11px; text-transform:uppercase; background:#424242;
+            display:inline-block;
+            padding:3px 8px;
+            border-radius:999px;
+            font-size:11px;
+            text-transform:uppercase;
+            background:#424242;
+            margin-left:6px;
         }
 
         .alert {
-            padding:10px 14px; border-radius:6px; margin-bottom:14px;
-            background:#1b5e20; color:#e8f5e9; font-size:13px;
+            padding:10px 14px;
+            border-radius:6px;
+            margin-bottom:14px;
+            background:#1b5e20;
+            color:#e8f5e9;
+            font-size:13px;
+            border:1px solid #2e7d32;
         }
 
-        .table { width:100%; border-collapse:collapse; background:#121212;
-                 border-radius:10px; overflow:hidden; margin-top:10px; }
-        .table th, .table td {
-            padding:8px 10px; border-bottom:1px solid #333; font-size:13px;
+        .table-wrapper {
+            margin-top:10px;
+            overflow-x:auto;
         }
-        .table th { background:#1f1f1f; }
-        .table th:first-child, .table td:first-child { text-align:left; }
-        .table th.num, .table td.num { text-align:center; }
-        .table tr:nth-child(even) { background:#151515; }
+
+        table {
+            width:100%;
+            border-collapse:collapse;
+            background:#121212;
+            border-radius:10px;
+            overflow:hidden;
+        }
+
+        th, td {
+            padding:8px 10px;
+            border-bottom:1px solid #333;
+            font-size:13px;
+        }
+
+        th {
+            background:#1f1f1f;
+            text-align:left;
+        }
+
+        th.num, td.num {
+            text-align:center;
+            white-space:nowrap;
+        }
+
+        tr:nth-child(even) {
+            background:#151515;
+        }
 
         input[type="number"] {
-            width:60px; padding:3px; border-radius:4px;
-            border:1px solid #555; background:#1c1c1c; color:#f5f5f5;
+            width:70px;
+            padding:4px 6px;
+            border-radius:4px;
+            border:1px solid #555;
+            background:#1c1c1c;
+            color:#f5f5f5;
+            font-size:13px;
         }
-        input[type="checkbox"] { transform:scale(1.1); }
 
-        .actions { margin-top:18px; text-align:right; }
+        input[type="checkbox"] {
+            transform:scale(1.1);
+        }
+
+        .actions {
+            margin-top:18px;
+            text-align:right;
+        }
+
         .btn-submit {
-            padding:10px 18px; border-radius:6px;
-            background:#1976d2; border:none; color:#fff;
-            font-size:14px; cursor:pointer;
+            padding:10px 18px;
+            border-radius:999px;
+            background:#1976d2;
+            border:none;
+            color:#fff;
+            font-size:14px;
+            cursor:pointer;
+            font-weight:600;
+            letter-spacing:.05em;
+            text-transform:uppercase;
         }
-        .btn-submit:hover { background:#1e88e5; }
 
-        .hint { font-size:12px; color:#bdbdbd; margin-top:6px; }
+        .btn-submit:hover {
+            background:#1e88e5;
+        }
+
+        .hint {
+            font-size:12px;
+            color:#bdbdbd;
+            margin-top:8px;
+        }
+
+        .topbar-link {
+            color:#ddd;
+            text-decoration:none;
+            font-size:14px;
+        }
+
+        .topbar-link:hover {
+            color:#fff;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size:20px;
+            }
+
+            .subtitle {
+                font-size:13px;
+            }
+
+            th, td {
+                font-size:12px;
+                padding:6px 8px;
+            }
+
+            input[type="number"] {
+                width:64px;
+            }
+
+            .btn-submit {
+                width:100%;
+            }
+
+            .actions {
+                text-align:center;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div>
-        <a href="{% url 'season_tournaments' season.id %}">← Voltar à lista de torneios</a>
+    <div class="topbar-sub">
+        <a class="topbar-link" href="{% url 'season_tournaments' season.id %}">
+            ← Voltar à lista de torneios
+        </a>
     </div>
-    <div>
+    <div class="topbar-sub">
         Temporada: <strong>{{ season.nome }}</strong>
     </div>
 </div>
 
 <div class="container">
-    <h1>Lançar resultados - {{ tournament.nome }}</h1>
+    <h1>Lançar resultados – {{ tournament.nome }}</h1>
     <div class="subtitle">
         {{ tournament.data|date:"d/m/Y H:i" }} • Tipo: {{ tournament.tipo.nome }}
         <span class="badge">{{ tournament.get_status_display }}</span>
@@ -81,61 +175,63 @@
     <form method="post">
         {% csrf_token %}
 
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Jogador</th>
-                <th class="num">Participou</th>
-                <th class="num">Confirmação</th>
-                <th class="num">Time chip</th>
-                <th class="num">Posição</th>
-                <th class="num">Ajuste deal (+/-)</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for linha in linhas %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
                 <tr>
-                    <td>
-                        {{ linha.player.apelido|default:linha.player.nome }}
-                    </td>
-                    <td class="num">
-                        <input type="checkbox"
-                               name="participou_{{ linha.player.id }}"
-                               {% if linha.entry.participou %}checked{% endif %}>
-                    </td>
-                    <td class="num">
-                        <input type="checkbox"
-                               name="confirmou_{{ linha.player.id }}"
-                               {% if linha.entry.confirmou_presenca %}checked{% endif %}>
-                    </td>
-                    <td class="num">
-                        <input type="checkbox"
-                               name="timechip_{{ linha.player.id }}"
-                               {% if linha.entry.usou_time_chip %}checked{% endif %}>
-                    </td>
-                    <td class="num">
-                        <input type="number"
-                               name="pos_{{ linha.player.id }}"
-                               min="1"
-                               value="{% if linha.result %}{{ linha.result.posicao }}{% endif %}">
-                    </td>
-                    <td class="num">
-                        <input type="number"
-                               name="ajuste_{{ linha.player.id }}"
-                               value="{% if linha.result %}{{ linha.result.pontos_ajuste_deal }}{% endif %}">
-                    </td>
+                    <th>Jogador</th>
+                    <th class="num">Participou</th>
+                    <th class="num">Confirmação</th>
+                    <th class="num">Time chip</th>
+                    <th class="num">Posição</th>
+                    <th class="num">Ajuste deal (+/-)</th>
                 </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="6">
-                        Nenhuma entrada encontrada para este torneio.
-                        Cadastre os jogadores em <strong>Jogadores</strong>
-                        e associe em <strong>Jogadores do torneio</strong>.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for linha in linhas %}
+                    <tr>
+                        <td>
+                            {{ linha.player.apelido|default:linha.player.nome }}
+                        </td>
+                        <td class="num">
+                            <input type="checkbox"
+                                   name="participou_{{ linha.player.id }}"
+                                   {% if linha.entry.participou %}checked{% endif %}>
+                        </td>
+                        <td class="num">
+                            <input type="checkbox"
+                                   name="confirmou_{{ linha.player.id }}"
+                                   {% if linha.entry.confirmou_presenca %}checked{% endif %}>
+                        </td>
+                        <td class="num">
+                            <input type="checkbox"
+                                   name="timechip_{{ linha.player.id }}"
+                                   {% if linha.entry.usou_time_chip %}checked{% endif %}>
+                        </td>
+                        <td class="num">
+                            <input type="number"
+                                   name="pos_{{ linha.player.id }}"
+                                   min="1"
+                                   value="{% if linha.result %}{{ linha.result.posicao }}{% endif %}">
+                        </td>
+                        <td class="num">
+                            <input type="number"
+                                   name="ajuste_{{ linha.player.id }}"
+                                   value="{% if linha.result %}{{ linha.result.pontos_ajuste_deal }}{% endif %}">
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            Nenhuma entrada encontrada para este torneio.
+                            Cadastre os jogadores em <strong>Jogadores</strong>
+                            e associe em <strong>Jogadores do torneio</strong>.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         <div class="hint">
             • Marque participação / confirmação / time chip conforme o regulamento.<br>

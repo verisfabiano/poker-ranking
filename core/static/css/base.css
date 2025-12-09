@@ -1,0 +1,219 @@
+/* =========================
+   RESET + BASE GLOBAL
+========================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #1b1b1b 0, #050505 55%);
+    color: #f5f5f5;
+    font-size: 15px;
+}
+
+a {
+    color: #ffb300;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   TOPBAR
+========================= */
+.topbar {
+    background: #111;
+    padding: 14px 26px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.topbar-title {
+    font-size: 15px;
+    color: #f5f5f5;
+}
+
+.topbar-sub {
+    font-size: 13px;
+    color: #bbbbbb;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+.container {
+    max-width: 1000px;
+    margin: 24px auto 40px;
+    padding: 0 16px;
+}
+
+h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #bdbdbd;
+    margin-bottom: 18px;
+}
+
+/* =========================
+   TABELAS
+========================= */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111216;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+    min-width: 600px;
+}
+
+th, td {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #272727;
+}
+
+th {
+    background: #1c1c1c;
+    text-align: left;
+}
+
+th.num, td.num {
+    text-align: center;
+    width: 90px;
+}
+
+tr:nth-child(even) {
+    background: #151515;
+}
+
+/* =========================
+   TAGS DE STATUS
+========================= */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    border: 1px solid transparent;
+}
+
+.tag-nao {
+    border-color: #616161;
+    color: #e0e0e0;
+}
+
+.tag-pendente {
+    border-color: #ffb300;
+    color: #ffecb3;
+}
+
+.tag-ok {
+    border-color: #66bb6a;
+    color: #c8e6c9;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+.btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-confirm {
+    background: linear-gradient(90deg, #ff9800, #ffb300);
+    color: #111;
+}
+
+.btn-cancel {
+    background: linear-gradient(90deg, #d50000, #ff1744);
+    color: #fff;
+}
+
+.btn-disabled {
+    background: #333;
+    color: #aaa;
+    cursor: default;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+.empty {
+    padding: 16px 0;
+    font-size: 13px;
+    color: #bdbdbd;
+    text-align: center;
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 14px;
+    }
+
+    .topbar-title {
+        font-size: 14px;
+    }
+
+    .topbar-sub {
+        font-size: 12px;
+    }
+
+    .container {
+        margin-top: 18px;
+        padding: 0 12px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .subtitle {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 8px 8px;
+        font-size: 12px;
+    }
+
+    .btn {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+}

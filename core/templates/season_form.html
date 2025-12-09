@@ -1,51 +1,130 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>{% if season %}Editar{% else %}Nova{% endif %} Temporada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
     <style>
-        body { background:#050505; color:#fff; font-family:Arial; margin:0; }
-        .container { max-width:600px; margin:40px auto; background:#121212; padding:20px; border-radius:10px; }
-        label { display:block; margin-top:10px; }
-        input[type="text"], input[type="date"] {
-            width:100%; padding:7px; margin-top:4px;
-            border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff;
+        .form-card {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #121212;
+            padding: 24px 22px;
+            border-radius: 10px;
+            border: 1px solid #2c2c2c;
         }
-        button {
-            margin-top:20px; padding:8px 16px;
-            background:#2e7d32; color:#fff; border:none; border-radius:6px;
+
+        .form-card h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 22px;
         }
-        a { color:#90caf9; text-decoration:none; }
+
+        .form-card label {
+            display: block;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .form-card input[type="text"],
+        .form-card input[type="date"],
+        .form-card input:not([type]) {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 4px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1c1c1c;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-card input:focus {
+            outline: none;
+            border-color: #ffb300;
+        }
+
+        .checkbox-row {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: auto;
+        }
+
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .link-voltar {
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                margin: 24px auto;
+                padding: 20px 16px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>{% if season %}Editar{% else %}Nova{% endif %} Temporada</h1>
+
+<div class="form-card">
+    <h1>
+        {% if season %}Editar{% else %}Nova{% endif %} temporada
+    </h1>
 
     <form method="post">
         {% csrf_token %}
-        <label>Nome</label>
-        <input type="text" name="nome" required value="{{ season.nome|default:'' }}">
 
-        <label>Data início</label>
-        <input type="date" name="data_inicio"
+        <label for="id_nome">Nome</label>
+        <input id="id_nome"
+               type="text"
+               name="nome"
+               required
+               value="{{ season.nome|default:'' }}">
+
+        <label for="id_data_inicio">Data início</label>
+        <input id="id_data_inicio"
+               type="date"
+               name="data_inicio"
                value="{{ season.data_inicio|date:'Y-m-d'|default:'' }}">
 
-        <label>Data fim</label>
-        <input type="date" name="data_fim"
+        <label for="id_data_fim">Data fim</label>
+        <input id="id_data_fim"
+               type="date"
+               name="data_fim"
                value="{{ season.data_fim|date:'Y-m-d'|default:'' }}">
 
-        <label>
+        <label class="checkbox-row">
             <input type="checkbox" name="ativo"
                    {% if season and season.ativo %}checked{% endif %}>
             Temporada ativa
         </label>
 
-        <button type="submit">Salvar</button>
-    </form>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-confirm">
+                Salvar
+            </button>
 
-    <br>
-    <a href="{% url 'seasons_list' %}">← Voltar</a>
+            <a href="{% url 'seasons_list' %}" class="link-voltar">
+                ← Voltar
+            </a>
+        </div>
+    </form>
 </div>
+
 </body>
 </html>
