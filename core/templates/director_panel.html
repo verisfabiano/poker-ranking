@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Sala de Controle - {{ tournament.nome }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Sala de Controle</h2>
+            <div class="text-muted">{{ tournament.nome }}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'season_tournaments' tournament.season.id %}" class="btn btn-outline-secondary">Sair</a>
+            <a href="{% url 'tv_ranking_season' tournament.season.id %}" target="_blank" class="btn btn-primary">
+                <i class="bi bi-display"></i> Abrir Telão TV
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-lg border-0 mb-4 text-center">
+        <div class="card-header bg-dark text-white py-3">
+            <h4 class="mb-0 text-uppercase letter-spacing-2">
+                {% if blind.is_break %}
+                    ☕ INTERVALO
+                {% else %}
+                    NÍVEL {{ blind.ordem }}
+                {% endif %}
+            </h4>
+        </div>
+        
+        <div class="card-body p-5">
+            {% if not blind.is_break %}
+                <div class="display-1 fw-bold text-dark mb-2">
+                    {{ blind.small_blind }} <span class="text-muted">/</span> {{ blind.big_blind }}
+                </div>
+                {% if blind.ante > 0 %}
+                    <div class="h3 text-muted mb-4">ANTE: {{ blind.ante }}</div>
+                {% endif %}
+            {% else %}
+                <div class="display-1 fw-bold text-warning mb-4">
+                    BREAK
+                </div>
+            {% endif %}
+
+            <hr>
+
+            <div class="row justify-content-center align-items-center g-3 mt-2">
+                <div class="col-auto">
+                    <a href="{% url 'director_change_level' tournament.id 'prev' %}" class="btn btn-outline-secondary btn-lg" title="Nível Anterior">
+                        <i class="bi bi-skip-backward-fill"></i>
+                    </a>
+                </div>
+
+                <div class="col-auto px-4">
+                    <a href="{% url 'director_toggle_timer' tournament.id %}" 
+                       class="btn btn-lg rounded-circle p-4 shadow {% if tournament.is_paused %}btn-success{% else %}btn-warning{% endif %}"
+                       style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                        {% if tournament.is_paused %}
+                            <i class="bi bi-play-fill display-4 ps-1"></i>
+                        {% else %}
+                            <i class="bi bi-pause-fill display-4"></i>
+                        {% endif %}
+                    </a>
+                    <div class="mt-2 fw-bold small text-uppercase">
+                        {% if tournament.is_paused %}Iniciar{% else %}Pausar{% endif %}
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <a href="{% url 'director_change_level' tournament.id 'next' %}" class="btn btn-outline-secondary btn-lg" title="Próximo Nível">
+                        <i class="bi bi-skip-forward-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer text-muted">
+            Próximo: 
+            {% if next_blind %}
+                {% if next_blind.is_break %}Intervalo{% else %}{{ next_blind.small_blind }}/{{ next_blind.big_blind }}{% endif %}
+                ({{ next_blind.tempo_minutos }} min)
+            {% else %}
+                Fim do Torneio
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-3 text-center">
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <div class="text-muted small uppercase">Mesas Ativas</div>
+                <div class="h2 fw-bold mb-0">{{ tournament.active_tables }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <div class="text-muted small uppercase">Stack Médio</div>
+                <div class="h2 fw-bold mb-0">--</div> </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <div class="text-muted small uppercase">Jogadores</div>
+                <div class="h2 fw-bold mb-0">{{ tournament.entries.count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

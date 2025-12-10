@@ -130,4 +130,9 @@ urlpatterns = [
     path("blinds/", blind_structures_list, name="blind_structures_list"),
     path("blinds/nova/", blind_structure_create, name="blind_structure_create"),
     path("blinds/<int:structure_id>/gerenciar/", blind_structure_manage, name="blind_structure_manage"),
+
+# PAINEL DO DIRETOR
+    path("torneio/<int:tournament_id>/diretor/", director_panel, name="director_panel"),
+    path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
+    path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
 ]
