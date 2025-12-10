@@ -1,128 +1,73 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ player|default:"Novo jogador" }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        .form-card {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #121212;
-            padding: 25px 22px;
-            border-radius: 10px;
-            border: 1px solid #2c2c2c;
-        }
-        .form-card h1 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 22px;
-        }
-        .form-card label {
-            display: block;
-            margin-top: 12px;
-            font-size: 14px;
-        }
-        .form-card input[type="text"],
-        .form-card input[type="tel"],
-        .form-card input[type="email"],
-        .form-card input:not([type]) {
-            width: 100%;
-            padding: 8px 10px;
-            margin-top: 4px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #1c1c1c;
-            color: #fff;
-            font-size: 14px;
-        }
-        .form-card input::placeholder {
-            color: #777;
-        }
-        .form-card input:focus {
-            outline: none;
-            border-color: #ffb300;
-        }
-        .form-card .checkbox-row {
-            margin-top: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-        }
-        .form-card .checkbox-row input[type="checkbox"] {
-            width: auto;
-        }
-        .form-actions {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .link-voltar {
-            font-size: 13px;
-        }
+{% block title %}
+    {% if player %}{{ player.apelido|default:player.nome }}{% else %}Novo Jogador{% endif %}
+{% endblock %}
 
-        @media (max-width: 768px) {
-            .form-card {
-                margin: 24px auto;
-                padding: 20px 16px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="form-card">
-    <h1>
-        {% if player %}Editar{% else %}Novo{% endif %} jogador
-    </h1>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <label for="id_nome">Nome</label>
-        <input id="id_nome" name="nome"
-               type="text"
-               value="{{ player.nome|default:'' }}"
-               required>
-
-        <label for="id_apelido">Apelido</label>
-        <input id="id_apelido" name="apelido"
-               type="text"
-               value="{{ player.apelido|default:'' }}">
-
-        <label for="id_cpf">CPF</label>
-        <input id="id_cpf" name="cpf"
-               type="text"
-               value="{{ player.cpf|default:'' }}">
-
-        <label for="id_telefone">Telefone</label>
-        <input id="id_telefone" name="telefone"
-               type="text"
-               value="{{ player.telefone|default:'' }}">
-
-        <label class="checkbox-row">
-            <input type="checkbox" name="ativo"
-                   {% if player and player.ativo %}checked{% endif %}>
-            Jogador ativo
-        </label>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-confirm">
-                Salvar
-            </button>
-
-            <a href="{% url 'players_list' %}" class="link-voltar">
-                ← Voltar
-            </a>
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4 border-0">
+        
+        <div class="card-header bg-dark text-white py-3">
+            <h4 class="mb-0 d-flex align-items-center gap-2">
+                {% if player %}
+                    <i class="bi bi-person-gear"></i> Editar Jogador
+                {% else %}
+                    <i class="bi bi-person-plus-fill"></i> Novo Jogador
+                {% endif %}
+            </h4>
         </div>
-    </form>
-</div>
 
-</body>
-</html>
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="id_nome" class="form-label">Nome Completo</label>
+                    <input type="text" class="form-control" id="id_nome" name="nome" 
+                           value="{{ player.nome|default:'' }}" required placeholder="Ex: João da Silva">
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_apelido" class="form-label">Apelido (Como será chamado)</label>
+                    <input type="text" class="form-control" id="id_apelido" name="apelido" 
+                           value="{{ player.apelido|default:'' }}" placeholder="Ex: Joãozinho">
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="id_cpf" class="form-label">CPF</label>
+                        <input type="text" class="form-control" id="id_cpf" name="cpf" 
+                               value="{{ player.cpf|default:'' }}" placeholder="000.000.000-00">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_telefone" class="form-label">Telefone / WhatsApp</label>
+                        <input type="tel" class="form-control" id="id_telefone" name="telefone" 
+                               value="{{ player.telefone|default:'' }}" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <div class="mb-4 pt-2 border-top">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="id_ativo" name="ativo" 
+                               {% if not player or player.ativo %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="id_ativo">
+                            Jogador Ativo?
+                        </label>
+                        <div class="form-text">Desative para bloquear inscrições deste jogador.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'players_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
+                        SALVAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

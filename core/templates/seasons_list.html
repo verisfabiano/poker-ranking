@@ -1,115 +1,90 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Temporadas</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        .btn-new {
-            display: inline-block;
-            margin: 18px 0 14px;
-            padding: 9px 16px;
-            border-radius: 8px;
-            background: #2e7d32;
-            color: #fff;
-            text-decoration: none;
-            font-size: 14px;
-        }
+{% block title %}Gerenciar Temporadas{% endblock %}
 
-        .btn-new:hover {
-            background: #388e3c;
-        }
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-0">Temporadas</h2>
+            <p class="text-muted small mb-0">Gerencie os ciclos de pontuação do clube.</p>
+        </div>
+        <a href="{% url 'season_create' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Nova Temporada
+        </a>
+    </div>
 
-        .pill {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            border: 1px solid #555;
-            margin-left: 4px;
-        }
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Nome da Temporada</th>
+                            <th>Período</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in seasons %}
+                            <tr class="{% if s.ativo %}table-success-subtle{% endif %}">
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark fs-5">{{ s.nome }}</div>
+                                    {% if s.ativo %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i> ATIVA
+                                        </span>
+                                    {% endif %}
+                                </td>
 
-        .pill-ativa {
-            border-color: #43a047;
-            color: #a5d6a7;
-        }
+                                <td>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="bi bi-calendar-range me-2"></i>
+                                        <div>
+                                            {{ s.data_inicio|date:"d/m/Y" }} <span class="mx-1">até</span> {{ s.data_fim|date:"d/m/Y" }}
+                                        </div>
+                                    </div>
+                                </td>
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 22px;
-            }
+                                <td>
+                                    {% if s.ativo %}
+                                        <span class="text-success fw-bold">Em andamento</span>
+                                    {% else %}
+                                        <span class="text-muted">Finalizada</span>
+                                    {% endif %}
+                                </td>
 
-            .btn-new {
-                width: 100%;
-                text-align: center;
-            }
-        }
-    </style>
-</head>
-<body>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group" role="group">
+                                        
+                                        <a href="{% url 'season_tournaments' s.id %}" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                                            <i class="bi bi-table"></i> <span class="d-none d-md-inline">Torneios</span>
+                                        </a>
 
-<div class="topbar">
-    <div class="topbar-title">Painel · Temporadas</div>
-    <div class="topbar-sub">
-        <a href="{% url 'painel_home' %}">← Voltar ao painel</a>
+                                        <a href="{% url 'season_initial_points' s.id %}" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                                            <i class="bi bi-123"></i> <span class="d-none d-md-inline">Pts. Iniciais</span>
+                                        </a>
+
+                                        <a href="{% url 'season_edit' s.id %}" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                                            <i class="bi bi-gear-fill"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="bi bi-calendar-x d-block fs-1 mb-2 opacity-25"></i>
+                                    Nenhuma temporada cadastrada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-
-<div class="container">
-    <h1>Temporadas</h1>
-
-    <a class="btn-new" href="{% url 'season_create' %}">
-        + Nova temporada
-    </a>
-
-    <div class="table-wrapper">
-        <table>
-            <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Período</th>
-                <th class="num">Ativa?</th>
-                <th class="num">Ações</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for s in seasons %}
-                <tr>
-                    <td>
-                        {{ s.nome }}
-                        {% if s.ativo %}
-                            <span class="pill pill-ativa">ativa</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {{ s.data_inicio }} até {{ s.data_fim }}
-                    </td>
-
-                    <td class="num">
-                        {{ s.ativo|yesno:"Sim,Não" }}
-                    </td>
-
-                    <td class="num">
-                        <a href="{% url 'season_edit' s.id %}">Editar</a> |
-                        <a href="{% url 'season_initial_points' s.id %}">Pontos iniciais</a> |
-                        <a href="{% url 'season_tournaments' s.id %}">Torneios</a>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="4">
-                        Nenhuma temporada cadastrada.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-</body>
-</html>
+{% endblock %}

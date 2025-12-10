@@ -1,183 +1,114 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Ranking - {{ season.nome }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        h1 {
-            font-size: 24px;
-            margin: 0 0 6px;
-        }
+{% block title %}Ranking - {{ season.nome }}{% endblock %}
 
-        .subtitle {
-            color: #bdbdbd;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-
-        tr.leader-row {
-            background: #283593;
-        }
-
-        tr.leader-row td {
-            border-bottom-color: #3949ab;
-        }
-
-        .pos {
-            font-weight: bold;
-            width: 70px;
-        }
-
-        .medal {
-            font-size: 18px;
-            margin-right: 4px;
-        }
-
-        .tie-mark {
-            font-size: 11px;
-            color: #ffeb3b;
-            margin-left: 3px;
-        }
-
-        .nome-jogador {
-            font-weight: 600;
-        }
-
-        .detalhe-pontos {
-            font-size: 12px;
-            color: #bdbdbd;
-        }
-
-        .link-evolucao {
-            font-size: 12px;
-            text-decoration: none;
-            color: #90caf9;
-        }
-
-        .link-evolucao:hover {
-            text-decoration: underline;
-        }
-
-        .hint {
-            font-size: 12px;
-            color: #bdbdbd;
-            margin-top: 12px;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 20px;
-            }
-
-            .subtitle {
-                font-size: 13px;
-            }
-
-            .pos {
-                width: auto;
-            }
-
-            .detalhe-pontos {
-                font-size: 11px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-title">
-        Ranking da temporada
-    </div>
-    <div class="topbar-sub">
-        <a href="{% url 'painel_home' %}">← Voltar ao painel</a>
-    </div>
-</div>
-
+{% block content %}
 <div class="container">
-    <h1>Ranking da temporada</h1>
 
-    <div class="subtitle">
-        Temporada: <strong>{{ season.nome }}</strong><br>
-        Pontuação total = (pontos iniciais) + (pontos de torneios) + (participação/time chip/confirmação).
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-0">Ranking da Temporada</h2>
+            <p class="text-muted mb-0">{{ season.nome }}</p>
+        </div>
+        <a href="{% url 'painel_home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar ao Painel
+        </a>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-            <tr>
-                <th class="num">Posição</th>
-                <th>Jogador</th>
-                <th class="num">Pontos</th>
-                <th class="num">Detalhe</th>
-                <th class="num">Evolução</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in ranking %}
-                {% with pos=item.posicao %}
-                <tr class="{% if pos == 1 %}leader-row{% endif %}">
-                    <td class="num pos">
-                        {% if pos == 1 %}
-                            <span class="medal">🥇</span>{{ pos }}
-                        {% elif pos == 2 %}
-                            <span class="medal">🥈</span>{{ pos }}
-                        {% elif pos == 3 %}
-                            <span class="medal">🥉</span>{{ pos }}
-                        {% else %}
-                            {{ pos }}
-                        {% endif %}
-                        {% if item.empatado %}
-                            <span class="tie-mark">=</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <span class="nome-jogador">{{ item.nome }}</span>
-                    </td>
-
-                    <td class="num">
-                        {{ item.pontos }}
-                    </td>
-
-                    <td class="num">
-                        <div class="detalhe-pontos">
-                            Ini: {{ item.pontos_iniciais }} •
-                            Torneios: {{ item.pontos_resultado }} •
-                            Part.: {{ item.pontos_participacao }}
-                        </div>
-                    </td>
-
-                    <td class="num">
-                        <a class="link-evolucao"
-                           href="{% url 'player_progress_season' season.id item.player_id %}"
-                           target="_blank">
-                            📈 ver
-                        </a>
-                    </td>
-                </tr>
-                {% endwith %}
-            {% empty %}
-                <tr>
-                    <td colspan="5">
-                        Nenhum jogador pontuando ainda nesta temporada.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="alert alert-light border shadow-sm d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-info-circle-fill text-primary me-3 fs-4"></i>
+        <div>
+            <small class="text-muted d-block text-uppercase fw-bold">Como funciona a pontuação?</small>
+            <span>
+                Total = <strong>Pontos Iniciais</strong> + <strong>Torneios</strong> + <strong>Bônus</strong> (Participação, Time Chip, etc).
+            </span>
+        </div>
     </div>
 
-    <div class="hint">
-        • Critério de desempate: 1º pontos totais, 2º mais pontos de torneios, 3º mais pontos iniciais, 4º nome alfabético.<br>
-        • Sinal "=" ao lado da posição indica jogadores com mesma pontuação total.
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4 text-center" style="width: 80px;">Pos</th>
+                            <th>Jogador</th>
+                            <th class="text-center">Total</th>
+                            <th class="d-none d-md-table-cell">Detalhamento</th>
+                            <th class="text-end pe-4">Evolução</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in ranking %}
+                            {% with pos=item.posicao %}
+                            <tr class="{% if pos == 1 %}table-warning border-warning{% endif %}">
+                                
+                                <td class="ps-4 text-center">
+                                    <div class="fw-bold fs-5">
+                                        {% if pos == 1 %}
+                                            🥇
+                                        {% elif pos == 2 %}
+                                            🥈
+                                        {% elif pos == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ pos }}º
+                                        {% endif %}
+                                    </div>
+                                    {% if item.empatado %}
+                                        <span class="badge bg-secondary" style="font-size: 0.6rem;">EMPATE</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold text-dark fs-5">{{ item.nome }}</div>
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge rounded-pill bg-primary fs-6 px-3">
+                                        {{ item.pontos }} pts
+                                    </span>
+                                </td>
+
+                                <td class="d-none d-md-table-cell">
+                                    <div class="d-flex gap-2 font-monospace small">
+                                        <span class="text-muted" title="Pontos Iniciais">
+                                            Ini: <strong>{{ item.pontos_iniciais }}</strong>
+                                        </span>
+                                        <span class="text-muted border-start ps-2" title="Pontos de Torneios">
+                                            Torn: <strong>{{ item.pontos_resultado }}</strong>
+                                        </span>
+                                        <span class="text-muted border-start ps-2" title="Bônus de Participação">
+                                            Part: <strong>{{ item.pontos_participacao }}</strong>
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'player_progress_season' season.id item.player_id %}" 
+                                       class="btn btn-sm btn-outline-primary rounded-pill"
+                                       target="_blank"
+                                       title="Ver gráfico de evolução">
+                                        <i class="bi bi-graph-up"></i> <span class="d-none d-sm-inline">Evolução</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-trophy d-block fs-1 mb-2 opacity-25"></i>
+                                    Nenhum jogador pontuou nesta temporada ainda.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white small text-muted">
+            <i class="bi bi-lightbulb"></i> Critério de desempate: 1º Pontos Totais &rarr; 2º Pontos de Torneio &rarr; 3º Pontos Iniciais &rarr; 4º Ordem Alfabética.
+        </div>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

@@ -1,130 +1,67 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if season %}Editar{% else %}Nova{% endif %} Temporada</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        .form-card {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #121212;
-            padding: 24px 22px;
-            border-radius: 10px;
-            border: 1px solid #2c2c2c;
-        }
+{% block title %}
+    {% if season %}Editar Temporada{% else %}Nova Temporada{% endif %}
+{% endblock %}
 
-        .form-card h1 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 22px;
-        }
-
-        .form-card label {
-            display: block;
-            margin-top: 12px;
-            font-size: 14px;
-        }
-
-        .form-card input[type="text"],
-        .form-card input[type="date"],
-        .form-card input:not([type]) {
-            width: 100%;
-            padding: 8px 10px;
-            margin-top: 4px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #1c1c1c;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .form-card input:focus {
-            outline: none;
-            border-color: #ffb300;
-        }
-
-        .checkbox-row {
-            margin-top: 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-        }
-
-        .checkbox-row input[type="checkbox"] {
-            width: auto;
-        }
-
-        .form-actions {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .link-voltar {
-            font-size: 13px;
-        }
-
-        @media (max-width: 768px) {
-            .form-card {
-                margin: 24px auto;
-                padding: 20px 16px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="form-card">
-    <h1>
-        {% if season %}Editar{% else %}Nova{% endif %} temporada
-    </h1>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <label for="id_nome">Nome</label>
-        <input id="id_nome"
-               type="text"
-               name="nome"
-               required
-               value="{{ season.nome|default:'' }}">
-
-        <label for="id_data_inicio">Data início</label>
-        <input id="id_data_inicio"
-               type="date"
-               name="data_inicio"
-               value="{{ season.data_inicio|date:'Y-m-d'|default:'' }}">
-
-        <label for="id_data_fim">Data fim</label>
-        <input id="id_data_fim"
-               type="date"
-               name="data_fim"
-               value="{{ season.data_fim|date:'Y-m-d'|default:'' }}">
-
-        <label class="checkbox-row">
-            <input type="checkbox" name="ativo"
-                   {% if season and season.ativo %}checked{% endif %}>
-            Temporada ativa
-        </label>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-confirm">
-                Salvar
-            </button>
-
-            <a href="{% url 'seasons_list' %}" class="link-voltar">
-                ← Voltar
-            </a>
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4 border-0">
+        
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0 d-flex align-items-center gap-2">
+                {% if season %}
+                    <i class="bi bi-calendar2-week"></i> Editar Temporada
+                {% else %}
+                    <i class="bi bi-calendar-plus"></i> Nova Temporada
+                {% endif %}
+            </h4>
         </div>
-    </form>
-</div>
 
-</body>
-</html>
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome da Temporada</label>
+                    <input type="text" class="form-control" id="nome" name="nome" 
+                           value="{{ season.nome|default:'' }}" required placeholder="Ex: Temporada 2024 - 1º Semestre">
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="data_inicio" class="form-label">Data de Início</label>
+                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                               value="{{ season.data_inicio|date:'Y-m-d'|default:'' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="data_fim" class="form-label">Data de Término</label>
+                        <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                               value="{{ season.data_fim|date:'Y-m-d'|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-4 pt-2 border-top">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 
+                               {% if not season or season.ativo %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="ativo">
+                            Temporada Ativa?
+                        </label>
+                        <div class="form-text">Marque para que ela apareça como temporada corrente no painel.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'seasons_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
+                        SALVAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

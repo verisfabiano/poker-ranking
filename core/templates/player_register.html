@@ -1,203 +1,74 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro de Jogador</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        .page {
-            min-height: calc(100vh - 50px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 32px 16px;
-        }
+{% block title %}Cadastro - Clube de Poker{% endblock %}
 
-        .card {
-            background: #111216;
-            border-radius: 14px;
-            border: 1px solid #2d2d2d;
-            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
-            width: 100%;
-            max-width: 420px;
-            padding: 22px 24px 24px;
-        }
-
-        .card-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .chip {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 3px solid #ffb300;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-        }
-
-        .card-title {
-            font-size: 22px;
-            margin: 0;
-        }
-
-        .card-subtitle {
-            font-size: 13px;
-            color: #bdbdbd;
-            margin: 2px 0 16px;
-        }
-
-        form {
-            margin-top: 6px;
-        }
-
-        .field {
-            margin-bottom: 12px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            color: #c1c1c1;
-            margin-bottom: 4px;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 9px 10px;
-            border-radius: 8px;
-            border: 1px solid #3a3a3a;
-            background: #181920;
-            color: #f5f5f5;
-            font-size: 14px;
-        }
-
-        input::placeholder {
-            color: #7c7c7c;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #ffb300;
-            box-shadow: 0 0 0 1px rgba(255, 179, 0, 0.35);
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 999px;
-            border: none;
-            cursor: pointer;
-            margin-top: 4px;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, #ff9800, #ffb300);
-            color: #111;
-        }
-
-        .footer-text {
-            margin-top: 14px;
-            font-size: 12px;
-            color: #9e9e9e;
-            text-align: center;
-        }
-
-        .footer-text span {
-            color: #ffb300;
-        }
-
-        .alert {
-            margin: 0 0 10px;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            background: #3e2723;
-            color: #ffccbc;
-            border: 1px solid #bf360c;
-        }
-
-        @media (max-width: 768px) {
-            .card {
-                padding: 20px 18px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-title">Espaço Poker · Cadastro de Jogador</div>
-    <div class="topbar-sub">
-        Já é jogador?
-        <a href="{% url 'player_login' %}">Clique aqui para entrar</a>
-    </div>
-</div>
-
-<div class="page">
-    <div class="card">
-        <div class="card-logo">
-            <div class="chip">♠</div>
-            <div>
-                <h1 class="card-title">Cadastro de Jogador</h1>
-                <p class="card-subtitle">
-                    Crie seu perfil para confirmar presença nos torneios e acompanhar o ranking.
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+    <div class="card shadow-lg border-0" style="width: 100%; max-width: 450px;">
+        <div class="card-body p-5">
+            
+            <div class="text-center mb-4">
+                <div class="display-4 text-warning mb-2">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <h3 class="fw-bold">Criar Conta</h3>
+                <p class="text-muted small">
+                    Cadastre-se para participar dos rankings e confirmar presença.
                 </p>
             </div>
-        </div>
 
-        {% if mensagem %}
-            <div class="alert">{{ mensagem }}</div>
-        {% endif %}
+            {% if mensagem %}
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <div>{{ mensagem }}</div>
+                </div>
+            {% endif %}
 
-        <form method="post">
-            {% csrf_token %}
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label for="nome" class="form-label small text-muted text-uppercase fw-bold">Nome Completo</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required placeholder="Ex: João da Silva">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="apelido" class="form-label small text-muted text-uppercase fw-bold">Apelido</label>
+                        <input type="text" class="form-control" id="apelido" name="apelido" placeholder="Ex: Joãozinho">
+                    </div>
+                </div>
 
-            <div class="field">
-                <label for="id_nome">Nome completo</label>
-                <input id="id_nome" name="nome" type="text"
-                       placeholder="Ex.: João das Quantas" required>
+                <div class="mb-3">
+                    <label for="email" class="form-label small text-muted text-uppercase fw-bold">E-mail</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white text-muted"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="seu@email.com">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="senha" class="form-label small text-muted text-uppercase fw-bold">Senha</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white text-muted"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="senha" name="senha" required placeholder="Crie uma senha forte">
+                    </div>
+                    <div class="form-text small">Mínimo de 6 caracteres.</div>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-warning btn-lg rounded-pill fw-bold text-dark">
+                        CRIAR CONTA
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="small text-muted mb-1">Já tem cadastro?</p>
+                <a href="{% url 'player_login' %}" class="text-decoration-none fw-bold text-primary">
+                    Fazer Login
+                </a>
             </div>
-
-            <div class="field">
-                <label for="id_apelido">Apelido na mesa</label>
-                <input id="id_apelido" name="apelido" type="text"
-                       placeholder="Ex.: Jaôzim">
-            </div>
-
-            <div class="field">
-                <label for="id_email">E-mail</label>
-                <input id="id_email" name="email" type="email"
-                       placeholder="voce@exemplo.com" required>
-            </div>
-
-            <div class="field">
-                <label for="id_senha">Senha</label>
-                <input id="id_senha" name="senha" type="password"
-                       placeholder="Mínimo 6 caracteres" required>
-            </div>
-
-            <button type="submit" class="btn-primary">
-                Criar conta
-            </button>
-        </form>
-
-        <div class="footer-text">
-            Seu cadastro é vinculado ao <span>ranking oficial</span> da temporada.
         </div>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

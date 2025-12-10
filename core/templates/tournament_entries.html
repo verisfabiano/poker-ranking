@@ -1,244 +1,157 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Jogadores do torneio - {{ tournament.nome }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends 'base.html' %}
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% block title %}Inscrições - {{ tournament.nome }}{% endblock %}
 
-    <style>
-        .status-pill {
-            display:inline-block;
-            padding:3px 10px;
-            border-radius:999px;
-            font-size:11px;
-            border:1px solid #555;
-            margin-left:8px;
-        }
-        .status-agendado { border-color:#43a047; color:#c8e6c9; }
-        .status-andamento { border-color:#ffb300; color:#ffecb3; }
-        .status-finalizado { border-color:#ef5350; color:#ffcdd2; }
-
-        .resume-box {
-            background:#121212;
-            border-radius:10px;
-            padding:12px 14px;
-            border:1px solid #333;
-            margin-bottom:16px;
-        }
-
-        .alert {
-            padding:8px 12px;
-            border-radius:6px;
-            margin-bottom:10px;
-            font-size:13px;
-        }
-        .alert-ok { background:#1b5e20; color:#e8f5e9; border:1px solid #2e7d32; }
-        .alert-erro { background:#3e2723; color:#ffccbc; border:1px solid #bf360c; }
-        .alert-info { background:#263238; color:#eceff1; border:1px solid #455a64; }
-
-        .box {
-            background:#121212;
-            border-radius:10px;
-            padding:12px 14px;
-            border:1px solid #333;
-            margin-bottom:14px;
-        }
-
-        .box h2 {
-            margin:0 0 8px;
-            font-size:16px;
-        }
-
-        select {
-            width:100%;
-            padding:8px;
-            border-radius:6px;
-            border:1px solid #555;
-            background:#1e1e1e;
-            color:#f5f5f5;
-        }
-
-        .btn {
-            padding:7px 12px;
-            border-radius:6px;
-            border:none;
-            cursor:pointer;
-            font-size:13px;
-        }
-
-        .btn-add { background:#2e7d32; color:#fff; }
-        .btn-remove { background:#c62828; color:#fff; }
-        .btn-save { background:#1565c0; color:#fff; }
-        .btn-confirm-all { background:#f57c00; color:#111; }
-
-        .btn:disabled {
-            opacity:0.4;
-            cursor:not-allowed;
-        }
-
-        tr.pendente td { background:linear-gradient(90deg, #212121, #1b1304); }
-        tr.confirmado td { background:#102012; }
-
-        .tag {
-            display:inline-block;
-            padding:2px 6px;
-            border-radius:8px;
-            font-size:11px;
-            border:1px solid #555;
-        }
-
-        .tag-confirm-jogador { border-color:#ffb300; color:#ffecb3; }
-        .tag-nao { border-color:#757575; color:#e0e0e0; }
-        .tag-ok { border-color:#66bb6a; color:#c8e6c9; }
-
-        .actions-row {
-            margin-top:12px;
-            display:flex;
-            justify-content:space-between;
-            gap:10px;
-            flex-wrap:wrap;
-        }
-
-        @media (max-width: 768px) {
-            .actions-row {
-                flex-direction:column;
-            }
-
-            .actions-row button {
-                width:100%;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-sub">
-        <a href="{% url 'season_tournaments' season.id %}">← Voltar aos torneios</a>
-    </div>
-    <div class="topbar-sub">
-        {{ season.nome }} • {{ tournament.nome }}
-        {% if tournament.status == "AGENDADO" %}
-            <span class="status-pill status-agendado">Agendado</span>
-        {% elif tournament.status == "EM_ANDAMENTO" %}
-            <span class="status-pill status-andamento">Em andamento</span>
-        {% elif tournament.status == "FINALIZADO" %}
-            <span class="status-pill status-finalizado">Finalizado</span>
-        {% endif %}
-    </div>
-</div>
-
-<div class="container">
-    <h1>Jogadores do torneio</h1>
-
-    <div class="subtitle">
-        Administre inscrições e valide a presença dos jogadores.
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-1">Jogadores do Torneio</h2>
+            <div class="text-muted">
+                {{ tournament.nome }} 
+                {% if tournament.status == "AGENDADO" %}
+                    <span class="badge bg-success ms-2">Agendado</span>
+                {% elif tournament.status == "EM_ANDAMENTO" %}
+                    <span class="badge bg-warning text-dark ms-2">Em Andamento</span>
+                {% elif tournament.status == "FINALIZADO" %}
+                    <span class="badge bg-danger ms-2">Finalizado</span>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
     </div>
 
     {% if mensagem %}
-        <div class="alert alert-ok">{{ mensagem }}</div>
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ mensagem }}
+        </div>
     {% endif %}
-
     {% if mensagem_erro %}
-        <div class="alert alert-erro">{{ mensagem_erro }}</div>
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ mensagem_erro }}
+        </div>
     {% endif %}
-
     {% if edicao_bloqueada %}
-        <div class="alert alert-info">
-            Este torneio está <strong>{{ tournament.get_status_display }}</strong>.
-            Apenas leitura.
+        <div class="alert alert-warning d-flex align-items-center" role="alert">
+            <i class="bi bi-lock-fill me-2"></i> Torneio finalizado ou em andamento. Edição bloqueada.
         </div>
     {% endif %}
 
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
 
-        <div class="box">
-            <h2>Adicionar jogador</h2>
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i> Lista de Inscritos</h5>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center" style="width: 50px;">
+                                        <i class="bi bi-trash"></i>
+                                    </th>
+                                    <th>Jogador</th>
+                                    <th>Solicitação</th>
+                                    <th class="text-center">Confirmado?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in entries %}
+                                    <tr class="{% if entry.confirmado_pelo_admin %}table-success-subtle{% elif entry.confirmou_presenca %}table-warning-subtle{% endif %}">
+                                        <td class="text-center">
+                                            <input class="form-check-input border-danger" type="checkbox" name="remover_entry_id" value="{{ entry.id }}" 
+                                                   {% if edicao_bloqueada %}disabled{% endif %}>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-dark">{{ entry.player.nome }}</span>
+                                            {% if entry.player.apelido %}
+                                                <small class="text-muted d-block">({{ entry.player.apelido }})</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if entry.confirmou_presenca %}
+                                                <span class="badge text-bg-warning">Pediu vaga</span>
+                                            {% else %}
+                                                <span class="text-muted small">Inserido pelo Admin</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check form-switch d-inline-block">
+                                                <input class="form-check-input" type="checkbox" name="conf_admin_{{ entry.id }}" 
+                                                       {% if entry.confirmado_pelo_admin %}checked{% endif %}
+                                                       {% if edicao_bloqueada %}disabled{% endif %}>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-muted">
+                                            Nenhum jogador inscrito neste torneio.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-            <select name="novo_player_id" {% if edicao_bloqueada %}disabled{% endif %}>
-                <option value="">-- selecione um jogador --</option>
-                {% for p in players_disponiveis %}
-                    <option value="{{ p.id }}">{{ p.apelido|default:p.nome }}</option>
-                {% endfor %}
-            </select>
+                    <div class="card-footer bg-light d-flex justify-content-between p-3 flex-wrap gap-2">
+                        <button type="submit" name="remove_selected" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Remover os jogadores selecionados?');"
+                                {% if edicao_bloqueada %}disabled{% endif %}>
+                            <i class="bi bi-trash"></i> Remover Selecionados
+                        </button>
 
-            <br><br>
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="confirm_all_requests" class="btn btn-warning btn-sm fw-bold text-dark"
+                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                <i class="bi bi-check-all"></i> Confirmar Pedidos
+                            </button>
+                            <button type="submit" name="save_admin_confirm" class="btn btn-primary btn-sm fw-bold"
+                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                <i class="bi bi-save"></i> Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <button type="submit" name="add_player" class="btn btn-add"
-                    {% if edicao_bloqueada %}disabled{% endif %}>
-                + Adicionar ao torneio
-            </button>
-        </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i> Adicionar Manualmente</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">Insira um jogador diretamente no torneio (sem que ele precise pedir).</p>
+                        
+                        <div class="mb-3">
+                            <label for="novo_player_id" class="form-label fw-bold">Selecione o Jogador</label>
+                            <select class="form-select" name="novo_player_id" id="novo_player_id" {% if edicao_bloqueada %}disabled{% endif %}>
+                                <option value="">Buscar jogador...</option>
+                                {% for p in players_disponiveis %}
+                                    <option value="{{ p.id }}">{{ p.nome }} {% if p.apelido %}({{ p.apelido }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                <tr>
-                    <th class="num">Remover</th>
-                    <th>Jogador</th>
-                    <th class="num">Conf. jogador</th>
-                    <th class="num">Conf. admin</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for entry in entries %}
-                    <tr class="{% if entry.confirmado_pelo_admin %}confirmado{% elif entry.confirmou_presenca %}pendente{% endif %}">
-                        <td class="num">
-                            <input type="checkbox" name="remover_entry_id" value="{{ entry.id }}"
-                                   {% if edicao_bloqueada %}disabled{% endif %}>
-                        </td>
-                        <td>{{ entry.player.apelido|default:entry.player.nome }}</td>
-                        <td class="num">
-                            {% if entry.confirmou_presenca %}
-                                <span class="tag tag-confirm-jogador">pedido</span>
-                            {% else %}
-                                <span class="tag tag-nao">não pediu</span>
-                            {% endif %}
-                        </td>
-                        <td class="num">
-                            {% if entry.confirmado_pelo_admin %}
-                                <span class="tag tag-ok">confirmado</span><br>
-                            {% endif %}
-                            <input type="checkbox"
-                                   name="conf_admin_{{ entry.id }}"
-                                   {% if entry.confirmado_pelo_admin %}checked{% endif %}
-                                   {% if edicao_bloqueada %}disabled{% endif %}>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="4">Nenhum jogador inscrito.</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        <div class="d-grid">
+                            <button type="submit" name="add_player" class="btn btn-success fw-bold"
+                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                <i class="bi bi-plus-lg"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="actions-row">
-            <button type="submit" name="remove_selected"
-                    class="btn btn-remove"
-                    {% if edicao_bloqueada %}disabled{% endif %}>
-                Remover selecionados
-            </button>
-
-            <button type="submit" name="confirm_all_requests"
-                    class="btn btn-confirm-all"
-                    {% if edicao_bloqueada %}disabled{% endif %}>
-                Confirmar pedidos
-            </button>
-
-            <button type="submit" name="save_admin_confirm"
-                    class="btn btn-save"
-                    {% if edicao_bloqueada %}disabled{% endif %}>
-                Salvar confirmações
-            </button>
         </div>
     </form>
 </div>
-
-</body>
-</html>
+{% endblock %}

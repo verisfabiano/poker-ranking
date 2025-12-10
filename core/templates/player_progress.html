@@ -1,119 +1,99 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Evolução - {{ player }} / {{ season.nome }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% extends 'base.html' %}
 
-    <style>
-        .resume {
-            background: #121212;
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin-bottom: 18px;
-            border: 1px solid #333;
-            font-size: 14px;
-        }
-        .resume strong {
-            color: #fff;
-        }
+{% block title %}Evolução - {{ player.apelido|default:player.nome }}{% endblock %}
 
-        .tipo-tag {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 11px;
-            border: 1px solid #555;
-            margin-right: 6px;
-        }
-        .tipo-iniciais {
-            border-color: #ffb300;
-            color: #ffecb3;
-        }
-        .tipo-torneio {
-            border-color: #64b5f6;
-            color: #bbdefb;
-        }
-
-        @media (max-width: 768px) {
-            .resume {
-                font-size: 13px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-title">
-        Evolução de pontos
-    </div>
-    <div class="topbar-sub">
-        <a href="{% url 'ranking_season' season.id %}">← Voltar ao ranking</a>
-    </div>
-</div>
-
+{% block content %}
 <div class="container">
-    <h1>Evolução de pontos</h1>
-    <div class="subtitle">
-        Jogador: <strong>{{ player }}</strong><br>
-        Temporada: <strong>{{ season.nome }}</strong>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-1">Evolução de Pontos</h2>
+            <p class="text-muted mb-0">
+                Temporada: <strong>{{ season.nome }}</strong>
+            </p>
+        </div>
+        <a href="{% url 'ranking_season' season.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar ao Ranking
+        </a>
     </div>
 
-    <div class="resume">
-        Pontos iniciais: <strong>{{ pontos_iniciais }}</strong><br>
-        Total atual na temporada: <strong>{{ total_final }}</strong>
+    <div class="card shadow-sm mb-4 border-start border-4 border-primary">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4 class="card-title mb-1 text-primary">
+                        <i class="bi bi-person-circle"></i> {{ player.nome }}
+                    </h4>
+                    <span class="text-muted">
+                        {% if player.apelido %}({{ player.apelido }}){% endif %}
+                    </span>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-inline-block bg-light rounded p-2 px-3 me-2 border">
+                        <small class="d-block text-muted">Pontos Iniciais</small>
+                        <strong>{{ pontos_iniciais }}</strong>
+                    </div>
+                    <div class="d-inline-block bg-success text-white rounded p-2 px-3 shadow-sm">
+                        <small class="d-block opacity-75">TOTAL ATUAL</small>
+                        <strong class="fs-5">{{ total_final }} pts</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-            <tr>
-                <th>Rodada</th>
-                <th>Data</th>
-                <th class="num">Pontos na rodada</th>
-                <th class="num">Acumulado</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for linha in progresso %}
-                <tr>
-                    <td>
-                        {% if linha.tipo == 'iniciais' %}
-                            <span class="tipo-tag tipo-iniciais">iniciais</span>
-                            {{ linha.descricao }}
-                        {% else %}
-                            <span class="tipo-tag tipo-torneio">torneio</span>
-                            {{ linha.descricao }}
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if linha.data %}
-                            {{ linha.data|date:"d/m/Y H:i" }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td class="num">
-                        {{ linha.pontos_rodada }}
-                    </td>
-                    <td class="num">
-                        {{ linha.acumulado }}
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="4">
-                        Nenhum histórico encontrado para este jogador na temporada.
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Evento / Origem</th>
+                            <th>Data</th>
+                            <th class="text-end">Pontos</th>
+                            <th class="text-end pe-4">Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for linha in progresso %}
+                            <tr>
+                                <td class="ps-4">
+                                    {% if linha.tipo == 'iniciais' %}
+                                        <span class="badge bg-warning text-dark me-2">Iniciais</span>
+                                        <span class="fw-bold text-muted">{{ linha.descricao }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary me-2">Torneio</span>
+                                        <a href="#" class="text-decoration-none fw-bold text-dark">
+                                            {{ linha.descricao }}
+                                        </a>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted">
+                                    {% if linha.data %}
+                                        <i class="bi bi-calendar3 me-1"></i> {{ linha.data|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold {% if linha.pontos_rodada > 0 %}text-success{% endif %}">
+                                    +{{ linha.pontos_rodada }}
+                                </td>
+                                <td class="text-end pe-4 fw-bold">
+                                    {{ linha.acumulado }}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="bi bi-graph-up d-block fs-1 mb-2 text-secondary opacity-25"></i>
+                                    Nenhum histórico encontrado para este jogador nesta temporada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

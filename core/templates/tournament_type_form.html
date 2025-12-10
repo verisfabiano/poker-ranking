@@ -1,51 +1,74 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if tipo %}Editar{% else %}Novo{% endif %} Tipo de Torneio</title>
-    <style>
-        body { background:#050505; color:#fff; font-family:Arial; margin:0; }
-        .container { max-width:600px; margin:40px auto; background:#121212; padding:20px; border-radius:10px; }
-        label { display:block; margin-top:10px; }
-        input[type="text"], textarea {
-            width:100%; padding:7px; margin-top:4px;
-            border-radius:6px; border:1px solid #444; background:#1c1c1c; color:#fff;
-        }
-        textarea { min-height:80px; }
-        button {
-            margin-top:20px; padding:8px 16px;
-            background:#6a1b9a; color:#fff; border:none; border-radius:6px;
-        }
-        a { color:#90caf9; text-decoration:none; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>{% if tipo %}Editar{% else %}Novo{% endif %} Tipo de Torneio</h1>
+{% extends 'base.html' %}
 
-    <form method="post">
-        {% csrf_token %}
-        <label>Nome</label>
-        <input type="text" name="nome" required value="{{ tipo.nome|default:'' }}">
+{% block title %}
+    {% if tipo %}Editar Tipo{% else %}Novo Tipo{% endif %}
+{% endblock %}
 
-        <label>Descrição</label>
-        <textarea name="descricao">{{ tipo.descricao|default:'' }}</textarea>
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4 border-0">
+        
+        <div class="card-header bg-dark text-white py-3">
+            <h4 class="mb-0 d-flex align-items-center gap-2">
+                {% if tipo %}
+                    <i class="bi bi-pencil-square"></i> Editar Tipo de Torneio
+                {% else %}
+                    <i class="bi bi-plus-circle"></i> Novo Tipo de Torneio
+                {% endif %}
+            </h4>
+        </div>
 
-        <label>Multiplicador de Pontos (peso)</label>
-        <input type="text" name="multiplicador"
-               value="{{ tipo.multiplicador_pontos|default:'1' }}">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
 
-        <label>
-            <input type="checkbox" name="usa_regras_padrao"
-                   {% if tipo and tipo.usa_regras_padrao %}checked{% endif %}>
-            Usa regras padrão de pontuação
-        </label>
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome do Tipo</label>
+                    <input type="text" class="form-control" id="nome" name="nome" 
+                           value="{{ tipo.nome|default:'' }}" required placeholder="Ex: Regular, Turbo, High Roller">
+                </div>
 
-        <button type="submit">Salvar</button>
-    </form>
+                <div class="mb-3">
+                    <label for="descricao" class="form-label">Descrição (Opcional)</label>
+                    <textarea class="form-control" id="descricao" name="descricao" rows="3" 
+                              placeholder="Detalhes sobre a estrutura ou regras específicas">{{ tipo.descricao|default:'' }}</textarea>
+                </div>
 
-    <br>
-    <a href="{% url 'tournament_types_list' %}">← Voltar</a>
+                <div class="mb-4">
+                    <label for="multiplicador" class="form-label">Multiplicador de Pontos (Peso)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">x</span>
+                        <input type="number" step="0.01" class="form-control" id="multiplicador" name="multiplicador" 
+                               value="{{ tipo.multiplicador_pontos|stringformat:'.2f'|default:'1.00' }}" placeholder="1.00">
+                    </div>
+                    <div class="form-text">
+                        Define o peso deste torneio no ranking. Ex: 1.5 vale 50% mais pontos.
+                    </div>
+                </div>
+
+                <div class="mb-4 pt-2 border-top">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="usa_regras_padrao" name="usa_regras_padrao" 
+                               {% if not tipo or tipo.usa_regras_padrao %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="usa_regras_padrao">
+                            Usar Tabela Padrão de Pontos?
+                        </label>
+                        <div class="form-text">
+                            Se marcado, aplica a pontuação base (1º=14, 2º=11...) multiplicada pelo peso acima.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between align-items-center">
+                    <a href="{% url 'tournament_types_list' %}" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
+                        SALVAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}

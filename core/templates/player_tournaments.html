@@ -1,87 +1,103 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Próximos torneios</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-</head>
-<body>
+{% extends 'base.html' %}
 
-<div class="topbar">
-    <div class="topbar-title">Espaço Poker · Próximos torneios</div>
-    <div class="topbar-sub">
-        Você está logado como jogador.
-        <a href="{% url 'player_logout' %}" style="margin-left:8px;">
-            Sair
+{% block title %}Próximos Torneios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="mb-0">Próximos Torneios</h2>
+            <small class="text-muted">Bem-vindo, <strong>{{ user.player_profile.nome }}</strong></small>
+        </div>
+        <a href="{% url 'player_logout' %}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right"></i> Sair
         </a>
     </div>
-</div>
 
-<div class="container">
-    <h1>Próximos torneios</h1>
-    <div class="subtitle">
-        Aqui aparecem apenas torneios <strong>agendados</strong>. A confirmação aqui é um pedido;
-        a organização ainda fará a validação oficial da sua vaga.
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+        <div>
+            A confirmação aqui é um <strong>pedido de inscrição</strong>. A organização validará sua vaga e o status mudará para "Confirmado".
+        </div>
     </div>
 
     {% if torneios %}
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                <tr>
-                    <th>Torneio</th>
-                    <th class="num">Data</th>
-                    <th class="num">Status</th>
-                    <th class="num">Ação</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for item in torneios %}
-                    <tr>
-                        <td>
-                            <strong>{{ item.torneio.nome }}</strong><br>
-                            <span style="font-size:11px;color:#9e9e9e">
-                                {{ item.torneio.tipo.nome }} • Temporada {{ item.torneio.season.nome }}
-                            </span>
-                        </td>
-                        <td class="num">{{ item.torneio.data|date:"d/m/Y H:i" }}</td>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Torneio</th>
+                                <th>Data</th>
+                                <th>Status da Vaga</th>
+                                <th class="text-end pe-4">Sua Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in torneios %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark mb-1">{{ item.torneio.nome }}</div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-light text-dark border me-1">
+                                                {{ item.torneio.tipo.nome }}
+                                            </span>
+                                            Temporada {{ item.torneio.season.nome }}
+                                        </div>
+                                    </td>
 
-                        <td class="num">
-                            {% if item.confirmado %}
-                                <span class="tag tag-ok">Vaga confirmada</span>
-                            {% elif item.inscrito %}
-                                <span class="tag tag-pendente">Aguardando confirmação</span>
-                            {% else %}
-                                <span class="tag tag-nao">Não inscrito</span>
-                            {% endif %}
-                        </td>
+                                    <td>
+                                        <div class="d-flex align-items-center text-secondary">
+                                            <i class="bi bi-calendar-event me-2"></i>
+                                            {{ item.torneio.data|date:"d/m/Y H:i" }}
+                                        </div>
+                                    </td>
 
-                        <td class="num">
-                            {% if not item.inscrito %}
-                                <a class="btn btn-confirm"
-                                   href="{% url 'confirm_presence' item.torneio.id %}">
-                                    Confirmar
-                                </a>
-                            {% else %}
-                                <a class="btn btn-cancel"
-                                   href="{% url 'confirm_presence' item.torneio.id %}">
-                                    Cancelar
-                                </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                                    <td>
+                                        {% if item.confirmado %}
+                                            <span class="badge bg-success rounded-pill px-3">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Vaga Confirmada
+                                            </span>
+                                        {% elif item.inscrito %}
+                                            <span class="badge bg-warning text-dark rounded-pill px-3">
+                                                <i class="bi bi-clock-history me-1"></i> Aguardando Validação
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary opacity-50 rounded-pill px-3">
+                                                Não Inscrito
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        {% if not item.inscrito %}
+                                            <a href="{% url 'confirm_presence' item.torneio.id %}" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold">
+                                                Me Inscrever
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'confirm_presence' item.torneio.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Deseja realmente cancelar sua inscrição?');">
+                                                Cancelar
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     {% else %}
-        <div class="empty">
-            Nenhum torneio agendado no momento. 🃏
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h4 class="text-muted">Nenhum torneio agendado</h4>
+            <p class="text-secondary">Fique atento, novos torneios serão divulgados em breve.</p>
         </div>
     {% endif %}
-</div>
 
-</body>
-</html>
+</div>
+{% endblock %}
