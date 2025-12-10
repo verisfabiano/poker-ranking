@@ -1,11 +1,13 @@
 from django.urls import path
 from django.views.generic import RedirectView
+from django.shortcuts import render
 
 from .views import (
     home_redirect,
     ranking_season,
     tv_ranking_season,
     painel_home,
+    tv_dashboard,
 
     # Temporadas
     seasons_list,
@@ -142,6 +144,9 @@ urlpatterns = [
     path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
     path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
 
-# --- API (Dados para o Telão JS) ---
+# Rota da API (JSON)
     path("api/torneio/<int:tournament_id>/status/", api_tournament_status, name="api_tournament_status"),
+
+    # Rota do Telão Visual (HTML + JS)
+    path("torneio/<int:tournament_id>/telao/", tv_dashboard, name="tv_dashboard"),
 ]
