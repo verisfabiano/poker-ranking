@@ -40,6 +40,12 @@ from .views import (
     blind_structures_list,
     blind_structure_create,
     blind_structure_manage,
+    
+    # Diretor de torneio
+    director_panel,
+    director_toggle_timer,
+    director_change_level,
+    api_tournament_status,
 )
 
 urlpatterns = [
@@ -135,4 +141,7 @@ urlpatterns = [
     path("torneio/<int:tournament_id>/diretor/", director_panel, name="director_panel"),
     path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
     path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
+
+# --- API (Dados para o Telão JS) ---
+    path("api/torneio/<int:tournament_id>/status/", api_tournament_status, name="api_tournament_status"),
 ]
