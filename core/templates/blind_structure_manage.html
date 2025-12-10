@@ -1,49 +1,186 @@
 {% extends 'base.html' %}
+
+{% block title %}Gerenciar Níveis - {{ structure.nome }}{% endblock %}
+
 {% block content %}
-<h3>{{ structure.nome }} <small class="text-muted">| Gerenciar Níveis</small></h3>
-<div class="row mt-4">
-    <div class="col-md-8">
-        <table class="table table-hover shadow-sm bg-white">
-            <thead class="table-light"><tr><th>Seq</th><th>Blinds</th><th>Ante</th><th>Tempo</th><th></th></tr></thead>
-            <tbody>
-                {% for level in levels %}
-                <tr class="{% if level.is_break %}table-warning{% endif %}">
-                    <td>{{ level.ordem }}</td>
-                    <td>{% if level.is_break %}INTERVALO{% else %}{{ level.small_blind }}/{{ level.big_blind }}{% endif %}</td>
-                    <td>{{ level.ante }}</td>
-                    <td>{{ level.tempo_minutos }}m</td>
-                    <td class="text-end">
-                        <form method="POST" onsubmit="return confirm('Excluir?');">
-                            {% csrf_token %}
-                            <input type="hidden" name="delete_level" value="1"><input type="hidden" name="level_id" value="{{ level.id }}">
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-0">Estrutura: {{ structure.nome }}</h2>
+            <p class="text-muted small mb-0">Adicione os níveis de blind ou intervalos.</p>
+        </div>
+        <a href="{% url 'blind_structures_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm"><div class="card-header bg-success text-white">Adicionar Nível</div>
-            <div class="card-body">
-                <form method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="add_level" value="1">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="is_break" name="is_break">
-                        <label class="form-check-label" for="is_break">É Intervalo?</label>
-                    </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><input type="number" name="small_blind" class="form-control" placeholder="SB" value="0"></div>
-                        <div class="col-6"><input type="number" name="big_blind" class="form-control" placeholder="BB" value="0"></div>
-                    </div>
-                    <div class="mb-2"><input type="number" name="ante" class="form-control" placeholder="Ante" value="0"></div>
-                    <div class="mb-3"><label>Tempo (min)</label><input type="number" name="tempo" class="form-control" value="20" required></div>
-                    <button class="btn btn-success w-100">Adicionar</button>
-                </form>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-list-ol me-2"></i> Níveis Configurados</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">#</th>
+                                <th>Configuração</th>
+                                <th class="text-center">Ante</th>
+                                <th class="text-center">Tempo</th>
+                                <th class="text-end pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for level in levels %}
+                            <tr class="{% if level.is_break %}table-warning{% endif %}">
+                                <td class="text-center fw-bold text-muted">{{ level.ordem }}</td>
+                                
+                                <td>
+                                    {% if level.is_break %}
+                                        <span class="badge bg-warning text-dark border border-warning-subtle">
+                                            <i class="bi bi-cup-hot-fill me-1"></i> INTERVALO
+                                        </span>
+                                    {% else %}
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-light text-dark border fs-6 me-2">
+                                                {{ level.small_blind }}
+                                            </span>
+                                            <span class="text-muted small">/</span>
+                                            <span class="badge bg-dark border border-dark fs-6 ms-2">
+                                                {{ level.big_blind }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-center text-muted">
+                                    {% if not level.is_break and level.ante > 0 %}
+                                        {{ level.ante }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="fw-bold">{{ level.tempo_minutos }}</span> <small class="text-muted">min</small>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este nível?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_level" value="1">
+                                        <input type="hidden" name="level_id" value="{{ level.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-layers d-block fs-1 mb-2 opacity-25"></i>
+                                    Nenhum nível cadastrado. Use o formulário ao lado para começar.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Adicionar Nível</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="add_level" value="1">
+
+                        <div class="card mb-3 border-warning">
+                            <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between bg-white rounded">
+                                <label class="form-check-label fw-bold text-dark" for="is_break">
+                                    <i class="bi bi-cup-hot me-1"></i> É Intervalo?
+                                </label>
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="is_break" name="is_break" style="width: 3em; height: 1.5em;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="blind-inputs" class="transition-fade">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-secondary">Small Blind</label>
+                                    <input type="number" name="small_blind" class="form-control fw-bold" placeholder="Ex: 50" value="0">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-secondary">Big Blind</label>
+                                    <input type="number" name="big_blind" class="form-control fw-bold" placeholder="Ex: 100" value="0">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary">Ante (Big Blind Ante)</label>
+                                <input type="number" name="ante" class="form-control" placeholder="Ex: 100" value="0">
+                            </div>
+                            <hr class="text-muted">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Duração (Minutos)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-clock"></i></span>
+                                <input type="number" name="tempo" class="form-control" value="20" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success fw-bold py-2">
+                                ADICIONAR
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .transition-fade {
+        transition: all 0.3s ease-in-out;
+        opacity: 1;
+        max-height: 500px; /* valor arbitrário alto para animar altura */
+        overflow: hidden;
+    }
+    .hidden-blinds {
+        opacity: 0.3;
+        pointer-events: none;
+        filter: grayscale(100%);
+    }
+</style>
+
+<script>
+    const breakCheck = document.getElementById('is_break');
+    const blindInputs = document.getElementById('blind-inputs');
+    const smallBlindInput = document.querySelector('input[name="small_blind"]');
+    const bigBlindInput = document.querySelector('input[name="big_blind"]');
+
+    breakCheck.addEventListener('change', function() {
+        if(this.checked) {
+            blindInputs.classList.add('hidden-blinds');
+            // Zera valores visuais para indicar que não serão usados
+            smallBlindInput.value = 0;
+            bigBlindInput.value = 0;
+        } else {
+            blindInputs.classList.remove('hidden-blinds');
+        }
+    });
+</script>
 {% endblock %}
