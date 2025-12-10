@@ -48,6 +48,9 @@ from .views import (
     director_toggle_timer,
     director_change_level,
     api_tournament_status,
+
+    # Financeiro
+    financial,
 )
 
 urlpatterns = [
@@ -139,14 +142,17 @@ urlpatterns = [
     path("blinds/nova/", blind_structure_create, name="blind_structure_create"),
     path("blinds/<int:structure_id>/gerenciar/", blind_structure_manage, name="blind_structure_manage"),
 
-# PAINEL DO DIRETOR
+    # PAINEL DO DIRETOR
     path("torneio/<int:tournament_id>/diretor/", director_panel, name="director_panel"),
     path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
     path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
 
-# Rota da API (JSON)
+    # Rota da API (JSON)
     path("api/torneio/<int:tournament_id>/status/", api_tournament_status, name="api_tournament_status"),
 
     # Rota do Telão Visual (HTML + JS)
     path("torneio/<int:tournament_id>/telao/", tv_dashboard, name="tv_dashboard"),
+
+    # Financeiro
+    path('tournament/<int:tournament_id>/financial/', financial.tournament_financial, name='tournament_financial'),
 ]

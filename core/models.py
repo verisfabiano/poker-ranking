@@ -109,8 +109,10 @@ class Player(models.Model):
         return self.apelido or self.nome
 
 
+# ... (Mantenha as importações e modelos anteriores: BlindStructure, BlindLevel, Season, TournamentType, Player)
+
 # ============================================================
-#  TORNEIO (Completo)
+#  TORNEIO (Atualizado com Campos Financeiros)
 # ============================================================
 
 class Tournament(models.Model):
@@ -126,11 +128,20 @@ class Tournament(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE)
     tipo = models.ForeignKey(TournamentType, on_delete=models.PROTECT)
 
-    # Financeiro do Torneio
-    buy_in = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    rake = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Taxa administrativa")
+    # --- FINANCEIRO (CUSTOS) ---
+    buy_in = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Valor que vai para o pote")
+    rake = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Taxa administrativa (Entry Fee)")
+    
+    # Novos campos para Rebuy/Addon
+    rebuy_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Custo Rebuy")
+    addon_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Custo Add-on")
+    time_chip_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Custo Time Chip (Staff)")
+    
     garantido = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     stack_inicial = models.IntegerField(default=10000, help_text="Fichas iniciais")
+
+    # Porcentagem da casa sobre o total (opcional, se usar rake fixo + porcentagem)
+    percentage_rake = models.IntegerField(default=0, help_text="% extra retida do pote total (opcional)")
 
     status = models.CharField(
         max_length=20,
@@ -143,19 +154,16 @@ class Tournament(models.Model):
         BlindStructure, 
         on_delete=models.SET_NULL, 
         null=True, 
-        blank=True,
-        help_text="Estrutura de blinds usada neste torneio"
+        blank=True
     )
-    current_level_order = models.IntegerField(default=1, help_text="Qual nível de blind está rodando agora?")
-    is_paused = models.BooleanField(default=False, help_text="O relógio está pausado?")
+    current_level_order = models.IntegerField(default=1)
+    is_paused = models.BooleanField(default=False)
     
-    # Campos novos para o Timer (Turno 10)
-    last_level_start = models.DateTimeField(null=True, blank=True, help_text="Hora que o nível começou ou despausou")
-    seconds_remaining_at_pause = models.IntegerField(null=True, blank=True, help_text="Segundos restantes quando pausou")
+    last_level_start = models.DateTimeField(null=True, blank=True)
+    seconds_remaining_at_pause = models.IntegerField(null=True, blank=True)
 
-    # Controle de Mesa (Seat Draw)
-    max_players_per_table = models.IntegerField(default=9, help_text="Max de jogadores por mesa (9-max, 6-max)")
-    active_tables = models.IntegerField(default=0, help_text="Número de mesas ativas no momento")
+    max_players_per_table = models.IntegerField(default=9)
+    active_tables = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.nome} ({self.data:%d/%m/%Y})"
@@ -165,49 +173,14 @@ class Tournament(models.Model):
             return None
         return self.blind_structure.levels.filter(ordem=self.current_level_order).first()
 
-    # ---------- REGRA DE PONTUAÇÃO ----------
+    # (Mantenha os métodos de pontuação: _pontos_posicao_base e recalcular_pontuacao iguais ao original)
     def _pontos_posicao_base(self, posicao: int) -> int:
-        mapa = {
-            1: 14, 2: 11, 3: 9, 4: 7, 5: 6, 
-            6: 5, 7: 4, 8: 3, 9: 2,
-        }
+        mapa = {1: 14, 2: 11, 3: 9, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2}
         return mapa.get(posicao, 0)
 
     def recalcular_pontuacao(self):
-        multiplicador = self.tipo.multiplicador_pontos or Decimal("1.00")
-        entries = TournamentEntry.objects.filter(tournament=self).select_related("player")
-
-        for entry in entries:
-            result, _ = TournamentResult.objects.get_or_create(
-                tournament=self,
-                player=entry.player,
-                defaults={
-                    "posicao": None, "pontos_base": 0, "pontos_bonus": 0,
-                    "pontos_ajuste_deal": 0, "pontos_finais": 0,
-                },
-            )
-
-            if result.posicao:
-                base = self._pontos_posicao_base(result.posicao)
-            else:
-                base = 0
-
-            base = int(base * multiplicador)
-            
-            pontos_participacao = 1 if entry.participou else 0
-            pontos_time_chip = 1 if entry.usou_time_chip else 0
-            pontos_confirmacao = 1 if entry.confirmou_presenca else 0
-
-            bonus = pontos_participacao + pontos_time_chip + pontos_confirmacao
-
-            result.pontos_base = base
-            result.pontos_bonus = bonus
-            result.pontos_finais = base + bonus + (result.pontos_ajuste_deal or 0)
-            result.save()
-
-            entry.pontos_participacao = bonus
-            entry.save()
-
+        # ... (seu código original de pontuação aqui) ...
+        pass
 
 # ============================================================
 #  INSCRIÇÃO (Gestão de Mesa e Financeiro do Jogador)
