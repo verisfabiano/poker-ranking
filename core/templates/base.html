@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Clube de Poker{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { min-height: 100vh; background-color: #212529; color: white; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover, .nav-link.active { color: #fff; background-color: #343a40; border-radius: 5px; }
+        .card-custom { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark d-md-none p-3">
+        <span class="navbar-brand mb-0 h1">Poker Manager</span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mobileMenu">
+            <ul class="navbar-nav mt-3">
+                <li class="nav-item"><a class="nav-link" href="{% url 'painel_home' %}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'seasons_list' %}">Temporadas</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'players_list' %}">Jogadores</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Estruturas de Blinds</a></li> 
+                <li class="nav-item"><a class="nav-link" href="{% url 'tournament_types_list' %}">Tipos de Torneio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-none d-md-block sidebar p-3">
+                <h3 class="text-center mb-4"><i class="bi bi-suit-spade-fill"></i> PokerClube</h3>
+                <ul class="nav flex-column gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'painel_home' %}">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'players_list' %}">
+                            <i class="bi bi-people-fill me-2"></i> Jogadores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                          <span>Gestão</span>
+                        </h6>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'seasons_list' %}">
+                            <i class="bi bi-calendar-event me-2"></i> Temporadas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tournament_types_list' %}">
+                            <i class="bi bi-trophy me-2"></i> Tipos de Torneio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-clock-history me-2"></i> Blinds (Em breve)
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

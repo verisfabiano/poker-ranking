@@ -1,200 +1,108 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends 'base.html' %}
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+{% block title %}
+    {% if tournament %}Editar Torneio{% else %}Novo Torneio{% endif %}
+{% endblock %}
 
-    <style>
-        .form-card {
-            max-width: 720px;
-            margin: 40px auto;
-            background: #111216;
-            padding: 22px 24px;
-            border-radius: 14px;
-            border: 1px solid #2d2d2d;
-            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
-        }
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mt-4">
+                
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0 d-flex align-items-center gap-2">
+                        {% if tournament %}
+                            <i class="bi bi-pencil-square"></i> Editar Torneio
+                        {% else %}
+                            <i class="bi bi-plus-circle-dotted"></i> Agendar Novo Torneio
+                        {% endif %}
+                    </h4>
+                </div>
 
-        .form-title {
-            margin: 0 0 6px;
-            font-size: 22px;
-        }
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Preencha os dados abaixo. As informações de estrutura (blinds) poderão ser configuradas após salvar.
+                    </p>
 
-        .form-subtitle {
-            font-size: 13px;
-            color: #bdbdbd;
-            margin-bottom: 18px;
-        }
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-7">
+                                <label for="nome" class="form-label">Nome do Torneio</label>
+                                <input type="text" class="form-control" id="nome" name="nome" 
+                                       value="{{ tournament.nome|default:'' }}" required placeholder="Ex: Terça Turbo 10K">
+                            </div>
+                            <div class="col-md-5">
+                                <label for="data" class="form-label">Data e Hora</label>
+                                <input type="datetime-local" class="form-control" id="data" name="data" 
+                                       value="{{ data_str|default:'' }}" required>
+                            </div>
+                        </div>
 
-        .field {
-            margin-bottom: 12px;
-        }
+                        <div class="mb-3">
+                            <label for="tipo_id" class="form-label">Tipo de Torneio (Define Pontuação)</label>
+                            <select class="form-select" id="tipo_id" name="tipo_id" required>
+                                <option value="">Selecione...</option>
+                                {% for tipo in tipos %}
+                                <option value="{{ tipo.id }}" {% if tournament.tipo_id == tipo.id %}selected{% endif %}>
+                                    {{ tipo.nome }} (Mult: {{ tipo.multiplicador_pontos }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-        label {
-            display: block;
-            font-size: 12px;
-            color: #c1c1c1;
-            margin-bottom: 4px;
-        }
+                        <hr class="my-4 text-muted">
+                        <h5 class="mb-3 text-secondary"><i class="bi bi-cash-coin"></i> Estrutura & Financeiro</h5>
 
-        input[type="text"],
-        input[type="datetime-local"],
-        select {
-            width: 100%;
-            padding: 9px 10px;
-            border-radius: 8px;
-            border: 1px solid #3a3a3a;
-            background: #181920;
-            color: #f5f5f5;
-            font-size: 14px;
-        }
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="buy_in" class="form-label">Buy-in</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="buy_in" name="buy_in" 
+                                           value="{{ tournament.buy_in|stringformat:'.2f'|default:'' }}" placeholder="0,00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="garantido" class="form-label">Garantido</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="garantido" name="garantido" 
+                                           value="{{ tournament.garantido|stringformat:'.2f'|default:'' }}" placeholder="0,00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="stack_inicial" class="form-label">Stack Inicial (Fichas)</label>
+                                <input type="number" class="form-control" id="stack_inicial" name="stack_inicial" 
+                                       value="{{ tournament.stack_inicial|default:'10000' }}">
+                            </div>
+                        </div>
 
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #ffb300;
-            box-shadow: 0 0 0 1px rgba(255, 179, 0, 0.35);
-        }
+                        <div class="mb-4">
+                            <label for="status" class="form-label">Status do Evento</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="AGENDADO" {% if tournament.status == 'AGENDADO' %}selected{% endif %}>📅 Agendado</option>
+                                <option value="EM_ANDAMENTO" {% if tournament.status == 'EM_ANDAMENTO' %}selected{% endif %}>▶️ Em Andamento</option>
+                                <option value="FINALIZADO" {% if tournament.status == 'FINALIZADO' %}selected{% endif %}>✅ Finalizado</option>
+                                <option value="CANCELADO" {% if tournament.status == 'CANCELADO' %}selected{% endif %}>❌ Cancelado</option>
+                            </select>
+                        </div>
 
-        .actions {
-            margin-top: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
+                                <i class="bi bi-check-lg"></i> SALVAR TORNEIO
+                            </button>
+                        </div>
 
-        .btn-primary {
-            padding: 10px 18px;
-            border-radius: 999px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, #ff9800, #ffb300);
-            color: #111;
-        }
-
-        .btn-primary:hover {
-            filter: brightness(1.04);
-        }
-
-        .back-link {
-            color: #90caf9;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            .form-card {
-                margin: 24px 14px;
-                padding: 18px;
-            }
-
-            .actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn-primary {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="topbar">
-    <div class="topbar-title">
-        Espaço Poker · {% if tournament %}Editar{% else %}Novo{% endif %} Torneio
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-<div class="form-card">
-    <h1 class="form-title">{% if tournament %}Editar{% else %}Novo{% endif %} Torneio</h1>
-    <div class="form-subtitle">
-        Preencha os dados do torneio para exibição no ranking e confirmações.
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <div class="field">
-            <label>Nome</label>
-            <input type="text" name="nome" required value="{{ tournament.nome|default:'' }}">
-        </div>
-
-        <div class="field">
-            <label>Data e hora</label>
-            <input type="datetime-local" name="data"
-                   value="{% if tournament %}{{ data_str }}{% endif %}">
-        </div>
-
-        <div class="field">
-            <label>Tipo de torneio</label>
-            <select name="tipo_id" required>
-                <option value="">Selecione...</option>
-                {% for t in tipos %}
-                    <option value="{{ t.id }}"
-                        {% if tournament and tournament.tipo.id == t.id %}selected{% endif %}>
-                        {{ t.nome }} (peso {{ t.multiplicador_pontos }})
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="field">
-            <label>Buy-in (opcional)</label>
-            <input type="text" name="buy_in"
-                   value="{{ tournament.buy_in|default:'' }}">
-        </div>
-
-        <div class="field">
-            <label>Garantido (opcional)</label>
-            <input type="text" name="garantido"
-                   value="{{ tournament.garantido|default:'' }}">
-        </div>
-
-        <div class="field">
-            <label>Status</label>
-            <select name="status">
-                <option value="AGENDADO"
-                        {% if tournament and tournament.status == "AGENDADO" %}selected{% endif %}>
-                    Agendado
-                </option>
-                <option value="EM_ANDAMENTO"
-                        {% if tournament and tournament.status == "EM_ANDAMENTO" %}selected{% endif %}>
-                    Em andamento
-                </option>
-                <option value="FINALIZADO"
-                        {% if tournament and tournament.status == "FINALIZADO" %}selected{% endif %}>
-                    Finalizado
-                </option>
-            </select>
-        </div>
-
-        <div class="actions">
-            <a class="back-link" href="{% url 'season_tournaments' season.id %}">
-                ← Voltar
-            </a>
-
-            <button type="submit" class="btn-primary">
-                Salvar
-            </button>
-        </div>
-    </form>
-</div>
-
-</body>
-</html>
+{% endblock %}

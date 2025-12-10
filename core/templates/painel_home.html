@@ -1,107 +1,124 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Painel do Organizador</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-</head>
-<body>
+{% extends 'base.html' %}
 
-<div class="topbar">
-    <div class="topbar-title">
-        🃏 Ranking Poker · Painel
-    </div>
-    <div class="topbar-sub">
-        <a href="{% url 'players_list' %}">Jogadores</a> ·
-        <a href="{% url 'seasons_list' %}">Temporadas</a> ·
-        <a href="{% url 'tournament_types_list' %}">Tipos de torneio</a> ·
-        <a href="/admin/" target="_blank">Admin</a>
+{% block title %}Painel do Organizador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-speedometer2"></i> Painel do Organizador
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'season_create' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-plus-lg"></i> Nova Temporada
+        </a>
     </div>
 </div>
 
-<div class="container">
-    <h1>Temporadas de Ranking</h1>
-    <p class="subtitle">
-        Escolha uma temporada para ver o ranking, abrir o telão, gerenciar torneios
-        e ajustar pontos iniciais da migração.
-    </p>
+<div class="row">
+    <div class="col-12 mb-4">
+        <p class="text-muted">
+            Escolha uma temporada abaixo para gerenciar torneios, ver rankings ou abrir o telão.
+        </p>
+    </div>
+</div>
 
+<div class="row">
     {% if seasons %}
         {% for season in seasons %}
-            <div style="
-                background:#121212;
-                border-radius:10px;
-                padding:16px 18px;
-                margin-bottom:14px;
-                border:1px solid #2c2c2c;
-                display:flex;
-                flex-wrap:wrap;
-                justify-content:space-between;
-                align-items:center;
-                gap:12px;
-            ">
-                <div>
-                    <h2 style="margin:0 0 6px;font-size:20px;">
-                        {{ season.nome }}
-                    </h2>
-                    <span style="font-size:14px;color:#9e9e9e;">
-                        {{ season.data_inicio }} até {{ season.data_fim }}
-                        {% if season.ativo %} • Ativa{% endif %}
-                    </span>
-                </div>
+        <div class="col-12 mb-3">
+            <div class="card shadow-sm border-start border-4 {% if season.ativo %}border-success{% else %}border-secondary{% endif %}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <h4 class="card-title mb-1 d-flex align-items-center gap-2">
+                                {{ season.nome }}
+                                {% if season.ativo %}
+                                    <span class="badge bg-success fs-6">Ativa</span>
+                                {% else %}
+                                    <span class="badge bg-secondary fs-6">Finalizada</span>
+                                {% endif %}
+                            </h4>
+                            <p class="card-text text-muted mb-0">
+                                <i class="bi bi-calendar3"></i> {{ season.data_inicio|date:"d/m/Y" }} até {{ season.data_fim|date:"d/m/Y" }}
+                            </p>
+                        </div>
 
-                <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                    <a class="btn" style="background:#424242;color:#fff;"
-                       href="{% url 'season_tournaments' season.id %}">
-                        Torneios
-                    </a>
+                        <div class="col-md-7">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                <a href="{% url 'season_tournaments' season.id %}" class="btn btn-dark">
+                                    <i class="bi bi-table"></i> Torneios
+                                </a>
 
-                    <a class="btn" style="background:#6a1b9a;color:#fff;"
-                       href="{% url 'season_initial_points' season.id %}">
-                        Pontos iniciais
-                    </a>
+                                <a href="{% url 'season_initial_points' season.id %}" class="btn btn-outline-dark" title="Ajustar pontos de migração">
+                                    <i class="bi bi-list-ol"></i> Pts Iniciais
+                                </a>
 
-                    <a class="btn" style="background:#1976d2;color:#fff;"
-                       href="{% url 'ranking_season' season.id %}" target="_blank">
-                        Ver ranking
-                    </a>
+                                <a href="{% url 'ranking_season' season.id %}" target="_blank" class="btn btn-primary">
+                                    <i class="bi bi-trophy-fill"></i> Ranking
+                                </a>
 
-                    <a class="btn" style="background:#2e7d32;color:#fff;"
-                       href="{% url 'tv_ranking_season' season.id %}" target="_blank">
-                        Abrir telão
-                    </a>
+                                <a href="{% url 'tv_ranking_season' season.id %}" target="_blank" class="btn btn-success">
+                                    <i class="bi bi-display"></i> Abrir Telão
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
         {% endfor %}
     {% else %}
-        <div class="empty">
-            Nenhuma temporada cadastrada ainda. Use o menu acima para criar.
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+                <div>
+                    Nenhuma temporada encontrada. Comece criando uma nova temporada no menu "Temporadas".
+                </div>
+            </div>
         </div>
     {% endif %}
+</div>
 
-    <div style="margin-top:30px;font-size:18px;color:#ccc;">
-        Atalhos rápidos
+<h5 class="mt-5 mb-3 text-muted">Acesso Rápido</h5>
+<div class="row g-3">
+    <div class="col-md-4">
+        <a href="{% url 'players_list' %}" class="text-decoration-none">
+            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
+                <div class="card-body text-dark">
+                    <i class="bi bi-people-fill fs-1 text-primary mb-2"></i>
+                    <h5 class="card-title">Gerenciar Jogadores</h5>
+                </div>
+            </div>
+        </a>
     </div>
-
-    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
-        <a class="btn" style="background:#1f1f1f;color:#eee;"
-           href="{% url 'players_list' %}">
-            Gerenciar jogadores
+    <div class="col-md-4">
+        <a href="{% url 'tournament_types_list' %}" class="text-decoration-none">
+            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
+                <div class="card-body text-dark">
+                    <i class="bi bi-gear-fill fs-1 text-secondary mb-2"></i>
+                    <h5 class="card-title">Tipos de Torneio</h5>
+                </div>
+            </div>
         </a>
-
-        <a class="btn" style="background:#1f1f1f;color:#eee;"
-           href="{% url 'seasons_list' %}">
-            Gerenciar temporadas
-        </a>
-
-        <a class="btn" style="background:#1f1f1f;color:#eee;"
-           href="{% url 'tournament_types_list' %}">
-            Gerenciar tipos de torneio
+    </div>
+    <div class="col-md-4">
+        <a href="/admin/" target="_blank" class="text-decoration-none">
+            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
+                <div class="card-body text-dark">
+                    <i class="bi bi-shield-lock-fill fs-1 text-danger mb-2"></i>
+                    <h5 class="card-title">Django Admin</h5>
+                </div>
+            </div>
         </a>
     </div>
 </div>
 
-</body>
-</html>
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}

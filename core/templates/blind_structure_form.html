@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-dark text-white"><h4 class="mb-0">Nova Estrutura</h4></div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3"><label>Nome</label><input type="text" name="nome" class="form-control" required></div>
+                <div class="mb-3"><label>Descrição</label><textarea name="descricao" class="form-control"></textarea></div>
+                <button type="submit" class="btn btn-primary w-100">Salvar e Configurar Níveis</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
