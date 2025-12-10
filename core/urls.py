@@ -35,6 +35,11 @@ from .views import (
     player_register,
     player_tournaments,
     confirm_presence,
+
+    # Blinds
+    blind_structures_list,
+    blind_structure_create,
+    blind_structure_manage,
 )
 
 urlpatterns = [
@@ -120,4 +125,9 @@ urlpatterns = [
         confirm_presence,
         name="confirm_presence",
     ),
+
+    # --- BLINDS ---
+    path("blinds/", blind_structures_list, name="blind_structures_list"),
+    path("blinds/nova/", blind_structure_create, name="blind_structure_create"),
+    path("blinds/<int:structure_id>/gerenciar/", blind_structure_manage, name="blind_structure_manage"),
 ]
