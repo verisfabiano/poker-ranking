@@ -7,8 +7,7 @@
 {% block content %}
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mt-4">
+        <div class="col-lg-10"> <div class="card shadow-sm border-0 mt-4">
                 
                 <div class="card-header bg-primary text-white py-3">
                     <h4 class="mb-0 d-flex align-items-center gap-2">
@@ -21,51 +20,60 @@
                 </div>
 
                 <div class="card-body p-4">
-                    <p class="text-muted mb-4">
-                        Preencha os dados abaixo. As informações de estrutura (blinds) poderão ser configuradas após salvar.
-                    </p>
-
                     <form method="POST">
                         {% csrf_token %}
                         
+                        <h5 class="mb-3 text-secondary"><i class="bi bi-info-circle"></i> Informações Básicas</h5>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-7">
+                            <div class="col-md-6">
                                 <label for="nome" class="form-label">Nome do Torneio</label>
                                 <input type="text" class="form-control" id="nome" name="nome" 
                                        value="{{ tournament.nome|default:'' }}" required placeholder="Ex: Terça Turbo 10K">
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-3">
                                 <label for="data" class="form-label">Data e Hora</label>
                                 <input type="datetime-local" class="form-control" id="data" name="data" 
                                        value="{{ data_str|default:'' }}" required>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="tipo_id" class="form-label">Tipo de Torneio (Define Pontuação)</label>
-                            <select class="form-select" id="tipo_id" name="tipo_id" required>
-                                <option value="">Selecione...</option>
-                                {% for tipo in tipos %}
-                                <option value="{{ tipo.id }}" {% if tournament.tipo_id == tipo.id %}selected{% endif %}>
-                                    {{ tipo.nome }} (Mult: {{ tipo.multiplicador_pontos }})
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <div class="col-md-3">
+                                <label for="tipo_id" class="form-label">Tipo (Pontuação)</label>
+                                <select class="form-select" id="tipo_id" name="tipo_id" required>
+                                    <option value="">Selecione...</option>
+                                    {% for tipo in tipos %}
+                                    <option value="{{ tipo.id }}" {% if tournament.tipo_id == tipo.id %}selected{% endif %}>
+                                        {{ tipo.nome }} (x{{ tipo.multiplicador_pontos }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
 
                         <hr class="my-4 text-muted">
-                        <h5 class="mb-3 text-secondary"><i class="bi bi-cash-coin"></i> Estrutura & Financeiro</h5>
+                        
+                        <h5 class="mb-3 text-secondary"><i class="bi bi-cash-coin"></i> Financeiro & Estrutura</h5>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label for="buy_in" class="form-label">Buy-in</label>
+                            <div class="col-md-3">
+                                <label for="buy_in" class="form-label fw-bold">Valor Buy-in</label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
                                     <input type="number" step="0.01" class="form-control" id="buy_in" name="buy_in" 
                                            value="{{ tournament.buy_in|stringformat:'.2f'|default:'' }}" placeholder="0,00">
                                 </div>
+                                <div class="form-text">Vai para o pote.</div>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-3">
+                                <label for="rake" class="form-label fw-bold">Taxa (Rake)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="rake" name="rake" 
+                                           value="{{ tournament.rake|stringformat:'.2f'|default:'' }}" placeholder="0,00">
+                                </div>
+                                <div class="form-text">Fica para a casa.</div>
+                            </div>
+
+                            <div class="col-md-3">
                                 <label for="garantido" class="form-label">Garantido</label>
                                 <div class="input-group">
                                     <span class="input-group-text">R$</span>
@@ -73,10 +81,38 @@
                                            value="{{ tournament.garantido|stringformat:'.2f'|default:'' }}" placeholder="0,00">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <label for="stack_inicial" class="form-label">Stack Inicial (Fichas)</label>
+                            
+                            <div class="col-md-3">
+                                <label for="stack_inicial" class="form-label">Stack Inicial</label>
                                 <input type="number" class="form-control" id="stack_inicial" name="stack_inicial" 
                                        value="{{ tournament.stack_inicial|default:'10000' }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3 p-3 bg-light rounded border">
+                            <div class="col-md-4">
+                                <label for="rebuy_cost" class="form-label">Custo Rebuy</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="rebuy_cost" name="rebuy_cost" 
+                                           value="{{ tournament.rebuy_cost|stringformat:'.2f'|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="addon_cost" class="form-label">Custo Add-on</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="addon_cost" name="addon_cost" 
+                                           value="{{ tournament.addon_cost|stringformat:'.2f'|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="time_chip_cost" class="form-label">Custo Time Chip</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="time_chip_cost" name="time_chip_cost" 
+                                           value="{{ tournament.time_chip_cost|stringformat:'.2f'|default:'' }}">
+                                </div>
                             </div>
                         </div>
 

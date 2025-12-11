@@ -29,7 +29,7 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'painel_home' %}">Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'seasons_list' %}">Temporadas</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'players_list' %}">Jogadores</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Estruturas de Blinds</a></li> 
+                <li class="nav-item"><a class="nav-link" href="{% url 'financial_dashboard' %}">Financeiro</a></li> 
                 <li class="nav-item"><a class="nav-link" href="{% url 'tournament_types_list' %}">Tipos de Torneio</a></li>
             </ul>
         </div>
@@ -48,6 +48,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'players_list' %}">
                             <i class="bi bi-people-fill me-2"></i> Jogadores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financial_dashboard' %}">
+                            <i class="bi bi-cash-coin me-2"></i> Financeiro
                         </a>
                     </li>
                     <li class="nav-item">

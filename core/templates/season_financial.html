@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Financeiro - {{ season.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">📊 Financeiro - {{ season.nome }}</h2>
+            <small class="text-muted">{{ season.data_inicio|date:"d/m/Y" }} a {{ season.data_fim|date:"d/m/Y" }}</small>
+        </div>
+        <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-secondary">← Voltar</a>
+    </div>
+
+    <!-- CARDS DE RESUMO -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Torneios</h6>
+                    <h2 class="display-6 fw-bold mb-0">{{ tournament_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Total Arrecadado</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ season_total_gross|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Rake Arrecadado</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ season_total_rake|floatformat:2 }}</h2>
+                    <small class="opacity-75">
+                        {% widthratio season_total_rake season_total_gross 100 %}%
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Premiação Total</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ season_total_prize|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABELA DE TORNEIOS DA TEMPORADA -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Torneios da Temporada</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>Torneio</th>
+                        <th class="text-center">Jogadores</th>
+                        <th class="text-center">Rebuys</th>
+                        <th class="text-center">Add-ons</th>
+                        <th class="text-center">Time Chips</th>
+                        <th class="text-end">Faturamento</th>
+                        <th class="text-end">Rake</th>
+                        <th class="text-end">Premiação</th>
+                        <th class="text-center">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in financial_data %}
+                    <tr>
+                        <td class="small">
+                            <strong>{{ item.tournament.data|date:"d/m/Y" }}</strong>
+                            <br><small class="text-muted">{{ item.tournament.data|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ item.tournament.nome }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ item.count_players }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if item.details.rebuys > 0 %}
+                                <span class="badge bg-success">{{ item.details.rebuys }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.details.addons > 0 %}
+                                <span class="badge bg-info">{{ item.details.addons }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.details.timechips > 0 %}
+                                <span class="badge bg-warning text-dark">{{ item.details.timechips }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end font-monospace fw-bold">
+                            R$ {{ item.gross_total|floatformat:2 }}
+                        </td>
+                        <td class="text-end font-monospace text-warning">
+                            R$ {{ item.rake_total|floatformat:2 }}
+                        </td>
+                        <td class="text-end font-monospace text-success">
+                            R$ {{ item.prize_pool|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'tournament_financial' item.tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-4">Nenhum torneio nesta temporada.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

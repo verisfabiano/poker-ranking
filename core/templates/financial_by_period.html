@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Financeiro - Período Customizado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">📅 Financeiro por Período</h2>
+        <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-secondary">← Voltar</a>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Data Inicial</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Data Final</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CARDS DE RESUMO -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Torneios</h6>
+                    <h2 class="display-6 fw-bold mb-0">{{ tournament_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Total Arrecadado</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ period_total_gross|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Rake Arrecadado</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ period_total_rake|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Premiação Total</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ period_total_prize|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETALHAMENTO POR DIA -->
+    {% for date, day_data in daily_financial.items %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    📆 {{ date|date:"d/m/Y" }} ({{ day_data.tournaments }} torneio{{ day_data.tournaments|pluralize }})
+                </h5>
+                <div class="small text-muted">
+                    Faturamento: <strong>R$ {{ day_data.total_gross|floatformat:2 }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Horário</th>
+                        <th>Torneio</th>
+                        <th class="text-center">Jogadores</th>
+                        <th class="text-end">Faturamento</th>
+                        <th class="text-end">Rake</th>
+                        <th class="text-end">Premiação</th>
+                        <th class="text-center">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tournament_info in day_data.tournaments %}
+                    <tr>
+                        <td class="small">{{ tournament_info.tournament.data|time:"H:i" }}</td>
+                        <td>{{ tournament_info.tournament.nome }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ tournament_info.count_players }}</span>
+                        </td>
+                        <td class="text-end font-monospace fw-bold">
+                            R$ {{ tournament_info.gross_total|floatformat:2 }}
+                        </td>
+                        <td class="text-end font-monospace text-warning">
+                            R$ {{ tournament_info.rake_total|floatformat:2 }}
+                        </td>
+                        <td class="text-end font-monospace text-success">
+                            R$ {{ tournament_info.prize_pool|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'tournament_financial' tournament_info.tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle"></i> Nenhum torneio no período selecionado.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
