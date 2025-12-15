@@ -11,6 +11,25 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 
+
+def _calcular_pontos_resultado(tournament, posicao):
+    """
+    Calcula pontos para uma posição específica usando o sistema FIXO da temporada.
+    """
+    if not tournament or posicao is None or posicao < 1:
+        return 0
+    
+    # Usa a tabela fixa da temporada
+    if tournament.season.tipo_calculo == "FIXO":
+        campo = f"pts_{posicao}lugar"
+        if posicao <= 10 and hasattr(tournament.season, campo):
+            pontos = getattr(tournament.season, campo, 0)
+            return pontos if pontos else 0
+        return 1  # Mínimo de 1 ponto
+    
+    return 0
+
+
 def _calcular_e_atualizar_stats(season, player):
     """
     Calcula e atualiza as estatísticas consolidadas de um jogador numa temporada.
@@ -59,16 +78,19 @@ def _calcular_e_atualizar_stats(season, player):
     else:
         roi = Decimal("0")
     
-    # Taxa de ITM (% de torneios com prêmio)
+    # Taxa de ITM (% de torneios com resultado/prêmio)
     if total_torneios > 0:
         taxa_itm = (Decimal(str(torneios_com_resultado)) / Decimal(str(total_torneios))) * 100
     else:
         taxa_itm = Decimal("0")
     
-    # Pontos
-    pontos_totais = pts_iniciais + resultados.aggregate(
-        total=Coalesce(Sum('pontos_finais'), 0)
-    )['total']
+    # Pontos - CALCULA baseado em FIXO
+    pontos_resultado = 0
+    for resultado in resultados:
+        pontos = _calcular_pontos_resultado(resultado.tournament, resultado.posicao)
+        pontos_resultado += pontos
+    
+    pontos_totais = pts_iniciais + pontos_resultado
     
     media_pontos = Decimal("0")
     if torneios_com_resultado > 0:
@@ -195,14 +217,17 @@ def estatisticas_jogador(request, season_id, player_id):
     
     # Gráfico de evolução (por torneio)
     historico = []
-    pontos_acumulado = stats.pontos_totais - sum([r.pontos_finais for r in resultados])
+    pontos_acumulado = stats.pontos_totais - sum([
+        _calcular_pontos_resultado(r.tournament, r.posicao) for r in resultados
+    ])
     
     for resultado in reversed(resultados):
-        pontos_acumulado += resultado.pontos_finais
+        pontos = _calcular_pontos_resultado(resultado.tournament, resultado.posicao)
+        pontos_acumulado += pontos
         historico.append({
             'tournament_nome': resultado.tournament.nome,
             'posicao': resultado.posicao,
-            'pontos': resultado.pontos_finais,
+            'pontos': pontos,
             'premio': float(resultado.premiacao_recebida),
             'acumulado': pontos_acumulado,
         })
