@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ranking - {{ season.nome }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ranking-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .ranking-header h1 {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .ranking-header p {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .ranking-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    
+    .ranking-table table {
+        margin-bottom: 0;
+    }
+    
+    .ranking-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .ranking-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .ranking-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .posicao-badge {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .posicao-1 {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    }
+    
+    .posicao-2 {
+        background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+    }
+    
+    .posicao-3 {
+        background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    }
+    
+    .player-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .player-avatar {
+        width: 40px;
+        height: 40px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+    
+    .highlight-stat {
+        font-weight: bold;
+        color: #007bff;
+        font-size: 1.1rem;
+    }
+    
+    .badge-itm-alto {
+        background-color: #28a745 !important;
+    }
+    
+    .badge-itm-medio {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+    
+    .badge-itm-baixo {
+        background-color: #dc3545 !important;
+    }
+    
+    .info-box {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .info-box strong {
+        color: #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="ranking-header">
+    <h1><i class="bi bi-trophy-fill"></i> Ranking - {{ season.nome }}</h1>
+    <p>
+        <strong>{{ total_jogadores }}</strong> jogadores | 
+        <strong>{{ total_torneios }}</strong> torneios disputados
+    </p>
+</div>
+
+<!-- INFO SOBRE VOCÊ -->
+{% if jogador_logado and minha_posicao %}
+<div class="info-box">
+    <i class="bi bi-person-check"></i> 
+    <strong>Sua Posição:</strong> #{{ minha_posicao }} com <strong>{{ minha_stats.pontos_totais }}</strong> pontos
+    {% if minha_posicao <= 3 %}
+        🏆
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- TABELA DE RANKING -->
+<div class="ranking-table">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Pos</th>
+                    <th>Jogador</th>
+                    <th style="text-align: center; width: 100px;">Pontos</th>
+                    <th style="text-align: center; width: 80px;">Vitórias</th>
+                    <th style="text-align: center; width: 80px;">Top 3</th>
+                    <th style="text-align: center; width: 100px;">ITM</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in ranking %}
+                <tr>
+                    <td>
+                        <span class="posicao-badge {% if stat.posicao == 1 %}posicao-1{% elif stat.posicao == 2 %}posicao-2{% elif stat.posicao == 3 %}posicao-3{% endif %}">
+                            {{ stat.posicao }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="player-info">
+                            <div class="player-avatar">{{ stat.player.apelido|first|upper }}</div>
+                            <div>
+                                <strong>{{ stat.player.apelido|default:stat.player.nome }}</strong>
+                                <br>
+                                <small class="text-muted">{{ stat.total_torneios }} torneios</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="highlight-stat">{{ stat.pontos_totais }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if stat.vitórias > 0 %}
+                            <span class="badge bg-warning text-dark">{{ stat.vitórias }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if stat.top_3 > 0 %}
+                            <span class="badge bg-info">{{ stat.top_3 }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge {% if stat.taxa_itm > 60 %}badge-itm-alto{% elif stat.taxa_itm > 30 %}badge-itm-medio{% else %}badge-itm-baixo{% endif %}">
+                            {{ stat.taxa_itm|floatformat:0 }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- INFO RODAPÉ -->
+<div class="info-box">
+    <i class="bi bi-info-circle"></i> 
+    <strong>Pontos ITM:</strong> Percentual de torneios que você finalizou com prêmio
+</div>
+
+{% endblock %}

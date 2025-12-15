@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Sum
-from ..models import Season, TournamentResult, TournamentEntry, SeasonInitialPoints, Player
+from ..models import Season, TournamentResult, TournamentEntry, SeasonInitialPoints, Player, Tournament
 from .auth import admin_required
 
 
@@ -141,7 +141,57 @@ def _build_ranking_for_season(season):
 # ============================================================
 
 def ranking_season(request, season_id):
+    """
+    Renderiza o ranking da temporada.
+    Se jogador logado: mostra view simplificada (ranking_jogador.html)
+    Se admin: mostra view completa (ranking.html)
+    """
     season = get_object_or_404(Season, id=season_id)
+    
+    # Se for jogador logado, renderiza view simplificada
+    if request.user.is_authenticated and not request.user.is_staff:
+        from .ranking import _calcular_e_atualizar_stats
+        from core.models import PlayerStatistics
+        
+        # Atualiza stats de todos os jogadores
+        players_season = Player.objects.filter(
+            tournamententry__tournament__season=season
+        ).distinct()
+        
+        for player in players_season:
+            _calcular_e_atualizar_stats(season, player)
+        
+        # Ranking ordenado por pontos
+        ranking = PlayerStatistics.objects.filter(
+            season=season
+        ).select_related('player').order_by('-pontos_totais', '-vitórias', '-top_3')
+        
+        ranking_with_position = []
+        minha_posicao = None
+        minha_stats = None
+        
+        for idx, stat in enumerate(ranking, 1):
+            stat.posicao = idx
+            ranking_with_position.append(stat)
+            
+            # Se é o jogador logado
+            if request.user == stat.player.user:
+                minha_posicao = idx
+                minha_stats = stat
+        
+        context = {
+            'season': season,
+            'ranking': ranking_with_position,
+            'total_jogadores': ranking.count(),
+            'total_torneios': Tournament.objects.filter(season=season).count(),
+            'jogador_logado': request.user,
+            'minha_posicao': minha_posicao,
+            'minha_stats': minha_stats,
+        }
+        
+        return render(request, 'ranking_jogador.html', context)
+    
+    # Admin vê ranking tradicional
     return render(request, "ranking.html", {"season": season, "ranking": _build_ranking_for_season(season)})
 
 
@@ -284,4 +334,19 @@ def season_initial_points(request, season_id):
             "linhas": linhas,
             "mensagem": mensagem,
         },
+    )
+
+
+def player_progress_season(request, season_id, player_id):
+    season = get_object_or_404(Season, id=season_id)
+    player = get_object_or_404(Player, id=player_id)
+    
+    resultados = TournamentResult.objects.filter(
+        player=player, tournament__season=season
+    ).order_by("tournament__data")
+    
+    return render(
+        request,
+        "player_progress.html",
+        {"season": season, "player": player, "resultados": resultados},
     )
