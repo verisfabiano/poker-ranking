@@ -150,6 +150,11 @@
             <a href="{% url 'painel_home' %}" class="nav-link {% if request.resolver_match.url_name == 'painel_home' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
+            {% if request.resolver_match.kwargs.season_id %}
+                <a href="{% url 'ranking_avancado' request.resolver_match.kwargs.season_id %}" class="nav-link {% if request.resolver_match.url_name == 'ranking_avancado' %}active{% endif %}">
+                    <i class="bi bi-bar-chart"></i> Ranking Avançado
+                </a>
+            {% endif %}
         </div>
         
         <!-- GESTÃO -->
@@ -206,11 +211,21 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                         {% if not user.is_staff %}
-                        <li><a class="dropdown-item" href="{% url 'player_home' %}">Meu Dashboard</a></li>
-                        <li><a class="dropdown-item" href="{% url 'player_tournaments' %}">Meus Torneios</a></li>
+                        <li><a class="dropdown-item" href="{% url 'player_home' %}">
+                            <i class="bi bi-speedometer2"></i> Meu Dashboard
+                        </a></li>
+                        <li><a class="dropdown-item" href="{% url 'player_tournaments' %}">
+                            <i class="bi bi-calendar-event"></i> Meus Torneios
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'ranking_season' 1 %}" onclick="return confirm('Selecione uma temporada')">
+                            <i class="bi bi-bar-chart"></i> Ver Ranking
+                        </a></li>
                         {% endif %}
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{% url 'player_logout' %}">Sair</a></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'player_logout' %}">
+                            <i class="bi bi-door-left"></i> Sair
+                        </a></li>
                     </ul>
                 </div>
                 {% else %}
@@ -220,7 +235,7 @@
                 {% endif %}
             </div>
         </div>
-    </nav>
+    </navbar>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="{% if user.is_authenticated and user.is_staff %}with-sidebar{% endif %}">
