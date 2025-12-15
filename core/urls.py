@@ -29,6 +29,7 @@ from .views import (
     tournament_results,
 
     # Jogadores
+    player_home,
     player_login,
     player_logout,
     players_list,
@@ -61,106 +62,86 @@ urlpatterns = [
     # Raiz do site -> decide pra onde mandar (admin x jogador)
     path("", home_redirect, name="home_redirect"),
 
-    # Painel do admin
+    # ============================================================
+    #  ADMIN - PAINEL
+    # ============================================================
     path("painel/", painel_home, name="painel_home"),
 
-    # Atalho /login/ (usado por next=? ou links antigos) -> login do jogador
-    path(
-        "login/",
-        RedirectView.as_view(pattern_name="player_login", permanent=False),
-        name="login_redirect",
-    ),
-
-    # Ranking público
+    # ============================================================
+    #  RANKING (PÚBLICO)
+    # ============================================================
     path("ranking/<int:season_id>/", ranking_season, name="ranking_season"),
     path("tv/ranking/<int:season_id>/", tv_ranking_season, name="tv_ranking_season"),
 
-    # Temporadas (admin)
+    # ============================================================
+    #  TEMPORADAS (ADMIN)
+    # ============================================================
     path("temporadas/", seasons_list, name="seasons_list"),
     path("temporadas/nova/", season_create, name="season_create"),
     path("temporadas/editar/<int:season_id>/", season_edit, name="season_edit"),
-    path(
-        "temporadas/<int:season_id>/pontos-iniciais/",
-        season_initial_points,
-        name="season_initial_points",
-    ),
-    path(
-        "temporadas/<int:season_id>/jogador/<int:player_id>/evolucao/",
-        player_progress_season,
-        name="player_progress_season",
-    ),
+    path("temporadas/<int:season_id>/pontos-iniciais/", season_initial_points, name="season_initial_points"),
 
-    # Tipos de torneio (admin)
+    # ============================================================
+    #  TIPOS DE TORNEIO (ADMIN)
+    # ============================================================
     path("tipos-torneio/", tournament_types_list, name="tournament_types_list"),
     path("tipos-torneio/novo/", tournament_type_create, name="tournament_type_create"),
-    path(
-        "tipos-torneio/editar/<int:tipo_id>/",
-        tournament_type_edit,
-        name="tournament_type_edit",
-    ),
+    path("tipos-torneio/editar/<int:tipo_id>/", tournament_type_edit, name="tournament_type_edit"),
 
-    # Torneios (admin)
-    path(
-        "season/<int:season_id>/torneios/",
-        season_tournaments,
-        name="season_tournaments",
-    ),
-    path(
-        "season/<int:season_id>/torneios/novo/",
-        tournament_create,
-        name="tournament_create",
-    ),
-    path(
-        "torneio/<int:tournament_id>/editar/",
-        tournament_edit,
-        name="tournament_edit",
-    ),
-    path(
-        "torneio/<int:tournament_id>/jogadores/",
-        tournament_entries_manage,
-        name="tournament_entries_manage",
-    ),
-    path(
-        "torneio/<int:tournament_id>/lancamento/",
-        tournament_results,
-        name="tournament_results",
-    ),
+    # ============================================================
+    #  TORNEIOS (ADMIN)
+    # ============================================================
+    path("season/<int:season_id>/torneios/", season_tournaments, name="season_tournaments"),
+    path("season/<int:season_id>/torneios/novo/", tournament_create, name="tournament_create"),
+    path("torneio/<int:tournament_id>/editar/", tournament_edit, name="tournament_edit"),
+    path("torneio/<int:tournament_id>/jogadores/", tournament_entries_manage, name="tournament_entries_manage"),
+    path("torneio/<int:tournament_id>/lancamento/", tournament_results, name="tournament_results"),
 
-    # Jogadores (site público / portal)
+    # ============================================================
+    #  JOGADORES (PORTAL DO JOGADOR)
+    # ============================================================
+    path("jogador/home/", player_home, name="player_home"),
     path("jogador/login/", player_login, name="player_login"),
     path("jogador/logout/", player_logout, name="player_logout"),
+    path("jogador/cadastro/", player_register, name="player_register"),
+    path("jogador/torneios/", player_tournaments, name="player_tournaments"),
+    path("jogador/confirmar/<int:tournament_id>/", confirm_presence, name="confirm_presence"),
+    path("jogador/<int:player_id>/season/<int:season_id>/evolucao/", player_progress_season, name="player_progress_season"),
+
+    # ============================================================
+    #  JOGADORES (ADMIN)
+    # ============================================================
     path("jogadores/", players_list, name="players_list"),
     path("jogadores/novo/", player_create, name="player_create"),
     path("jogadores/editar/<int:player_id>/", player_edit, name="player_edit"),
 
-    path("jogador/cadastro/", player_register, name="player_register"),
-    path("jogador/torneios/", player_tournaments, name="player_tournaments"),
-    path(
-        "jogador/confirmar/<int:tournament_id>/",
-        confirm_presence,
-        name="confirm_presence",
-    ),
-
-    # --- BLINDS ---
+    # ============================================================
+    #  BLINDS (ADMIN)
+    # ============================================================
     path("blinds/", blind_structures_list, name="blind_structures_list"),
     path("blinds/nova/", blind_structure_create, name="blind_structure_create"),
     path("blinds/<int:structure_id>/gerenciar/", blind_structure_manage, name="blind_structure_manage"),
 
-    # PAINEL DO DIRETOR
+    # ============================================================
+    #  DIRETOR DE TORNEIO
+    # ============================================================
     path("torneio/<int:tournament_id>/diretor/", director_panel, name="director_panel"),
     path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
     path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
-
-    # Rota da API (JSON)
     path("api/torneio/<int:tournament_id>/status/", api_tournament_status, name="api_tournament_status"),
-
-    # Rota do Telão Visual (HTML + JS)
     path("torneio/<int:tournament_id>/telao/", tv_dashboard, name="tv_dashboard"),
 
-    # Financeiro - Dashboard e Relatórios
-    path('tournament/<int:tournament_id>/financial/', tournament_financial, name='tournament_financial'),
-    path('financeiro/', financial_dashboard, name='financial_dashboard'),
-    path('financeiro/temporada/<int:season_id>/', season_financial, name='season_financial'),
-    path('financeiro/periodo/', financial_by_period, name='financial_by_period'),
-    path('api/financeiro/resumo/', api_financial_summary, name='api_financial_summary'),
+    # ============================================================
+    #  FINANCEIRO (ADMIN)
+    # ============================================================
+    path("torneio/<int:tournament_id>/financeiro/", tournament_financial, name="tournament_financial"),
+    path("financeiro/", financial_dashboard, name="financial_dashboard"),
+    path("financeiro/temporada/<int:season_id>/", season_financial, name="season_financial"),
+    path("financeiro/periodo/", financial_by_period, name="financial_by_period"),
+    path("api/financeiro/resumo/", api_financial_summary, name="api_financial_summary"),
+
+    # ============================================================
+    #  ATALHO /login/ (compatibilidade)
+    # ============================================================
+    path("login/", RedirectView.as_view(pattern_name="player_login", permanent=False), name="login_redirect"),
 ]
