@@ -237,6 +237,7 @@ def tournament_edit(request, tournament_id):
 def tournament_entries_manage(request, tournament_id):
     """Gerenciar inscrições e participantes do torneio"""
     tournament = get_object_or_404(Tournament, id=tournament_id)
+    season = tournament.season  # ADICIONAR ESTA LINHA
     
     mensagem = None
     mensagem_erro = None
@@ -304,6 +305,7 @@ def tournament_entries_manage(request, tournament_id):
     
     context = {
         'tournament': tournament,
+        'season': season,  # ADICIONAR ESTA LINHA
         'entries': entries,
         'players_disponiveis': players_disponiveis,
         'mensagem': mensagem,
@@ -311,7 +313,6 @@ def tournament_entries_manage(request, tournament_id):
         'edicao_bloqueada': edicao_bloqueada,
     }
     return render(request, 'tournament_entries.html', context)
-
 
 # ============================================================
 #  LANÇAMENTO DE RESULTADOS
