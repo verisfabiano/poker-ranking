@@ -218,7 +218,7 @@
                             <i class="bi bi-calendar-event"></i> Meus Torneios
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'ranking_season' 1 %}" onclick="return confirm('Selecione uma temporada')">
+                        <li><a class="dropdown-item" href="{% url 'ranking_season' 1 %}">
                             <i class="bi bi-bar-chart"></i> Ver Ranking
                         </a></li>
                         {% endif %}
@@ -235,7 +235,7 @@
                 {% endif %}
             </div>
         </div>
-    </navbar>
+    </nav>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="{% if user.is_authenticated and user.is_staff %}with-sidebar{% endif %}">
