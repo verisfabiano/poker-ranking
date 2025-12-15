@@ -2,113 +2,345 @@
 
 {% block title %}Ranking - {{ season.nome }}{% endblock %}
 
-{% block content %}
-<div class="container">
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'painel_home' %}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Ranking - {{ season.nome }}</li>
+{% endblock %}
 
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-        <div>
-            <h2 class="mb-0">Ranking da Temporada</h2>
-            <p class="text-muted mb-0">{{ season.nome }}</p>
-        </div>
-        <a href="{% url 'painel_home' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Voltar ao Painel
+{% block extra_css %}
+<style>
+    .ranking-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        margin-bottom: 40px;
+    }
+    
+    .ranking-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .ranking-season-info {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+    
+    .ranking-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .ranking-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .ranking-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .ranking-table th {
+        padding: 20px 16px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        border: none;
+    }
+    
+    .ranking-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+    
+    .ranking-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .ranking-table td {
+        padding: 20px 16px;
+        vertical-align: middle;
+    }
+    
+    .ranking-position {
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.5rem;
+        min-width: 80px;
+    }
+    
+    .ranking-position.first {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ranking-position.second {
+        background: linear-gradient(135deg, #c0c0c0 0%, #808080 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ranking-position.third {
+        background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .ranking-position.badge-empate {
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 4px;
+    }
+    
+    .player-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .player-medal {
+        display: inline-block;
+        font-size: 1.8rem;
+        margin-right: 12px;
+    }
+    
+    .points-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: inline-block;
+    }
+    
+    .points-breakdown {
+        display: flex;
+        gap: 16px;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+    }
+    
+    .point-item {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    
+    .point-item strong {
+        color: var(--primary);
+    }
+    
+    .point-item-separator {
+        color: #e0e0e0;
+    }
+    
+    .evolution-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .evolution-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .info-box strong {
+        color: var(--primary);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 30px;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .top-3-highlight {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="ranking-header">
+    <h1>
+        <i class="bi bi-trophy-fill me-3"></i>Ranking da Temporada
+    </h1>
+    <p class="ranking-season-info mb-3">{{ season.nome }}</p>
+    <p class="mb-0" style="font-size: 0.95rem; opacity: 0.9;">
+        <i class="bi bi-calendar3 me-2"></i>
+        {{ season.data_inicio|date:"d \d\e F" }} — {{ season.data_fim|date:"d \d\e F \d\e Y" }}
+    </p>
+    
+    <div class="ranking-actions">
+        <a href="{% url 'painel_home' %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-2"></i> Voltar ao Painel
+        </a>
+        <a href="{% url 'tv_ranking_season' season.id %}" target="_blank" class="btn btn-light">
+            <i class="bi bi-display me-2"></i> Abrir Telão
         </a>
     </div>
+</div>
 
-    <div class="alert alert-light border shadow-sm d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-info-circle-fill text-primary me-3 fs-4"></i>
-        <div>
-            <small class="text-muted d-block text-uppercase fw-bold">Como funciona a pontuação?</small>
-            <span>
-                Total = <strong>Pontos Iniciais</strong> + <strong>Torneios</strong> + <strong>Bônus</strong> (Participação, Time Chip, etc).
-            </span>
-        </div>
-    </div>
+<!-- INFO BOX -->
+<div class="info-box">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>Como funciona a pontuação?</strong><br>
+    <small>Total = <strong>Pontos Iniciais</strong> + <strong>Torneios</strong> + <strong>Bônus</strong> (Participação, Time Chip, etc). Critério de desempate: Pontos Totais → Pontos de Torneio → Pontos Iniciais → Ordem Alfabética.</small>
+</div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4 text-center" style="width: 80px;">Pos</th>
-                            <th>Jogador</th>
-                            <th class="text-center">Total</th>
-                            <th class="d-none d-md-table-cell">Detalhamento</th>
-                            <th class="text-end pe-4">Evolução</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in ranking %}
-                            {% with pos=item.posicao %}
-                            <tr class="{% if pos == 1 %}table-warning border-warning{% endif %}">
-                                
-                                <td class="ps-4 text-center">
-                                    <div class="fw-bold fs-5">
-                                        {% if pos == 1 %}
-                                            🥇
-                                        {% elif pos == 2 %}
-                                            🥈
-                                        {% elif pos == 3 %}
-                                            🥉
-                                        {% else %}
-                                            {{ pos }}º
-                                        {% endif %}
-                                    </div>
-                                    {% if item.empatado %}
-                                        <span class="badge bg-secondary" style="font-size: 0.6rem;">EMPATE</span>
-                                    {% endif %}
-                                </td>
+<!-- RANKING TABLE -->
+{% if ranking %}
+<div class="ranking-table">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 100px;">Posição</th>
+                <th style="width: 40%;">Jogador</th>
+                <th class="text-center" style="width: 120px;">Total</th>
+                <th>Detalhamento</th>
+                <th class="text-center" style="width: 140px;">Evolução</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in ranking %}
+            <tr class="{% if item.posicao <= 3 %}top-3-highlight{% endif %}">
+                
+                <!-- POSIÇÃO COM MEDALHA -->
+                <td class="ranking-position text-center">
+                    {% if item.posicao == 1 %}
+                        <div class="player-medal">🥇</div>
+                        <div class="ranking-position first">1º</div>
+                    {% elif item.posicao == 2 %}
+                        <div class="player-medal">🥈</div>
+                        <div class="ranking-position second">2º</div>
+                    {% elif item.posicao == 3 %}
+                        <div class="player-medal">🥉</div>
+                        <div class="ranking-position third">3º</div>
+                    {% else %}
+                        <div style="font-size: 1.8rem;">{{ item.posicao }}º</div>
+                    {% endif %}
+                    
+                    {% if item.empatado %}
+                        <span class="badge-empate badge bg-warning text-dark">EMPATE</span>
+                    {% endif %}
+                </td>
 
-                                <td>
-                                    <div class="fw-bold text-dark fs-5">{{ item.nome }}</div>
-                                </td>
+                <!-- NOME DO JOGADOR -->
+                <td>
+                    <div class="player-name">{{ item.nome }}</div>
+                </td>
 
-                                <td class="text-center">
-                                    <span class="badge rounded-pill bg-primary fs-6 px-3">
-                                        {{ item.pontos }} pts
-                                    </span>
-                                </td>
+                <!-- PONTOS TOTAIS -->
+                <td class="text-center">
+                    <span class="points-badge">{{ item.pontos }}</span>
+                    <small style="display: block; color: #6c757d; margin-top: 4px;">pts</small>
+                </td>
 
-                                <td class="d-none d-md-table-cell">
-                                    <div class="d-flex gap-2 font-monospace small">
-                                        <span class="text-muted" title="Pontos Iniciais">
-                                            Ini: <strong>{{ item.pontos_iniciais }}</strong>
-                                        </span>
-                                        <span class="text-muted border-start ps-2" title="Pontos de Torneios">
-                                            Torn: <strong>{{ item.pontos_resultado }}</strong>
-                                        </span>
-                                        <span class="text-muted border-start ps-2" title="Bônus de Participação">
-                                            Part: <strong>{{ item.pontos_participacao }}</strong>
-                                        </span>
-                                    </div>
-                                </td>
+                <!-- DETALHAMENTO -->
+                <td>
+                    <div class="points-breakdown">
+                        <div class="point-item">
+                            <span title="Pontos Iniciais da Temporada">
+                                <strong>{{ item.pontos_iniciais }}</strong>
+                            </span>
+                            <small class="text-muted">iniciais</small>
+                        </div>
+                        
+                        <div class="point-item-separator">|</div>
+                        
+                        <div class="point-item">
+                            <span title="Pontos conquistados em Torneios">
+                                <strong>{{ item.pontos_resultado }}</strong>
+                            </span>
+                            <small class="text-muted">torneios</small>
+                        </div>
+                        
+                        <div class="point-item-separator">|</div>
+                        
+                        <div class="point-item">
+                            <span title="Bônus de Participação">
+                                <strong>{{ item.pontos_participacao }}</strong>
+                            </span>
+                            <small class="text-muted">bônus</small>
+                        </div>
+                    </div>
+                </td>
 
-                                <td class="text-end pe-4">
-                                    <a href="{% url 'player_progress_season' season.id item.player_id %}" 
-                                       class="btn btn-sm btn-outline-primary rounded-pill"
-                                       target="_blank"
-                                       title="Ver gráfico de evolução">
-                                        <i class="bi bi-graph-up"></i> <span class="d-none d-sm-inline">Evolução</span>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endwith %}
-                        {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-trophy d-block fs-1 mb-2 opacity-25"></i>
-                                    Nenhum jogador pontuou nesta temporada ainda.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer bg-white small text-muted">
-            <i class="bi bi-lightbulb"></i> Critério de desempate: 1º Pontos Totais &rarr; 2º Pontos de Torneio &rarr; 3º Pontos Iniciais &rarr; 4º Ordem Alfabética.
-        </div>
+                <!-- EVOLUÇÃO -->
+                <td class="text-center">
+                    <a href="{% url 'player_progress_season' season.id item.player_id %}" 
+                       class="evolution-button"
+                       target="_blank"
+                       title="Ver gráfico de evolução de {{ item.nome }}">
+                        <i class="bi bi-graph-up"></i>
+                        <span class="d-none d-md-inline">Evolução</span>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+
+<!-- EMPTY STATE -->
+<div class="ranking-table">
+    <div class="empty-state">
+        <i class="bi bi-trophy"></i>
+        <h3>Nenhum jogador pontuou ainda</h3>
+        <p class="text-muted mb-0">
+            Crie torneios e lance os resultados para que o ranking seja atualizado automaticamente.
+        </p>
     </div>
 </div>
+
+{% endif %}
+
 {% endblock %}

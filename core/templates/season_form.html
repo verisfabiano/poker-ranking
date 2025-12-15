@@ -1,67 +1,270 @@
 {% extends 'base.html' %}
 
-{% block title %}
-    {% if season %}Editar Temporada{% else %}Nova Temporada{% endif %}
-{% endblock %}
+{% block title %}{% if season %}Editar{% else %}Nova{% endif %} Temporada{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 600px;">
-    <div class="card shadow-sm mt-4 border-0">
-        
-        <div class="card-header bg-primary text-white py-3">
-            <h4 class="mb-0 d-flex align-items-center gap-2">
-                {% if season %}
-                    <i class="bi bi-calendar2-week"></i> Editar Temporada
-                {% else %}
-                    <i class="bi bi-calendar-plus"></i> Nova Temporada
-                {% endif %}
-            </h4>
+<div class="container" style="max-width: 800px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-1">{% if season %}Editar Temporada{% else %}Nova Temporada{% endif %}</h2>
+            <p class="text-muted mb-0">Configure os parâmetros da temporada</p>
         </div>
+        <a href="{% url 'seasons_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
 
+    <div class="card shadow-sm border-0">
         <div class="card-body p-4">
             <form method="POST">
                 {% csrf_token %}
 
-                <div class="mb-3">
-                    <label for="nome" class="form-label">Nome da Temporada</label>
-                    <input type="text" class="form-control" id="nome" name="nome" 
-                           value="{{ season.nome|default:'' }}" required placeholder="Ex: Temporada 2024 - 1º Semestre">
-                </div>
+                <!-- INFORMAÇÕES BÁSICAS -->
+                <div class="mb-4">
+                    <h5 class="mb-3 pb-2 border-bottom">
+                        <i class="bi bi-info-circle me-2"></i>Informações Básicas
+                    </h5>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label for="data_inicio" class="form-label">Data de Início</label>
-                        <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
-                               value="{{ season.data_inicio|date:'Y-m-d'|default:'' }}" required>
+                    <div class="mb-3">
+                        <label for="nome" class="form-label"><span style="color: red;">*</span> Nome da Temporada</label>
+                        <input type="text" class="form-control" id="nome" name="nome" 
+                               value="{% if season %}{{ season.nome }}{% endif %}" required placeholder="Ex: Temporada 2025">
+                        <small class="text-muted">Ex: Temporada 2025, Q1 2025, etc</small>
                     </div>
-                    <div class="col-md-6">
-                        <label for="data_fim" class="form-label">Data de Término</label>
-                        <input type="date" class="form-control" id="data_fim" name="data_fim" 
-                               value="{{ season.data_fim|date:'Y-m-d'|default:'' }}" required>
-                    </div>
-                </div>
 
-                <div class="mb-4 pt-2 border-top">
-                    <div class="form-check form-switch mt-3">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="data_inicio" class="form-label"><span style="color: red;">*</span> Data Início</label>
+                            <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                                   value="{% if season %}{{ season.data_inicio|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="data_fim" class="form-label"><span style="color: red;">*</span> Data Fim</label>
+                            <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                                   value="{% if season %}{{ season.data_fim|date:'Y-m-d' }}{% endif %}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="ativo" name="ativo" 
                                {% if not season or season.ativo %}checked{% endif %}>
-                        <label class="form-check-label fw-bold" for="ativo">
-                            Temporada Ativa?
+                        <label class="form-check-label" for="ativo">
+                            <strong>Temporada Ativa?</strong>
                         </label>
-                        <div class="form-text">Marque para que ela apareça como temporada corrente no painel.</div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
+                <!-- SISTEMA DE CÁLCULO -->
+                <div class="mb-4">
+                    <h5 class="mb-3 pb-2 border-bottom">
+                        <i class="bi bi-calculator me-2"></i>Sistema de Pontuação
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label"><span style="color: red;">*</span> Tipo de Cálculo</label>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input tipo-calculo" type="radio" name="tipo_calculo" 
+                                   id="tipo_fixo" value="FIXO" 
+                                   {% if not season or season.tipo_calculo == 'FIXO' %}checked{% endif %}>
+                            <label class="form-check-label" for="tipo_fixo">
+                                <strong>Pontuação Fixa</strong>
+                                <small class="d-block text-muted">Tabela predefinida de pontos (1º=14pts, 2º=11pts, etc)</small>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input tipo-calculo" type="radio" name="tipo_calculo" 
+                                   id="tipo_dinamico" value="DINAMICO"
+                                   {% if season.tipo_calculo == 'DINAMICO' %}checked{% endif %}>
+                            <label class="form-check-label" for="tipo_dinamico">
+                                <strong>Dinâmico (Inteligente)</strong>
+                                <small class="d-block text-muted">Pontos variam pelo field, buy-in e posição final</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABELA DE PONTOS FIXOS -->
+                {% if season %}
+                    {% if season.tipo_calculo == 'DINAMICO' %}
+                        <div id="secao_pontos_fixos" class="mb-4" style="display: none;">
+                    {% else %}
+                        <div id="secao_pontos_fixos" class="mb-4">
+                    {% endif %}
+                {% else %}
+                    <div id="secao_pontos_fixos" class="mb-4">
+                {% endif %}
+                    <h5 class="mb-3 pb-2 border-bottom">
+                        <i class="bi bi-list-ol me-2"></i>Tabela de Pontos por Posição
+                    </h5>
+
+                    <p class="text-muted small mb-3">Defina quantos pontos cada posição recebe:</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="pts_1lugar" class="form-label">1º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_1lugar" 
+                                       name="pts_1lugar" min="0"
+                                       value="{% if season %}{{ season.pts_1lugar }}{% else %}14{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_2lugar" class="form-label">2º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_2lugar" 
+                                       name="pts_2lugar" min="0"
+                                       value="{% if season %}{{ season.pts_2lugar }}{% else %}11{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_3lugar" class="form-label">3º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_3lugar" 
+                                       name="pts_3lugar" min="0"
+                                       value="{% if season %}{{ season.pts_3lugar }}{% else %}8{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label for="pts_4lugar" class="form-label">4º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_4lugar" 
+                                       name="pts_4lugar" min="0"
+                                       value="{% if season %}{{ season.pts_4lugar }}{% else %}6{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_5lugar" class="form-label">5º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_5lugar" 
+                                       name="pts_5lugar" min="0"
+                                       value="{% if season %}{{ season.pts_5lugar }}{% else %}4{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_6lugar" class="form-label">6º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_6lugar" 
+                                       name="pts_6lugar" min="0"
+                                       value="{% if season %}{{ season.pts_6lugar }}{% else %}2{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label for="pts_7lugar" class="form-label">7º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_7lugar" 
+                                       name="pts_7lugar" min="0"
+                                       value="{% if season %}{{ season.pts_7lugar }}{% else %}1{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_8lugar" class="form-label">8º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_8lugar" 
+                                       name="pts_8lugar" min="0"
+                                       value="{% if season %}{{ season.pts_8lugar }}{% else %}1{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="pts_9lugar" class="form-label">9º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_9lugar" 
+                                       name="pts_9lugar" min="0"
+                                       value="{% if season %}{{ season.pts_9lugar }}{% else %}1{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label for="pts_10lugar" class="form-label">10º Lugar</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">pts</span>
+                                <input type="number" class="form-control" id="pts_10lugar" 
+                                       name="pts_10lugar" min="0"
+                                       value="{% if season %}{{ season.pts_10lugar }}{% else %}1{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Dica:</strong> Use a tabela padrão (14-11-8-6-4-2-1-1-1-1) ou customize conforme desejar.
+                    </div>
+                </div>
+
+                <!-- EXPLICAÇÃO DO SISTEMA DINÂMICO -->
+                {% if season %}
+                    {% if season.tipo_calculo == 'FIXO' %}
+                        <div id="secao_dinamico_info" class="alert alert-info" style="display: none;">
+                    {% else %}
+                        <div id="secao_dinamico_info" class="alert alert-info">
+                    {% endif %}
+                {% else %}
+                    <div id="secao_dinamico_info" class="alert alert-info" style="display: none;">
+                {% endif %}
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Sistema Dinâmico:</strong>
+                    <small class="d-block mt-2">
+                        A pontuação varia conforme:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Quantidade de jogadores</strong> - Torneios maiores = mais pontos</li>
+                            <li><strong>Valor do buy-in</strong> - Buy-ins maiores = mais pontos</li>
+                            <li><strong>Posição final</strong> - 1º lugar vale 100x mais que consolação</li>
+                            <li><strong>Multiplicador do tipo</strong> - Ajuste por importância do torneio</li>
+                        </ul>
+                        <br>
+                        <strong>Exemplo:</strong> Torneio com 10 jogadores, R$50 de buy-in
+                        <ul class="mb-0">
+                            <li>1º lugar = 50 pontos</li>
+                            <li>2º lugar = 35 pontos</li>
+                            <li>3º lugar = 25 pontos</li>
+                        </ul>
+                    </small>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                     <a href="{% url 'seasons_list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Voltar
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
                     </a>
-                    <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
-                        SALVAR
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Salvar Temporada
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.tipo-calculo').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const fixos = document.getElementById('secao_pontos_fixos');
+        const dinamico = document.getElementById('secao_dinamico_info');
+        
+        if (this.value === 'FIXO') {
+            fixos.style.display = 'block';
+            dinamico.style.display = 'none';
+        } else {
+            fixos.style.display = 'none';
+            dinamico.style.display = 'block';
+        }
+    });
+});
+</script>
 {% endblock %}

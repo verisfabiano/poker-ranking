@@ -1,265 +1,164 @@
-# core/views/financial.py - VERSÃO EXPANDIDA COMPLETA
+# core/views/financial.py - VERSÃO REFATORADA
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from django.db.models import Sum, Count, F, Q, DecimalField
-from django.db.models.functions import TruncDate
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Sum, Count, F
 from django.http import JsonResponse
 from django.utils import timezone
-from core.models import Tournament, TournamentEntry, Season
+from core.models import Tournament, TournamentEntry, TournamentResult, Season, PlayerProductPurchase
 from .auth import admin_required
 
 
-# ============================================================
-#  VIEW FINANCEIRO POR TORNEIO (JÁ EXISTENTE - AQUI PARA CONTEXTO)
-# ============================================================
+def calcular_financeiro_torneio(tournament):
+    """
+    Calcula financeiro completo de um torneio.
+    Retorna dicionário com gross, rake, prize_pool.
+    """
+    entries = TournamentEntry.objects.filter(tournament=tournament, confirmado_pelo_admin=True)
+    results = TournamentResult.objects.filter(tournament=tournament)
+    
+    count_players = entries.count()
+    
+    # Buy-ins confirmados
+    total_buyin_bruto = count_players * tournament.buyin if tournament.buyin else Decimal('0')
+    rake_buyin = count_players * tournament.rake_valor if tournament.rake_type in ['FIXO', 'MISTO'] else Decimal('0')
+    if tournament.rake_type in ['PERCENTUAL', 'MISTO']:
+        rake_buyin += total_buyin_bruto * (tournament.rake_percentual / 100)
+    
+    pote_buyin = total_buyin_bruto - rake_buyin
+    
+    # Prêmios pagos (do TournamentResult)
+    total_premios = results.aggregate(Sum('premiacao_recebida'))['premiacao_recebida__sum'] or Decimal('0')
+    
+    # Produtos vendidos (jackpot, bounty, etc)
+    total_produtos = PlayerProductPurchase.objects.filter(tournament=tournament).aggregate(
+        Sum('valor_pago')
+    )['valor_pago__sum'] or Decimal('0')
+    
+    return {
+        'count_players': count_players,
+        'buyin_total': total_buyin_bruto,
+        'rake_total': rake_buyin,
+        'pote_total': pote_buyin,
+        'premios_pagos': total_premios,
+        'produtos_vendidos': total_produtos,
+        'saldo': (pote_buyin + total_produtos) - total_premios,
+    }
+
 
 @admin_required
 def tournament_financial(request, tournament_id):
-    """Gerenciar financeiro e rebuys/addons de um torneio específico"""
-    t = get_object_or_404(Tournament, id=tournament_id)
+    """Financeiro de um torneio específico"""
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    entries = TournamentEntry.objects.filter(tournament=tournament).select_related('player')
+    results = TournamentResult.objects.filter(tournament=tournament)
+    produtos = PlayerProductPurchase.objects.filter(tournament=tournament).select_related('player', 'product')
     
-    # Processamento de Formulário (POST)
-    if request.method == "POST":
-        entry_id = request.POST.get('entry_id')
-        action = request.POST.get('action')
-        entry = get_object_or_404(TournamentEntry, id=entry_id, tournament=t)
-        
-        try:
-            if action == 'rebuy':
-                entry.qtde_rebuys += 1
-                entry.valor_total_pago += t.rebuy_cost
-                messages.success(request, f"Rebuy adicionado para {entry.player.apelido or entry.player.nome}")
-                
-            elif action == 'addon':
-                entry.qtde_addons += 1
-                entry.valor_total_pago += t.addon_cost
-                messages.success(request, f"Add-on adicionado para {entry.player.apelido or entry.player.nome}")
-            
-            elif action == 'toggle_timechip':
-                if entry.usou_time_chip:
-                    entry.usou_time_chip = False
-                    entry.valor_total_pago -= t.time_chip_cost
-                else:
-                    entry.usou_time_chip = True
-                    entry.valor_total_pago += t.time_chip_cost
-                messages.info(request, f"Status Time Chip alterado para {entry.player.nome}")
-
-            entry.save()
-            
-        except Exception as e:
-            messages.error(request, f"Erro ao salvar: {e}")
-            
-        return redirect('tournament_financial', tournament_id=t.id)
-
-    # --- CÁLCULOS DO DASHBOARD ---
-    entries = TournamentEntry.objects.filter(tournament=t).select_related('player').order_by('player__nome')
+    financeiro = calcular_financeiro_torneio(tournament)
     
-    count_buyins = entries.count()
-    count_rebuys = entries.aggregate(s=Sum('qtde_rebuys'))['s'] or 0
-    count_addons = entries.aggregate(s=Sum('qtde_addons'))['s'] or 0
-    count_timechip = entries.filter(usou_time_chip=True).count()
-
-    total_buyin_pote = count_buyins * t.buy_in
-    total_rake_fixo = count_buyins * t.rake
-    total_rebuy = count_rebuys * t.rebuy_cost
-    total_addon = count_addons * t.addon_cost
-    total_timechip = count_timechip * t.time_chip_cost
-
-    gross_total = (count_buyins * (t.buy_in + t.rake)) + total_rebuy + total_addon + total_timechip
-
-    rake_total = total_rake_fixo + total_timechip
-    pot_gross = total_buyin_pote + total_rebuy + total_addon
-    rake_percent_val = pot_gross * (t.percentage_rake / 100)
-    rake_total += rake_percent_val
-
-    prize_pool = gross_total - rake_total
-
     context = {
-        't': t,
+        'tournament': tournament,
         'entries': entries,
-        'financial': {
-            'gross_total': gross_total,
-            'prize_pool': prize_pool,
-            'rake_total': rake_total,
-            'count_buyins': count_buyins,
-            'count_rebuys': count_rebuys,
-            'count_addons': count_addons,
-            'count_timechip': count_timechip,
-        }
+        'results': results,
+        'produtos': produtos,
+        'financeiro': financeiro,
     }
     
     return render(request, 'tournament_financial.html', context)
 
 
-# ============================================================
-#  PAINEL FINANCEIRO GERAL
-# ============================================================
-
 @admin_required
 def financial_dashboard(request):
-    """
-    Dashboard financeiro geral com resumo de todas as temporadas.
-    Mostra totais de movimentação, rake e premio pool.
-    """
-    # Período selecionado (padrão: últimos 30 dias)
+    """Dashboard financeiro geral com últimos 30 dias"""
     days = int(request.GET.get('days', 30))
     date_from = timezone.now() - timedelta(days=days)
     
-    tournaments = Tournament.objects.filter(data__gte=date_from).select_related('season')
+    tournaments = Tournament.objects.filter(data__gte=date_from).order_by('-data')
     
-    # TOTALIZAÇÕES GERAIS
-    total_tournaments = tournaments.count()
-    total_players_by_tournament = TournamentEntry.objects.filter(
-        tournament__in=tournaments
-    ).values('tournament').annotate(count=Count('id'))
-    
-    # Cálculos financeiros
-    financial_data = []
-    grand_total_gross = Decimal('0.00')
-    grand_total_rake = Decimal('0.00')
-    grand_total_prize = Decimal('0.00')
+    dashboard_data = []
+    totals = {
+        'tournaments': 0,
+        'players': 0,
+        'buyin_total': Decimal('0'),
+        'rake_total': Decimal('0'),
+        'pote_total': Decimal('0'),
+        'premios': Decimal('0'),
+        'saldo': Decimal('0'),
+    }
     
     for t in tournaments:
-        entries = TournamentEntry.objects.filter(tournament=t)
-        
-        count_buyins = entries.count()
-        count_rebuys = entries.aggregate(s=Sum('qtde_rebuys'))['s'] or 0
-        count_addons = entries.aggregate(s=Sum('qtde_addons'))['s'] or 0
-        count_timechip = entries.filter(usou_time_chip=True).count()
-
-        total_buyin_pote = Decimal(count_buyins) * t.buy_in
-        total_rake_fixo = Decimal(count_buyins) * t.rake
-        total_rebuy = Decimal(count_rebuys) * t.rebuy_cost
-        total_addon = Decimal(count_addons) * t.addon_cost
-        total_timechip = Decimal(count_timechip) * t.time_chip_cost
-
-        gross_total = (Decimal(count_buyins) * (t.buy_in + t.rake)) + total_rebuy + total_addon + total_timechip
-
-        rake_total = total_rake_fixo + total_timechip
-        pot_gross = total_buyin_pote + total_rebuy + total_addon
-        rake_percent_val = pot_gross * (Decimal(t.percentage_rake) / 100)
-        rake_total += rake_percent_val
-
-        prize_pool = gross_total - rake_total
-        
-        financial_data.append({
+        fin = calcular_financeiro_torneio(t)
+        dashboard_data.append({
             'tournament': t,
-            'count_players': count_buyins,
-            'gross_total': gross_total,
-            'rake_total': rake_total,
-            'prize_pool': prize_pool,
-            'rebuys': count_rebuys,
-            'addons': count_addons,
+            'financeiro': fin,
         })
         
-        grand_total_gross += gross_total
-        grand_total_rake += rake_total
-        grand_total_prize += prize_pool
-    
-    # Ordenar por data (mais recentes primeiro)
-    financial_data.sort(key=lambda x: x['tournament'].data, reverse=True)
+        totals['tournaments'] += 1
+        totals['players'] += fin['count_players']
+        totals['buyin_total'] += fin['buyin_total']
+        totals['rake_total'] += fin['rake_total']
+        totals['pote_total'] += fin['pote_total']
+        totals['premios'] += fin['premios_pagos']
+        totals['saldo'] += fin['saldo']
     
     context = {
         'days': days,
         'date_from': date_from,
-        'total_tournaments': total_tournaments,
-        'financial_data': financial_data,
-        'grand_total_gross': grand_total_gross,
-        'grand_total_rake': grand_total_rake,
-        'grand_total_prize': grand_total_prize,
+        'dashboard_data': dashboard_data,
+        'totals': totals,
     }
     
     return render(request, 'financial_dashboard.html', context)
 
 
-# ============================================================
-#  FINANCEIRO POR TEMPORADA
-# ============================================================
-
 @admin_required
 def season_financial(request, season_id):
-    """
-    Financeiro completo de uma temporada específica.
-    Mostra todos os torneios da temporada com detalhes financeiros.
-    """
+    """Financeiro completo de uma temporada"""
     season = get_object_or_404(Season, id=season_id)
     tournaments = Tournament.objects.filter(season=season).order_by('-data')
     
-    financial_data = []
-    season_total_gross = Decimal('0.00')
-    season_total_rake = Decimal('0.00')
-    season_total_prize = Decimal('0.00')
+    season_data = []
+    season_totals = {
+        'tournaments': 0,
+        'players': 0,
+        'buyin_total': Decimal('0'),
+        'rake_total': Decimal('0'),
+        'pote_total': Decimal('0'),
+        'premios': Decimal('0'),
+        'saldo': Decimal('0'),
+    }
     
     for t in tournaments:
-        entries = TournamentEntry.objects.filter(tournament=t)
-        
-        count_buyins = entries.count()
-        count_rebuys = entries.aggregate(s=Sum('qtde_rebuys'))['s'] or 0
-        count_addons = entries.aggregate(s=Sum('qtde_addons'))['s'] or 0
-        count_timechip = entries.filter(usou_time_chip=True).count()
-
-        total_buyin_pote = Decimal(count_buyins) * t.buy_in
-        total_rake_fixo = Decimal(count_buyins) * t.rake
-        total_rebuy = Decimal(count_rebuys) * t.rebuy_cost
-        total_addon = Decimal(count_addons) * t.addon_cost
-        total_timechip = Decimal(count_timechip) * t.time_chip_cost
-
-        gross_total = (Decimal(count_buyins) * (t.buy_in + t.rake)) + total_rebuy + total_addon + total_timechip
-
-        rake_total = total_rake_fixo + total_timechip
-        pot_gross = total_buyin_pote + total_rebuy + total_addon
-        rake_percent_val = pot_gross * (Decimal(t.percentage_rake) / 100)
-        rake_total += rake_percent_val
-
-        prize_pool = gross_total - rake_total
-        
-        financial_data.append({
+        fin = calcular_financeiro_torneio(t)
+        season_data.append({
             'tournament': t,
-            'count_players': count_buyins,
-            'gross_total': gross_total,
-            'rake_total': rake_total,
-            'prize_pool': prize_pool,
-            'details': {
-                'rebuys': count_rebuys,
-                'addons': count_addons,
-                'timechips': count_timechip,
-            }
+            'financeiro': fin,
         })
         
-        season_total_gross += gross_total
-        season_total_rake += rake_total
-        season_total_prize += prize_pool
+        season_totals['tournaments'] += 1
+        season_totals['players'] += fin['count_players']
+        season_totals['buyin_total'] += fin['buyin_total']
+        season_totals['rake_total'] += fin['rake_total']
+        season_totals['pote_total'] += fin['pote_total']
+        season_totals['premios'] += fin['premios_pagos']
+        season_totals['saldo'] += fin['saldo']
     
     context = {
         'season': season,
-        'financial_data': financial_data,
-        'season_total_gross': season_total_gross,
-        'season_total_rake': season_total_rake,
-        'season_total_prize': season_total_prize,
-        'tournament_count': len(financial_data),
+        'season_data': season_data,
+        'season_totals': season_totals,
     }
     
     return render(request, 'season_financial.html', context)
 
 
-# ============================================================
-#  FINANCEIRO POR PERÍODO (CUSTOM DATE RANGE)
-# ============================================================
-
 @admin_required
 def financial_by_period(request):
-    """
-    Financeiro por período customizável.
-    Permite filtrar por data inicial e final.
-    """
-    # Parâmetros de filtro
+    """Financeiro por período customizável"""
     start_date_str = request.GET.get('start_date', '')
     end_date_str = request.GET.get('end_date', '')
     
-    # Se não tiver datas, usar padrão (últimos 30 dias)
     if not start_date_str or not end_date_str:
         end_date = timezone.now().date()
         start_date = end_date - timedelta(days=30)
@@ -271,125 +170,72 @@ def financial_by_period(request):
             end_date = timezone.now().date()
             start_date = end_date - timedelta(days=30)
     
-    # Filtrar torneios por período
     tournaments = Tournament.objects.filter(
         data__date__gte=start_date,
         data__date__lte=end_date
     ).order_by('-data')
     
-    # Agrupar por data para visualização
-    daily_financial = {}
-    period_total_gross = Decimal('0.00')
-    period_total_rake = Decimal('0.00')
-    period_total_prize = Decimal('0.00')
+    period_data = []
+    period_totals = {
+        'buyin_total': Decimal('0'),
+        'rake_total': Decimal('0'),
+        'pote_total': Decimal('0'),
+        'premios': Decimal('0'),
+        'saldo': Decimal('0'),
+    }
     
     for t in tournaments:
-        date_key = t.data.date()
-        
-        entries = TournamentEntry.objects.filter(tournament=t)
-        count_buyins = entries.count()
-        count_rebuys = entries.aggregate(s=Sum('qtde_rebuys'))['s'] or 0
-        count_addons = entries.aggregate(s=Sum('qtde_addons'))['s'] or 0
-        count_timechip = entries.filter(usou_time_chip=True).count()
-
-        total_buyin_pote = Decimal(count_buyins) * t.buy_in
-        total_rake_fixo = Decimal(count_buyins) * t.rake
-        total_rebuy = Decimal(count_rebuys) * t.rebuy_cost
-        total_addon = Decimal(count_addons) * t.addon_cost
-        total_timechip = Decimal(count_timechip) * t.time_chip_cost
-
-        gross_total = (Decimal(count_buyins) * (t.buy_in + t.rake)) + total_rebuy + total_addon + total_timechip
-
-        rake_total = total_rake_fixo + total_timechip
-        pot_gross = total_buyin_pote + total_rebuy + total_addon
-        rake_percent_val = pot_gross * (Decimal(t.percentage_rake) / 100)
-        rake_total += rake_percent_val
-
-        prize_pool = gross_total - rake_total
-        
-        if date_key not in daily_financial:
-            daily_financial[date_key] = {
-                'tournaments': [],
-                'total_gross': Decimal('0.00'),
-                'total_rake': Decimal('0.00'),
-                'total_prize': Decimal('0.00'),
-            }
-        
-        daily_financial[date_key]['tournaments'].append({
+        fin = calcular_financeiro_torneio(t)
+        period_data.append({
             'tournament': t,
-            'count_players': count_buyins,
-            'gross_total': gross_total,
-            'rake_total': rake_total,
-            'prize_pool': prize_pool,
+            'financeiro': fin,
         })
         
-        daily_financial[date_key]['total_gross'] += gross_total
-        daily_financial[date_key]['total_rake'] += rake_total
-        daily_financial[date_key]['total_prize'] += prize_pool
-        
-        period_total_gross += gross_total
-        period_total_rake += rake_total
-        period_total_prize += prize_pool
-    
-    # Ordenar datas
-    daily_financial = dict(sorted(daily_financial.items(), reverse=True))
+        period_totals['buyin_total'] += fin['buyin_total']
+        period_totals['rake_total'] += fin['rake_total']
+        period_totals['pote_total'] += fin['pote_total']
+        period_totals['premios'] += fin['premios_pagos']
+        period_totals['saldo'] += fin['saldo']
     
     context = {
         'start_date': start_date,
         'end_date': end_date,
         'start_date_str': start_date_str,
         'end_date_str': end_date_str,
-        'daily_financial': daily_financial,
-        'period_total_gross': period_total_gross,
-        'period_total_rake': period_total_rake,
-        'period_total_prize': period_total_prize,
-        'tournament_count': tournaments.count(),
+        'period_data': period_data,
+        'period_totals': period_totals,
     }
     
     return render(request, 'financial_by_period.html', context)
 
 
-# ============================================================
-#  API JSON PARA GRÁFICOS / DASHBOARDS AVANÇADOS
-# ============================================================
-
 @admin_required
 def api_financial_summary(request):
-    """
-    Retorna JSON com resumo financeiro para construir gráficos.
-    Params: days=30 (padrão)
-    """
+    """API JSON com resumo financeiro para gráficos"""
     days = int(request.GET.get('days', 30))
     date_from = timezone.now() - timedelta(days=days)
     
-    tournaments = Tournament.objects.filter(data__gte=date_from)
+    tournaments = Tournament.objects.filter(data__gte=date_from).order_by('data__date')
     
-    # Agregações por dia
     daily_data = {}
     for t in tournaments:
         date_key = t.data.date().isoformat()
-        
-        entries = TournamentEntry.objects.filter(tournament=t)
-        count_rebuys = entries.aggregate(s=Sum('qtde_rebuys'))['s'] or 0
-        count_addons = entries.aggregate(s=Sum('qtde_addons'))['s'] or 0
-        
-        gross = (entries.count() * (t.buy_in + t.rake)) + \
-                (count_rebuys * t.rebuy_cost) + \
-                (count_addons * t.addon_cost)
+        fin = calcular_financeiro_torneio(t)
         
         if date_key not in daily_data:
             daily_data[date_key] = {
                 'tournaments': 0,
                 'players': 0,
-                'gross': 0,
+                'rake': 0,
+                'saldo': 0,
             }
         
         daily_data[date_key]['tournaments'] += 1
-        daily_data[date_key]['players'] += entries.count()
-        daily_data[date_key]['gross'] += float(gross)
+        daily_data[date_key]['players'] += fin['count_players']
+        daily_data[date_key]['rake'] += float(fin['rake_total'])
+        daily_data[date_key]['saldo'] += float(fin['saldo'])
     
     return JsonResponse({
         'days': days,
         'daily_data': daily_data,
-        'total_days': len(daily_data),
     })

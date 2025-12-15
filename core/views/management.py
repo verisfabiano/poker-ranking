@@ -1,98 +1,145 @@
+# core/views/management.py
+
+from datetime import datetime
 from decimal import Decimal
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.urls import reverse
-from ..models import Tournament, TournamentEntry, TournamentResult, Player
+from django.http import JsonResponse
+
+from ..models import (
+    Season, Tournament, TournamentType, BlindStructure, 
+    TournamentEntry, TournamentResult
+)
 from .auth import admin_required
 
+
+# ============================================================
+#  GERENCIAMENTO DE BLIND STRUCTURES
+# ============================================================
+
 @admin_required
-def tournament_entries_manage(request, tournament_id):
-    # (Mantenha o código desta função igual ao que você já tinha)
-    tournament = get_object_or_404(Tournament, id=tournament_id)
-    season = tournament.season
+def blind_structure_manage(request, structure_id):
+    """Gerenciar níveis de blinds de uma estrutura"""
+    structure = get_object_or_404(BlindStructure, id=structure_id)
     
     if request.method == "POST":
-        if "add_player" in request.POST:
-            pid = request.POST.get("novo_player_id")
-            if pid:
-                p = Player.objects.filter(id=pid).first()
-                if p: TournamentEntry.objects.get_or_create(tournament=tournament, player=p)
-        
-        if "remove_selected" in request.POST:
-            ids = request.POST.getlist("remover_entry_id")
-            TournamentEntry.objects.filter(tournament=tournament, id__in=ids).delete()
-            
-        if "save_admin_confirm" in request.POST:
-            for entry in tournament.entries.all():
-                flag = request.POST.get(f"conf_admin_{entry.id}") is not None
-                entry.confirmado_pelo_admin = flag
-                entry.save()
-
-        return HttpResponseRedirect(reverse("tournament_entries_manage", args=[tournament.id]) + "?ok=1")
-
-    entries = TournamentEntry.objects.filter(tournament=tournament).select_related("player").order_by("player__nome")
-    ids_in = [e.player_id for e in entries]
-    disponiveis = Player.objects.filter(ativo=True).exclude(id__in=ids_in).order_by("nome")
+        # Processar adicionar/remover níveis
+        # (implementar conforme necessário)
+        pass
     
-    return render(request, "tournament_entries.html", {
-        "tournament": tournament, "season": season, "entries": entries, "players_disponiveis": disponiveis
+    return render(request, "blind_structure_manage.html", {
+        "structure": structure,
     })
+
+
+# ============================================================
+#  LANÇAMENTO DE RESULTADOS
+# ============================================================
 
 @admin_required
 def tournament_results(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
     season = tournament.season
+    mensagem = None
+    mensagem_erro = None
+    dados_post = {}
     
     if request.method == "POST":
         entries = TournamentEntry.objects.filter(tournament=tournament)
+        posicoes_digitadas = {}
         
+        # Armazenar TODOS os dados do POST primeiro
         for entry in entries:
             pid = entry.player.id
-            
-            # 1. Atualiza Status de Participação
-            entry.participou = request.POST.get(f"participou_{pid}") is not None
-            entry.confirmou_presenca = request.POST.get(f"confirmou_{pid}") is not None
-            entry.usou_time_chip = request.POST.get(f"timechip_{pid}") is not None
-            entry.save()
-            
-            # 2. Captura Dados de Resultado
             pos_str = request.POST.get(f"pos_{pid}", "").strip()
             ajuste_str = request.POST.get(f"ajuste_{pid}", "").strip()
-            prize_str = request.POST.get(f"prize_{pid}", "").replace(",", ".").strip() # NOVO
+            prize_str = request.POST.get(f"prize_{pid}", "").replace(",", ".").strip()
             
-            # Se tem posição OU ajuste OU prêmio, cria/atualiza o resultado
-            if pos_str or (ajuste_str and ajuste_str != "0") or (prize_str and prize_str != "0.00"):
-                res, _ = TournamentResult.objects.get_or_create(tournament=tournament, player=entry.player)
+            dados_post[pid] = {
+                'pos': pos_str,
+                'ajuste': ajuste_str,
+                'prize': prize_str,
+            }
+        
+        # Validar posições duplicadas
+        for entry in entries:
+            pid = entry.player.id
+            pos_str = dados_post[pid]['pos']
+            
+            if pos_str:
+                try:
+                    pos_int = int(pos_str)
+                    if pos_int in posicoes_digitadas:
+                        mensagem_erro = f"❌ Posição {pos_int} foi atribuída a {posicoes_digitadas[pos_int]} e {entry.player.nome}! Corrija antes de salvar."
+                        break
+                    posicoes_digitadas[pos_int] = entry.player.nome
+                except ValueError:
+                    mensagem_erro = f"❌ Posição inválida para {entry.player.nome}. Use apenas números."
+                    break
+        
+        # Se não houver erro, salvar
+        if not mensagem_erro:
+            for entry in entries:
+                pid = entry.player.id
+                pos_str = dados_post[pid]['pos']
+                ajuste_str = dados_post[pid]['ajuste']
+                prize_str = dados_post[pid]['prize']
                 
-                # Posição
+                # Se tem posição, salva
                 if pos_str:
-                    res.posicao = int(pos_str)
+                    try:
+                        res, created = TournamentResult.objects.get_or_create(
+                            tournament=tournament,
+                            player=entry.player
+                        )
+                        
+                        res.posicao = int(pos_str)
+                        res.premiacao_recebida = Decimal(prize_str) if prize_str else Decimal("0")
+                        res.pontos_ajuste_deal = int(ajuste_str) if ajuste_str else 0
+                        res.save()
+                    except Exception as e:
+                        mensagem_erro = f"❌ Erro ao salvar resultado de {entry.player.nome}: {str(e)}"
+                        break
                 else:
-                    res.posicao = None
-                
-                # Ajuste Deal
-                try: res.pontos_ajuste_deal = int(ajuste_str)
-                except: res.pontos_ajuste_deal = 0
-
-                # Premiação (NOVO)
-                try: res.premiacao_recebida = Decimal(prize_str) if prize_str else 0
-                except: res.premiacao_recebida = 0
-
-                res.save()
-            else:
-                # Se limpou tudo, remove o resultado
-                TournamentResult.objects.filter(tournament=tournament, player=entry.player).delete()
-        
-        # 3. Recalcula Pontos da Rodada
-        tournament.recalcular_pontuacao()
-        
-        return HttpResponseRedirect(reverse("tournament_results", args=[tournament.id]) + "?ok=1")
-
-    # GET: Monta a lista
+                    # Se não tem posição, deleta resultado anterior
+                    TournamentResult.objects.filter(tournament=tournament, player=entry.player).delete()
+            
+            if not mensagem_erro:
+                mensagem = "✅ Resultados salvos com sucesso!"
+                dados_post = {}  # Limpar dados_post após salvar com sucesso
+    
+    # Montar lista
     linhas = []
     entries = TournamentEntry.objects.filter(tournament=tournament).select_related("player").order_by("player__nome")
     for e in entries:
         r = TournamentResult.objects.filter(tournament=tournament, player=e.player).first()
-        linhas.append({"player": e.player, "entry": e, "result": r})
         
-    return render(request, "tournament_results.html", {"tournament": tournament, "season": season, "linhas": linhas})
+        # Usar dados_post se existirem (quando há erro ou logo após POST)
+        # Se não, usar dados do banco
+        if dados_post and e.player.id in dados_post:
+            linha_dict = {
+                "player": e.player,
+                "entry": e,
+                "result": r,
+                "pos_valor": dados_post[e.player.id]['pos'],
+                "prize_valor": dados_post[e.player.id]['prize'],
+                "ajuste_valor": dados_post[e.player.id]['ajuste'],
+            }
+        else:
+            linha_dict = {
+                "player": e.player,
+                "entry": e,
+                "result": r,
+                "pos_valor": r.posicao if r else "",
+                "prize_valor": r.premiacao_recebida if r else "0.00",
+                "ajuste_valor": r.pontos_ajuste_deal if r else "",
+            }
+        linhas.append(linha_dict)
+        
+    return render(request, "tournament_results.html", {
+        "tournament": tournament,
+        "season": season,
+        "linhas": linhas,
+        "mensagem": mensagem,
+        "mensagem_erro": mensagem_erro,
+    })

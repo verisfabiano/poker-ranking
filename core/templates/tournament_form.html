@@ -4,141 +4,400 @@
     {% if tournament %}Editar Torneio{% else %}Novo Torneio{% endif %}
 {% endblock %}
 
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'seasons_list' %}">Temporadas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' season.id %}">{{ season.nome }}</a></li>
+    <li class="breadcrumb-item active">{% if tournament %}Editar{% else %}Novo Torneio{% endif %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border-left: 4px solid var(--primary);
+    }
+    
+    .form-section h5 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #212529;
+        margin-bottom: 8px;
+    }
+    
+    .form-help {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 4px;
+        display: block;
+    }
+    
+    .field-required::after {
+        content: " *";
+        color: #ef5350;
+    }
+    
+    .alert-validation {
+        background: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    .btn-action {
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .rake-type-selector {
+        display: none;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin-top: 12px;
+    }
+    
+    .rake-type-selector.active {
+        display: block;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-lg-10"> <div class="card shadow-sm border-0 mt-4">
-                
-                <div class="card-header bg-primary text-white py-3">
-                    <h4 class="mb-0 d-flex align-items-center gap-2">
-                        {% if tournament %}
-                            <i class="bi bi-pencil-square"></i> Editar Torneio
-                        {% else %}
-                            <i class="bi bi-plus-circle-dotted"></i> Agendar Novo Torneio
-                        {% endif %}
-                    </h4>
-                </div>
+        <div class="col-lg-10">
+            
+            <!-- HEADER FORM -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+                <h2 class="mb-2">
+                    <i class="bi {% if tournament %}bi-pencil-square{% else %}bi-plus-circle-dotted{% endif %}"></i>
+                    {% if tournament %}Editar Torneio{% else %}Agendar Novo Torneio{% endif %}
+                </h2>
+                <p class="mb-0 opacity-75">Temporada: <strong>{{ season.nome }}</strong></p>
+            </div>
 
-                <div class="card-body p-4">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <h5 class="mb-3 text-secondary"><i class="bi bi-info-circle"></i> Informações Básicas</h5>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label for="nome" class="form-label">Nome do Torneio</label>
-                                <input type="text" class="form-control" id="nome" name="nome" 
-                                       value="{{ tournament.nome|default:'' }}" required placeholder="Ex: Terça Turbo 10K">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="data" class="form-label">Data e Hora</label>
-                                <input type="datetime-local" class="form-control" id="data" name="data" 
-                                       value="{{ data_str|default:'' }}" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="tipo_id" class="form-label">Tipo (Pontuação)</label>
-                                <select class="form-select" id="tipo_id" name="tipo_id" required>
-                                    <option value="">Selecione...</option>
-                                    {% for tipo in tipos %}
-                                    <option value="{{ tipo.id }}" {% if tournament.tipo_id == tipo.id %}selected{% endif %}>
-                                        {{ tipo.nome }} (x{{ tipo.multiplicador_pontos }})
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <!-- SEÇÃO 1: INFORMAÇÕES BÁSICAS -->
+                <div class="form-section">
+                    <h5><i class="bi bi-info-circle"></i> Informações Básicas</h5>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="nome" class="form-label field-required">Nome do Torneio</label>
+                            <input type="text" class="form-control" id="nome" name="nome" 
+                                   value="{{ tournament.nome|default:'' }}" required 
+                                   placeholder="Ex: Terça Turbo 10K">
+                            <span class="form-help">
+                                <i class="bi bi-lightbulb"></i> Use um nome descritivo para identificar facilmente
+                            </span>
                         </div>
-
-                        <hr class="my-4 text-muted">
-                        
-                        <h5 class="mb-3 text-secondary"><i class="bi bi-cash-coin"></i> Financeiro & Estrutura</h5>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-3">
-                                <label for="buy_in" class="form-label fw-bold">Valor Buy-in</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="buy_in" name="buy_in" 
-                                           value="{{ tournament.buy_in|stringformat:'.2f'|default:'' }}" placeholder="0,00">
-                                </div>
-                                <div class="form-text">Vai para o pote.</div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="rake" class="form-label fw-bold">Taxa (Rake)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="rake" name="rake" 
-                                           value="{{ tournament.rake|stringformat:'.2f'|default:'' }}" placeholder="0,00">
-                                </div>
-                                <div class="form-text">Fica para a casa.</div>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="garantido" class="form-label">Garantido</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="garantido" name="garantido" 
-                                           value="{{ tournament.garantido|stringformat:'.2f'|default:'' }}" placeholder="0,00">
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-3">
-                                <label for="stack_inicial" class="form-label">Stack Inicial</label>
-                                <input type="number" class="form-control" id="stack_inicial" name="stack_inicial" 
-                                       value="{{ tournament.stack_inicial|default:'10000' }}">
-                            </div>
+                        <div class="col-md-3">
+                            <label for="data" class="form-label field-required">Data e Hora</label>
+                            <input type="datetime-local" class="form-control" id="data" name="data" 
+                                   value="{{ data_str|default:'' }}" required>
                         </div>
-
-                        <div class="row g-3 mb-3 p-3 bg-light rounded border">
-                            <div class="col-md-4">
-                                <label for="rebuy_cost" class="form-label">Custo Rebuy</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="rebuy_cost" name="rebuy_cost" 
-                                           value="{{ tournament.rebuy_cost|stringformat:'.2f'|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="addon_cost" class="form-label">Custo Add-on</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="addon_cost" name="addon_cost" 
-                                           value="{{ tournament.addon_cost|stringformat:'.2f'|default:'' }}">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="time_chip_cost" class="form-label">Custo Time Chip</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control" id="time_chip_cost" name="time_chip_cost" 
-                                           value="{{ tournament.time_chip_cost|stringformat:'.2f'|default:'' }}">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="status" class="form-label">Status do Evento</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="AGENDADO" {% if tournament.status == 'AGENDADO' %}selected{% endif %}>📅 Agendado</option>
-                                <option value="EM_ANDAMENTO" {% if tournament.status == 'EM_ANDAMENTO' %}selected{% endif %}>▶️ Em Andamento</option>
-                                <option value="FINALIZADO" {% if tournament.status == 'FINALIZADO' %}selected{% endif %}>✅ Finalizado</option>
-                                <option value="CANCELADO" {% if tournament.status == 'CANCELADO' %}selected{% endif %}>❌ Cancelado</option>
+                        <div class="col-md-3">
+                            <label for="tipo_id" class="form-label field-required">
+                                Tipo (Pontuação)
+                                <i class="bi bi-question-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                   title="Afeta o multiplicador de pontos no ranking"></i>
+                            </label>
+                            <select class="form-select" id="tipo_id" name="tipo_id" required>
+                                <option value="">-- Selecione --</option>
+                                {% for tipo in tipos %}
+                                <option value="{{ tipo.id }}" {% if tournament.tipo_id == tipo.id %}selected{% endif %}>
+                                    {{ tipo.nome }} (x{{ tipo.multiplicador_pontos }})
+                                </option>
+                                {% endfor %}
                             </select>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> Voltar
-                            </a>
-                            <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill">
-                                <i class="bi bi-check-lg"></i> SALVAR TORNEIO
-                            </button>
+                <!-- SEÇÃO 2: BUY-IN & RAKE -->
+                <div class="form-section">
+                    <h5><i class="bi bi-cash-coin"></i> Valores - Buy-in e Taxa</h5>
+                    
+                    <div class="alert-validation">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <div>
+                            <strong>Como funciona:</strong> O buy-in é dividido entre o <strong>pote</strong> (premiação) e o <strong>rake</strong> (taxa da casa).
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="buy_in" class="form-label field-required">Valor Buy-in (Total)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="buy_in" name="buy_in" 
+                                       value="{{ tournament.buy_in|floatformat:2|default:'' }}" required 
+                                       placeholder="0,00">
+                            </div>
+                            <span class="form-help">Valor que cada jogador paga</span>
+                        </div>
+                    </div>
+
+                    <!-- RAKE TYPE SELECTOR -->
+                    <div class="row g-3 mb-3 p-3 bg-light border rounded">
+                        <div class="col-12">
+                            <label class="form-label fw-bold mb-3">Como calcular o Rake?</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check rake-toggle" name="rake_type" id="rake_fixo" 
+                                       value="FIXO" {% if tournament.rake_type == 'FIXO' or not tournament.rake_type %}checked{% endif %}>
+                                <label class="btn btn-outline-primary" for="rake_fixo">
+                                    <i class="bi bi-cash"></i> Valor Fixo
+                                </label>
+
+                                <input type="radio" class="btn-check rake-toggle" name="rake_type" id="rake_percentual" 
+                                       value="PERCENTUAL" {% if tournament.rake_type == 'PERCENTUAL' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary" for="rake_percentual">
+                                    <i class="bi bi-percent"></i> Percentual
+                                </label>
+
+                                <input type="radio" class="btn-check rake-toggle" name="rake_type" id="rake_misto" 
+                                       value="MISTO" {% if tournament.rake_type == 'MISTO' %}checked{% endif %}>
+                                <label class="btn btn-outline-primary" for="rake_misto">
+                                    <i class="bi bi-stack"></i> Fixo + %
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rake Fixo -->
+                    <div id="rake_fixo_fields" class="rake-type-selector {% if tournament.rake_type == 'FIXO' or not tournament.rake_type %}active{% endif %}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="rake_valor" class="form-label">Valor do Rake</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="rake_valor" name="rake_valor" 
+                                           value="{{ tournament.rake_valor|floatformat:2|default:'' }}" placeholder="0,00">
+                                </div>
+                                <span class="form-help">Ex: R$ 10 é a taxa fixa por jogador</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rake Percentual -->
+                    <div id="rake_percentual_fields" class="rake-type-selector {% if tournament.rake_type == 'PERCENTUAL' %}active{% endif %}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="rake_percentual" class="form-label">% do Buy-in</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" id="rake_percentual" name="rake_percentual" 
+                                           value="{{ tournament.rake_percentual|floatformat:2|default:'' }}" placeholder="0,00">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <span class="form-help">Ex: 10% de R$ 100 = R$ 10 de rake</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rake Misto -->
+                    <div id="rake_misto_fields" class="rake-type-selector {% if tournament.rake_type == 'MISTO' %}active{% endif %}">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="rake_valor_m" class="form-label">Valor Fixo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="rake_valor_m" name="rake_valor_m" 
+                                           value="{{ tournament.rake_valor|floatformat:2|default:'' }}" placeholder="0,00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="rake_percentual_m" class="form-label">+ Percentual</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" id="rake_percentual_m" name="rake_percentual_m" 
+                                           value="{{ tournament.rake_percentual|floatformat:2|default:'' }}" placeholder="0,00">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: REBUY, ADD-ON, PRODUCTS -->
+                <div class="form-section">
+                    <h5><i class="bi bi-arrow-repeat"></i> Rebuy, Add-on & Produtos</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="rebuy_cost" class="form-label">Custo Rebuy</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="rebuy_cost" name="rebuy_cost" 
+                                       value="{{ tournament.rebuy_cost|floatformat:2|default:'' }}" placeholder="0,00">
+                            </div>
+                            <span class="form-help">Deixe vazio para desabilitar</span>
                         </div>
 
-                    </form>
+                        <div class="col-md-4">
+                            <label for="addon_cost" class="form-label">Custo Add-on</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="addon_cost" name="addon_cost" 
+                                       value="{{ tournament.addon_cost|floatformat:2|default:'' }}" placeholder="0,00">
+                            </div>
+                            <span class="form-help">Geralmente na pausa antes do final</span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="time_chip_cost" class="form-label">Time Chip (Staff)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="time_chip_cost" name="time_chip_cost" 
+                                       value="{{ tournament.time_chip_cost|floatformat:2|default:'' }}" placeholder="0,00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="permite_rebuy_duplo" name="permite_rebuy_duplo"
+                                       {% if tournament.permite_rebuy_duplo %}checked{% endif %}>
+                                <label class="form-check-label" for="permite_rebuy_duplo">
+                                    <strong>Permitir Rebuy Duplo/Triplo?</strong>
+                                    <br><small class="text-muted">Jogador pode comprar 2x, 3x fichas</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="max_rebuys" class="form-label">Máximo de Rebuys</label>
+                            <input type="number" class="form-control" id="max_rebuys" name="max_rebuys" 
+                                   value="{{ tournament.max_rebuys|default:'0' }}" placeholder="0 = sem limite">
+                            <span class="form-help">0 = ilimitado</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- SEÇÃO 4: ESTRUTURA -->
+                <div class="form-section">
+                    <h5><i class="bi bi-diagram-3"></i> Estrutura do Torneio</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="stack_inicial" class="form-label">Stack Inicial</label>
+                            <input type="number" class="form-control" id="stack_inicial" name="stack_inicial" 
+                                   value="{{ tournament.stack_inicial|default:'10000' }}">
+                            <span class="form-help">Fichas que cada jogador recebe</span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="garantido" class="form-label">Garantido</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="garantido" name="garantido" 
+                                       value="{{ tournament.garantido|floatformat:2|default:'' }}" placeholder="0,00">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="max_players_per_table" class="form-label">Máx. Jogadores/Mesa</label>
+                            <input type="number" class="form-control" id="max_players_per_table" name="max_players_per_table" 
+                                   value="{{ tournament.max_players_per_table|default:'9' }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="blind_structure" class="form-label">Estrutura Blinds</label>
+                            <select class="form-select" id="blind_structure" name="blind_structure">
+                                <option value="">-- Sem estrutura --</option>
+                                {% for blind_struct in blind_structures %}
+                                <option value="{{ blind_struct.id }}" 
+                                        {% if tournament.blind_structure_id == blind_struct.id %}selected{% endif %}>
+                                    {{ blind_struct.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 5: STATUS -->
+                <div class="form-section">
+                    <h5><i class="bi bi-toggle-on"></i> Status</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status do Evento</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="AGENDADO" {% if tournament.status == 'AGENDADO' or not tournament.status %}selected{% endif %}>
+                                    📅 Agendado
+                                </option>
+                                <option value="EM_ANDAMENTO" {% if tournament.status == 'EM_ANDAMENTO' %}selected{% endif %}>
+                                    ▶️ Em Andamento
+                                </option>
+                                <option value="FINALIZADO" {% if tournament.status == 'FINALIZADO' %}selected{% endif %}>
+                                    ✅ Finalizado
+                                </option>
+                                <option value="CANCELADO" {% if tournament.status == 'CANCELADO' %}selected{% endif %}>
+                                    ❌ Cancelado
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTÕES DE AÇÃO -->
+                <div class="d-flex justify-content-between gap-2 mt-4">
+                    <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary btn-action">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-action">
+                        <i class="bi bi-check-lg"></i> SALVAR TORNEIO
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle entre tipos de rake
+            const rakeToggles = document.querySelectorAll('.rake-toggle');
+            
+            rakeToggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    document.getElementById('rake_fixo_fields').classList.remove('active');
+                    document.getElementById('rake_percentual_fields').classList.remove('active');
+                    document.getElementById('rake_misto_fields').classList.remove('active');
+                    
+                    if (this.value === 'FIXO') {
+                        document.getElementById('rake_fixo_fields').classList.add('active');
+                    } else if (this.value === 'PERCENTUAL') {
+                        document.getElementById('rake_percentual_fields').classList.add('active');
+                    } else if (this.value === 'MISTO') {
+                        document.getElementById('rake_misto_fields').classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

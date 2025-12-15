@@ -71,19 +71,50 @@ def player_progress_season(request, season_id, player_id):
     season = get_object_or_404(Season, id=season_id)
     player = get_object_or_404(Player, id=player_id)
     
-    # Lógica de evolução (mantida do original)
+    # Pontos iniciais
     sip = SeasonInitialPoints.objects.filter(season=season, player=player).first()
-    acumulado = sip.pontos_iniciais if sip else 0
+    pontos_iniciais = sip.pontos_iniciais if sip else 0
     
     progresso = []
-    if acumulado > 0:
-        progresso.append({"tipo": "iniciais", "pontos_rodada": acumulado, "acumulado": acumulado})
-        
+    acumulado = pontos_iniciais
+    
+    # Se há pontos iniciais, registra como ajuste (não como evento principal)
+    if pontos_iniciais > 0:
+        progresso.append({
+            "tipo": "iniciais",
+            "descricao": "Ajuste de pontos iniciais",
+            "data": None,
+            "posicao": None,
+            "pontos_rodada": pontos_iniciais,
+            "acumulado": acumulado,
+        })
+    
+    # Torneios em ordem cronológica
     torneios = Tournament.objects.filter(season=season).order_by("data")
     for t in torneios:
-        res = TournamentResult.objects.filter(tournament=t, player=player).first()
-        pts = res.pontos_finais if res else 0
-        acumulado += pts
-        progresso.append({"tipo": "torneio", "torneio": t, "pontos_rodada": pts, "acumulado": acumulado})
+        result = TournamentResult.objects.filter(tournament=t, player=player).first()
+        pts = result.pontos_finais if result else 0
+        posicao = result.posicao if result else None
         
-    return render(request, "player_progress.html", {"season": season, "player": player, "progresso": progresso, "total_final": acumulado})
+        acumulado += pts
+        progresso.append({
+            "tipo": "torneio",
+            "descricao": t.nome,
+            "data": t.data,
+            "torneio": t,
+            "posicao": posicao,
+            "pontos_rodada": pts,
+            "acumulado": acumulado,
+        })
+    
+    return render(
+        request,
+        "player_progress.html",
+        {
+            "season": season,
+            "player": player,
+            "progresso": progresso,
+            "pontos_iniciais": pontos_iniciais,
+            "total_final": acumulado,
+        },
+    )

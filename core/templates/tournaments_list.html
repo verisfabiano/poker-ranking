@@ -2,6 +2,19 @@
 
 {% block title %}Torneios - {{ season.nome }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Permite que o dropdown ultrapasse o overflow da tabela responsiva */
+    .table-responsive {
+        overflow: visible !important;
+    }
+    
+    .dropdown-menu {
+        z-index: 1000;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     
@@ -23,7 +36,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
@@ -53,21 +66,20 @@
                                 </td>
 
                                 <td>
-                                    {% if t.status == 'AGENDADO' %}
-                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">Agendado</span>
-                                    {% elif t.status == 'EM_ANDAMENTO' %}
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Em Andamento</span>
-                                    {% elif t.status == 'FINALIZADO' %}
-                                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Finalizado</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Cancelado</span>
+                                    {% if t.status == "AGENDADO" %}
+                                        <span class="badge bg-info">📅 Agendado</span>
+                                    {% elif t.status == "EM_ANDAMENTO" %}
+                                        <span class="badge bg-warning text-dark">▶️ Em Andamento</span>
+                                    {% elif t.status == "FINALIZADO" %}
+                                        <span class="badge bg-success">✅ Finalizado</span>
+                                    {% elif t.status == "CANCELADO" %}
+                                        <span class="badge bg-danger">❌ Cancelado</span>
                                     {% endif %}
                                 </td>
 
                                 <td class="text-end pe-4">
-                                    <div class="btn-group" role="group">
-                                        
-                                        <a href="{% url 'tournament_entries_manage' t.id %}" class="btn btn-sm btn-outline-dark" title="Gerenciar Inscritos">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a href="{% url 'tournament_entries_manage' t.id %}" class="btn btn-sm btn-outline-secondary" title="Gerenciar Jogadores">
                                             <i class="bi bi-people-fill"></i> <span class="d-none d-xl-inline">Jogadores</span>
                                         </a>
 
@@ -76,7 +88,7 @@
                                         </a>
 
                                         <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bi bi-gear-fill"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
@@ -93,7 +105,7 @@
                                                 {% if t.blind_structure %}
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item disabled" href="{% url 'director_panel' t.id %}">
+                                                    <a class="dropdown-item" href="{% url 'director_panel' t.id %}">
                                                         <i class="bi bi-display me-2"></i> Abrir Telão (Timer)
                                                     </a>
                                                 </li>

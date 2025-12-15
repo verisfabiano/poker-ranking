@@ -2,6 +2,28 @@
 
 {% block title %}Gerenciar Temporadas{% endblock %}
 
+{% block extra_css %}
+<style>
+    .ranking-section {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .ranking-section.show {
+        max-height: 1000px;
+    }
+
+    .btn-toggle-ranking {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-toggle-ranking.collapsed i {
+        transform: rotate(-90deg);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     
@@ -15,76 +37,139 @@
         </a>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Nome da Temporada</th>
-                            <th>Período</th>
-                            <th>Status</th>
-                            <th class="text-end pe-4">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in seasons %}
-                            <tr class="{% if s.ativo %}table-success-subtle{% endif %}">
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark fs-5">{{ s.nome }}</div>
-                                    {% if s.ativo %}
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle-fill me-1"></i> ATIVA
-                                        </span>
-                                    {% endif %}
-                                </td>
+    <!-- TEMPORADAS -->
+    {% for s in seasons %}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 text-dark fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>{{ s.nome }}
+                    </h5>
+                    <small class="text-muted">
+                        {{ s.data_inicio|date:"d/m/Y" }} até {{ s.data_fim|date:"d/m/Y" }}
+                        {% if s.ativo %}
+                            <span class="badge bg-success ms-2">ATIVA</span>
+                        {% else %}
+                            <span class="badge bg-secondary ms-2">FINALIZADA</span>
+                        {% endif %}
+                        <span class="badge bg-light text-dark ms-2">
+                            <i class="bi bi-calculator me-1"></i>
+                            {% if s.tipo_calculo == 'FIXO' %}
+                                Pontuação Fixa
+                            {% else %}
+                                Dinâmico
+                            {% endif %}
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-sm btn-outline-primary btn-toggle-ranking me-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#ranking-{{ s.id }}"
+                            aria-expanded="false" 
+                            aria-controls="ranking-{{ s.id }}">
+                        <i class="bi bi-chevron-down"></i> Ranking
+                    </button>
+                    <a href="{% url 'ranking_season' s.id %}" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-trophy-fill me-1"></i> Ver Completo
+                    </a>
+                    <a href="{% url 'season_tournaments' s.id %}" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                        <i class="bi bi-table me-1"></i> Torneios
+                    </a>
+                    <a href="{% url 'season_initial_points' s.id %}" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                        <i class="bi bi-123 me-1"></i> Pts. Iniciais
+                    </a>
+                    <a href="{% url 'season_edit' s.id %}" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-                                <td>
-                                    <div class="d-flex align-items-center text-muted">
-                                        <i class="bi bi-calendar-range me-2"></i>
-                                        <div>
-                                            {{ s.data_inicio|date:"d/m/Y" }} <span class="mx-1">até</span> {{ s.data_fim|date:"d/m/Y" }}
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <td>
-                                    {% if s.ativo %}
-                                        <span class="text-success fw-bold">Em andamento</span>
-                                    {% else %}
-                                        <span class="text-muted">Finalizada</span>
-                                    {% endif %}
-                                </td>
-
-                                <td class="text-end pe-4">
-                                    <div class="btn-group" role="group">
-                                        
-                                        <a href="{% url 'season_tournaments' s.id %}" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
-                                            <i class="bi bi-table"></i> <span class="d-none d-md-inline">Torneios</span>
-                                        </a>
-
-                                        <a href="{% url 'season_initial_points' s.id %}" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
-                                            <i class="bi bi-123"></i> <span class="d-none d-md-inline">Pts. Iniciais</span>
-                                        </a>
-
-                                        <a href="{% url 'season_edit' s.id %}" class="btn btn-sm btn-outline-secondary" title="Configurações">
-                                            <i class="bi bi-gear-fill"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
+        <!-- RANKING COLAPSÁVEL -->
+        <div class="collapse" id="ranking-{{ s.id }}">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">
-                                    <i class="bi bi-calendar-x d-block fs-1 mb-2 opacity-25"></i>
-                                    Nenhuma temporada cadastrada.
-                                </td>
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th>Jogador</th>
+                                <th class="text-center" style="width: 100px;">Iniciais</th>
+                                <th class="text-center" style="width: 100px;">Torneios</th>
+                                <th class="text-center" style="width: 100px;">Bônus</th>
+                                <th class="text-end pe-4" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <!-- RANKING DA TEMPORADA (primeiros 10) -->
+                            {% for item in s.ranking|slice:":10" %}
+                                <tr {% if item.posicao <= 3 %}style="background-color: rgba(255, 215, 0, 0.05);"{% endif %}>
+                                    <td class="ps-4 fw-bold">
+                                        {% if item.posicao == 1 %}
+                                            <span style="font-size: 1.5rem;">🥇</span>
+                                        {% elif item.posicao == 2 %}
+                                            <span style="font-size: 1.5rem;">🥈</span>
+                                        {% elif item.posicao == 3 %}
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        {% else %}
+                                            {{ item.posicao }}º
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ item.nome }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ item.pontos_iniciais }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ item.pontos_resultado }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark">{{ item.pontos_participacao }}</span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">{{ item.pontos }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.player_id %}
+                                            <a href="{% url 'player_progress_season' s.id item.player_id %}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="bi bi-graph-up d-block fs-1 mb-2 text-secondary opacity-25"></i>
+                                        Nenhum jogador pontuado ainda nesta temporada.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+    {% empty %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-calendar-x d-block fs-1 mb-3 text-secondary opacity-25"></i>
+                <h5 class="text-muted">Nenhuma temporada cadastrada</h5>
+                <p class="text-muted small mb-3">Crie uma nova temporada para começar a gerenciar o ranking do seu clube.</p>
+                <a href="{% url 'season_create' %}" class="btn btn-success">
+                    <i class="bi bi-plus-lg me-1"></i> Criar Primeira Temporada
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+
 </div>
 {% endblock %}

@@ -50,7 +50,11 @@ from .views import (
     api_tournament_status,
 
     # Financeiro
-    financial,
+    tournament_financial,
+    financial_dashboard,
+    season_financial,
+    financial_by_period,
+    api_financial_summary,
 )
 
 urlpatterns = [
@@ -153,6 +157,10 @@ urlpatterns = [
     # Rota do Telão Visual (HTML + JS)
     path("torneio/<int:tournament_id>/telao/", tv_dashboard, name="tv_dashboard"),
 
-    # Financeiro
-    path('tournament/<int:tournament_id>/financial/', financial.tournament_financial, name='tournament_financial'),
+    # Financeiro - Dashboard e Relatórios
+    path('tournament/<int:tournament_id>/financial/', tournament_financial, name='tournament_financial'),
+    path('financeiro/', financial_dashboard, name='financial_dashboard'),
+    path('financeiro/temporada/<int:season_id>/', season_financial, name='season_financial'),
+    path('financeiro/periodo/', financial_by_period, name='financial_by_period'),
+    path('api/financeiro/resumo/', api_financial_summary, name='api_financial_summary'),
 ]

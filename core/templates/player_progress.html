@@ -29,10 +29,6 @@
                     </span>
                 </div>
                 <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <div class="d-inline-block bg-light rounded p-2 px-3 me-2 border">
-                        <small class="d-block text-muted">Pontos Iniciais</small>
-                        <strong>{{ pontos_iniciais }}</strong>
-                    </div>
                     <div class="d-inline-block bg-success text-white rounded p-2 px-3 shadow-sm">
                         <small class="d-block opacity-75">TOTAL ATUAL</small>
                         <strong class="fs-5">{{ total_final }} pts</strong>
@@ -57,30 +53,51 @@
                     <tbody>
                         {% for linha in progresso %}
                             <tr>
+                                <!-- EVENTO / ORIGEM -->
                                 <td class="ps-4">
                                     {% if linha.tipo == 'iniciais' %}
-                                        <span class="badge bg-warning text-dark me-2">Iniciais</span>
-                                        <span class="fw-bold text-muted">{{ linha.descricao }}</span>
+                                        <!-- Ajuste de pontos iniciais (discreto) -->
+                                        <span class="text-muted small d-block">
+                                            <i class="bi bi-arrow-repeat me-1"></i> {{ linha.descricao }}
+                                        </span>
                                     {% else %}
-                                        <span class="badge bg-primary me-2">Torneio</span>
-                                        <a href="#" class="text-decoration-none fw-bold text-dark">
-                                            {{ linha.descricao }}
-                                        </a>
+                                        <!-- Torneio com nome e posição -->
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="fw-bold text-dark">{{ linha.torneio.nome }}</div>
+                                            {% if linha.posicao %}
+                                                <div class="text-muted small">
+                                                    <i class="bi bi-award me-1"></i>
+                                                    {% if linha.posicao == 1 %}
+                                                        🥇 1º lugar
+                                                    {% elif linha.posicao == 2 %}
+                                                        🥈 2º lugar
+                                                    {% elif linha.posicao == 3 %}
+                                                        🥉 3º lugar
+                                                    {% else %}
+                                                        {{ linha.posicao }}º lugar
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     {% endif %}
                                 </td>
-                                <td class="text-muted">
+
+                                <!-- DATA -->
+                                <td class="text-muted small">
                                     {% if linha.data %}
-                                        <i class="bi bi-calendar3 me-1"></i> {{ linha.data|date:"d/m/Y H:i" }}
+                                        <i class="bi bi-calendar3 me-1"></i> {{ linha.data|date:"d/m/Y" }}
                                     {% else %}
-                                        -
+                                        <span class="text-secondary">-</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end fw-bold {% if linha.pontos_rodada > 0 %}text-success{% endif %}">
-                                    +{{ linha.pontos_rodada }}
+
+                                <!-- PONTOS -->
+                                <td class="text-end fw-bold {% if linha.pontos_rodada > 0 %}text-success{% elif linha.pontos_rodada < 0 %}text-danger{% endif %}">
+                                    {% if linha.pontos_rodada > 0 %}+{% endif %}{{ linha.pontos_rodada }}
                                 </td>
-                                <td class="text-end pe-4 fw-bold">
-                                    {{ linha.acumulado }}
-                                </td>
+
+                                <!-- ACUMULADO -->
+                                <td class="text-end pe-4 fw-bold">{{ linha.acumulado }}</td>
                             </tr>
                         {% empty %}
                             <tr>

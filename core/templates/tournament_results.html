@@ -24,6 +24,12 @@
         </div>
     {% endif %}
 
+    {% if mensagem_erro %}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> {{ mensagem_erro }}
+        </div>
+    {% endif %}
+
     <form method="POST">
         {% csrf_token %}
 
@@ -40,11 +46,9 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Jogador</th>
-                            <th class="text-center">Participou?</th>
-                            <th class="text-center">Confirmou?</th>
-                            <th class="text-center">Time Chip?</th>
                             <th class="text-center" style="width: 100px;">Posição</th>
-                            <th class="text-center" style="width: 150px;">Premiação (R$)</th> <th class="text-center" style="width: 100px;">Ajuste (Deal)</th>
+                            <th class="text-center" style="width: 150px;">Premiação (R$)</th>
+                            <th class="text-center" style="width: 100px;">Ajuste (Deal)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,49 +61,30 @@
                                     {% endif %}
                                 </td>
 
-                                <td class="text-center">
-                                    <div class="form-check form-switch d-inline-block">
-                                        <input class="form-check-input" type="checkbox" name="participou_{{ linha.player.id }}" 
-                                               {% if linha.entry.participou %}checked{% endif %}>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="form-check form-switch d-inline-block">
-                                        <input class="form-check-input" type="checkbox" name="confirmou_{{ linha.player.id }}" 
-                                               {% if linha.entry.confirmou_presenca %}checked{% endif %}>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="form-check form-switch d-inline-block">
-                                        <input class="form-check-input" type="checkbox" name="timechip_{{ linha.player.id }}" 
-                                               {% if linha.entry.usou_time_chip %}checked{% endif %}>
-                                    </div>
-                                </td>
-
                                 <td>
                                     <input type="number" class="form-control form-control-sm text-center fw-bold" 
                                            name="pos_{{ linha.player.id }}" min="1" placeholder="-"
-                                           value="{% if linha.result %}{{ linha.result.posicao|default:'' }}{% endif %}">
+                                           value="{{ linha.pos_valor|default:'' }}">
                                 </td>
 
                                 <td>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">R$</span>
                                         <input type="number" step="0.01" class="form-control text-end" 
-                                               name="prize_{{ linha.player.id }}" placeholder="0,00"
-                                               value="{% if linha.result %}{{ linha.result.premiacao_recebida|stringformat:'.2f' }}{% endif %}">
+                                               name="prize_{{ linha.player.id }}" placeholder="0.00"
+                                               value="{{ linha.prize_valor|default:'0.00' }}">
                                     </div>
                                 </td>
 
                                 <td>
                                     <input type="number" class="form-control form-control-sm text-center" 
                                            name="ajuste_{{ linha.player.id }}" placeholder="0"
-                                           value="{% if linha.result %}{{ linha.result.pontos_ajuste_deal }}{% endif %}">
+                                           value="{{ linha.ajuste_valor|default:'' }}">
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
+                                <td colspan="4" class="text-center py-5 text-muted">
                                     Nenhum jogador inscrito neste torneio.<br>
                                     <a href="{% url 'tournament_entries_manage' tournament.id %}">Gerenciar Inscrições</a>
                                 </td>

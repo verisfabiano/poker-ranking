@@ -1,14 +1,68 @@
 from datetime import date
+from decimal import Decimal
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Sum
 from ..models import Season, TournamentResult, TournamentEntry, SeasonInitialPoints, Player
-from .auth import admin_required # Importando o decorator do arquivo vizinho
+from .auth import admin_required
 
-# --- LÓGICA DE RANKING ---
+
+# ============================================================
+#  FUNÇÕES HELPER DE CÁLCULO
+# ============================================================
+
+def calcular_pontos_posicao(posicao, total_jogadores, buyin_valor, multiplicador_tipo, tabela_fixa=None):
+    """
+    Calcula pontos baseado no sistema escolhido.
+    
+    Args:
+        posicao: Posição final (1, 2, 3, etc)
+        total_jogadores: Total de jogadores no torneio
+        buyin_valor: Valor do buy-in em reais
+        multiplicador_tipo: Multiplicador do tipo de torneio
+        tabela_fixa: Dicionário com tabela de pontos {1: 14, 2: 11, ...}
+    
+    Returns:
+        Pontos calculados (inteiro)
+    """
+    
+    if posicao is None or posicao < 1 or total_jogadores < 1:
+        return 0
+    
+    if posicao > total_jogadores:
+        return 0
+    
+    # Se tabela_fixa fornecida, usa sistema fixo
+    if tabela_fixa:
+        return tabela_fixa.get(posicao, 1)
+    
+    # Sistema dinâmico
+    tabela_posicoes = {
+        1: Decimal("100"),
+        2: Decimal("70"),
+        3: Decimal("50"),
+        4: Decimal("35"),
+        5: Decimal("25"),
+        6: Decimal("20"),
+        7: Decimal("15"),
+        8: Decimal("12"),
+        9: Decimal("8"),
+        10: Decimal("5"),
+    }
+    
+    mult_posicao = tabela_posicoes.get(posicao, Decimal("1"))
+    pontos_base = (Decimal(total_jogadores) * Decimal(buyin_valor) / Decimal("100")) * Decimal(multiplicador_tipo)
+    pontos_finais = pontos_base * mult_posicao / Decimal("100")
+    
+    return int(pontos_finais.to_integral_value(rounding='ROUND_UP'))
+
 
 def _build_ranking_for_season(season):
+    """
+    Constrói ranking para uma temporada.
+    Agora usa o sistema de cálculo configurado na temporada.
+    """
     resultados = (
         TournamentResult.objects.filter(tournament__season=season)
         .values("player__id", "player__nome", "player__apelido")
@@ -81,59 +135,125 @@ def _build_ranking_for_season(season):
 
     return ranking_lista
 
-# --- VIEWS PÚBLICAS ---
+
+# ============================================================
+#  VIEWS PÚBLICAS
+# ============================================================
 
 def ranking_season(request, season_id):
     season = get_object_or_404(Season, id=season_id)
     return render(request, "ranking.html", {"season": season, "ranking": _build_ranking_for_season(season)})
 
+
 def tv_ranking_season(request, season_id):
     season = get_object_or_404(Season, id=season_id)
     return render(request, "tv_ranking.html", {"season": season, "ranking": _build_ranking_for_season(season)})
 
-# --- ADMIN VIEWS ---
 
-@admin_required
 def painel_home(request):
+    """Dashboard principal do sistema"""
     seasons = Season.objects.order_by("-data_inicio")
-    return render(request, "painel_home.html", {"seasons": seasons})
+    
+    return render(
+        request,
+        "painel_home.html",
+        {
+            "seasons": seasons,
+        },
+    )
+
+
+# ============================================================
+#  ADMIN VIEWS
+# ============================================================
 
 @admin_required
 def seasons_list(request):
     seasons = Season.objects.order_by("-data_inicio")
+    
+    # Calcula ranking para cada temporada
+    for season in seasons:
+        season.ranking = _build_ranking_for_season(season)
+    
     return render(request, "seasons_list.html", {"seasons": seasons})
+
 
 @admin_required
 def season_create(request):
     if request.method == "POST":
-        # ... lógica de criação ...
         nome = request.POST.get("nome", "").strip()
-        data_inicio = request.POST.get("data_inicio", "")
-        data_fim = request.POST.get("data_fim", "")
+        data_inicio_str = request.POST.get("data_inicio", "").strip()
+        data_fim_str = request.POST.get("data_fim", "").strip()
         ativo = request.POST.get("ativo") == "on"
+        tipo_calculo = request.POST.get("tipo_calculo", "FIXO")
         
         try:
-            d_ini = date.fromisoformat(data_inicio)
-            d_fim = date.fromisoformat(data_fim)
-        except ValueError:
-            d_ini = date.today()
-            d_fim = date.today()
-
-        if nome:
-            Season.objects.create(nome=nome, data_inicio=d_ini, data_fim=d_fim, ativo=ativo)
-        return HttpResponseRedirect(reverse("seasons_list"))
+            data_inicio = date.fromisoformat(data_inicio_str) if data_inicio_str else None
+            data_fim = date.fromisoformat(data_fim_str) if data_fim_str else None
+            
+            if data_inicio and data_fim:
+                season = Season.objects.create(
+                    nome=nome,
+                    data_inicio=data_inicio,
+                    data_fim=data_fim,
+                    ativo=ativo,
+                    tipo_calculo=tipo_calculo,
+                )
+                
+                # Se FIXO, salva os pontos
+                if tipo_calculo == "FIXO":
+                    for pos in range(1, 11):
+                        pts_field = f"pts_{pos}lugar"
+                        pts_value = request.POST.get(pts_field, "0")
+                        try:
+                            pts_int = int(pts_value)
+                            setattr(season, pts_field, pts_int)
+                        except ValueError:
+                            pass
+                    season.save()
+                
+                return HttpResponseRedirect(reverse("seasons_list"))
+        except (ValueError, TypeError):
+            pass
+    
     return render(request, "season_form.html", {"season": None})
+
 
 @admin_required
 def season_edit(request, season_id):
     season = get_object_or_404(Season, id=season_id)
+    
     if request.method == "POST":
         season.nome = request.POST.get("nome", "").strip()
-        # ... resto da lógica de update ...
+        season.tipo_calculo = request.POST.get("tipo_calculo", "FIXO")
         season.ativo = request.POST.get("ativo") == "on"
+        
+        try:
+            data_inicio_str = request.POST.get("data_inicio", "").strip()
+            data_fim_str = request.POST.get("data_fim", "").strip()
+            
+            if data_inicio_str:
+                season.data_inicio = date.fromisoformat(data_inicio_str)
+            if data_fim_str:
+                season.data_fim = date.fromisoformat(data_fim_str)
+        except (ValueError, TypeError):
+            pass
+        
+        # Se FIXO, atualiza pontos
+        if season.tipo_calculo == "FIXO":
+            for pos in range(1, 11):
+                pts_field = f"pts_{pos}lugar"
+                pts_value = request.POST.get(pts_field, "0")
+                try:
+                    setattr(season, pts_field, int(pts_value))
+                except ValueError:
+                    pass
+        
         season.save()
         return HttpResponseRedirect(reverse("seasons_list"))
+    
     return render(request, "season_form.html", {"season": season})
+
 
 @admin_required
 def season_initial_points(request, season_id):
@@ -155,5 +275,13 @@ def season_initial_points(request, season_id):
 
     iniciais_map = {sip.player_id: sip.pontos_iniciais for sip in SeasonInitialPoints.objects.filter(season=season)}
     linhas = [{"player": p, "pontos": iniciais_map.get(p.id, 0)} for p in players]
-
-    return render(request, "season_initial_points.html", {"season": season, "linhas": linhas, "mensagem": mensagem})
+    
+    return render(
+        request,
+        "season_initial_points.html",
+        {
+            "season": season,
+            "linhas": linhas,
+            "mensagem": mensagem,
+        },
+    )

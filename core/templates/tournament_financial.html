@@ -4,12 +4,14 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0 text-white">Caixa: {{ t.nome }}</h2>
+            <h2 class="mb-0 text-dark fw-bold">💰 Caixa: {{ t.nome }}</h2>
             <div class="text-muted small">
-                Buy-in: {{ t.buy_in }}+{{ t.rake }} | Rebuy: {{ t.rebuy_cost }} | Addon: {{ t.addon_cost }}
+                Buy-in: R$ {{ t.buy_in|floatformat:2 }} | Rebuy: R$ {{ t.rebuy_cost|floatformat:2 }} | Addon: R$ {{ t.addon_cost|floatformat:2 }}
             </div>
         </div>
-        <a href="{% url 'tournament_entries_manage' t.id %}" class="btn btn-outline-light">Gerenciar Jogadores</a>
+        <a href="{% url 'tournament_entries_manage' t.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-people-fill"></i> Gerenciar Jogadores
+        </a>
     </div>
 
     <div class="row mb-4">
@@ -62,7 +64,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0">Controle Individual</h5>
+            <h5 class="mb-0 text-dark">Controle Individual</h5>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

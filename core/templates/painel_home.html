@@ -2,123 +2,408 @@
 
 {% block title %}Painel do Organizador{% endblock %}
 
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ranking-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ranking-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .ranking-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .ranking-hero h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    
+    .ranking-hero p {
+        font-size: 1rem;
+        opacity: 0.95;
+        margin-bottom: 24px;
+    }
+    
+    .ranking-hero-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .ranking-season-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .ranking-season-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .ranking-season-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+    }
+    
+    .ranking-season-card h5 {
+        margin: 0 0 8px 0;
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    .ranking-season-card p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .ranking-season-card .badge {
+        margin-top: 8px;
+        display: inline-block;
+    }
+    
+    .onboarding-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 40px 30px;
+        margin-bottom: 40px;
+    }
+    
+    .step-card {
+        border-left: 4px solid var(--primary);
+        padding: 20px;
+        margin-bottom: 16px;
+        background: white;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .step-card:hover {
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+        transform: translateX(4px);
+    }
+    
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        font-weight: bold;
+        margin-right: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .quick-action {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-height: 120px;
+        justify-content: center;
+    }
+    
+    .quick-action:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .quick-action i {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .quick-action h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .quick-action small {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .season-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+    
+    .season-card:hover {
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+    }
+    
+    .season-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .season-title h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .season-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 4px 0 0 0;
+    }
+    
+    .season-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
-    <h1 class="h2">
-        <i class="bi bi-speedometer2"></i> Painel do Organizador
-    </h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="{% url 'season_create' %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-plus-lg"></i> Nova Temporada
-        </a>
-    </div>
+<div class="page-header">
+    <h1><i class="bi bi-speedometer2"></i> Painel de Controle</h1>
+    <a href="{% url 'season_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nova Temporada
+    </a>
 </div>
 
-<div class="row">
-    <div class="col-12 mb-4">
-        <p class="text-muted">
-            Escolha uma temporada abaixo para gerenciar torneios, ver rankings ou abrir o telão.
-        </p>
+<!-- 🏆 RANKING HERO - DESTAQUE PRINCIPAL -->
+{% if seasons %}
+<div class="ranking-hero">
+    <div class="ranking-hero-content">
+        <h2><i class="bi bi-trophy-fill me-2"></i>Ranking das Temporadas</h2>
+        <p>Acompanhe a classificação de seus jogadores em tempo real</p>
+        
+        <div class="ranking-season-selector">
+            {% for season in seasons %}
+            <a href="{% url 'ranking_season' season.id %}" class="ranking-season-card" title="Ver ranking de {{ season.nome }}">
+                <h5>{{ season.nome }}</h5>
+                <p><i class="bi bi-calendar3"></i> {{ season.data_inicio|date:"d/m/Y" }} - {{ season.data_fim|date:"d/m/Y" }}</p>
+                {% if season.ativo %}
+                    <span class="badge bg-success">Ativa</span>
+                {% else %}
+                    <span class="badge bg-secondary">Finalizada</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
     </div>
 </div>
+{% endif %}
 
-<div class="row">
-    {% if seasons %}
-        {% for season in seasons %}
-        <div class="col-12 mb-3">
-            <div class="card shadow-sm border-start border-4 {% if season.ativo %}border-success{% else %}border-secondary{% endif %}">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        
-                        <div class="col-md-5 mb-3 mb-md-0">
-                            <h4 class="card-title mb-1 d-flex align-items-center gap-2">
-                                {{ season.nome }}
-                                {% if season.ativo %}
-                                    <span class="badge bg-success fs-6">Ativa</span>
-                                {% else %}
-                                    <span class="badge bg-secondary fs-6">Finalizada</span>
-                                {% endif %}
-                            </h4>
-                            <p class="card-text text-muted mb-0">
-                                <i class="bi bi-calendar3"></i> {{ season.data_inicio|date:"d/m/Y" }} até {{ season.data_fim|date:"d/m/Y" }}
-                            </p>
-                        </div>
+<!-- TEMPORADAS ATIVAS -->
+{% if seasons %}
+<div class="mb-5">
+    <h2 class="section-title">
+        <i class="bi bi-calendar2-check"></i> Suas Temporadas
+    </h2>
+    
+    {% for season in seasons %}
+    <div class="season-card">
+        <div class="season-header">
+            <div class="season-title">
+                <h5>{{ season.nome }}</h5>
+                <p class="season-date">
+                    <i class="bi bi-calendar3"></i>
+                    {{ season.data_inicio|date:"d/m/Y" }} → {{ season.data_fim|date:"d/m/Y" }}
+                    {% if season.ativo %}
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-2">Finalizada</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <div class="season-actions">
+            <a href="{% url 'season_tournaments' season.id %}" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-table me-1"></i> Torneios
+            </a>
+            <a href="{% url 'season_initial_points' season.id %}" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-list-ol me-1"></i> Pts Iniciais
+            </a>
+            <a href="{% url 'season_financial' season.id %}" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cash-coin me-1"></i> Financeiro
+            </a>
+            <a href="{% url 'ranking_season' season.id %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-trophy-fill me-1"></i> Ranking
+            </a>
+            <a href="{% url 'tv_ranking_season' season.id %}" target="_blank" class="btn btn-sm btn-success">
+                <i class="bi bi-display me-1"></i> Telão
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
-                        <div class="col-md-7">
-                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                <a href="{% url 'season_tournaments' season.id %}" class="btn btn-dark">
-                                    <i class="bi bi-table"></i> Torneios
-                                </a>
+{% else %}
 
-                                <a href="{% url 'season_initial_points' season.id %}" class="btn btn-outline-dark" title="Ajustar pontos de migração">
-                                    <i class="bi bi-list-ol"></i> Pts Iniciais
-                                </a>
-
-                                <a href="{% url 'ranking_season' season.id %}" target="_blank" class="btn btn-primary">
-                                    <i class="bi bi-trophy-fill"></i> Ranking
-                                </a>
-
-                                <a href="{% url 'tv_ranking_season' season.id %}" target="_blank" class="btn btn-success">
-                                    <i class="bi bi-display"></i> Abrir Telão
-                                </a>
-                            </div>
-                        </div>
+<!-- ONBOARDING (se sem temporadas) -->
+<div class="onboarding-section">
+    <h3><i class="bi bi-rocket-fill me-2"></i>Bem-vindo ao PokerClube!</h3>
+    <p>Siga os passos abaixo para começar a gerenciar seu clube:</p>
+    
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="step-card">
+                <div class="d-flex align-items-start">
+                    <div class="step-number">1</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">Criar uma Temporada</h5>
+                        <p class="mb-3 text-muted">Defina o período em que os torneios ocorrerão</p>
+                        <a href="{% url 'season_create' %}" class="btn btn-sm btn-primary">Criar Temporada →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="d-flex align-items-start">
+                    <div class="step-number">2</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">Configurar Tipos de Torneio</h5>
+                        <p class="mb-3 text-muted">Defina variações (Turbo, Deepstack, etc)</p>
+                        <a href="{% url 'tournament_types_list' %}" class="btn btn-sm btn-primary">Configurar →</a>
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-info d-flex align-items-center" role="alert">
-                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
-                <div>
-                    Nenhuma temporada encontrada. Comece criando uma nova temporada no menu "Temporadas".
+        
+        <div class="col-lg-6">
+            <div class="step-card">
+                <div class="d-flex align-items-start">
+                    <div class="step-number">3</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">Cadastrar Estruturas de Blinds</h5>
+                        <p class="mb-3 text-muted">Crie templates com os níveis</p>
+                        <a href="{% url 'blind_structures_list' %}" class="btn btn-sm btn-primary">Cadastrar →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="d-flex align-items-start">
+                    <div class="step-number">4</div>
+                    <div class="flex-grow-1">
+                        <h5 class="mb-2">Criar Torneios</h5>
+                        <p class="mb-3 text-muted">Agende torneios e comece a gerar o Ranking!</p>
+                        <p class="text-muted small">Disponível após criar uma temporada</p>
+                    </div>
                 </div>
             </div>
         </div>
-    {% endif %}
-</div>
-
-<h5 class="mt-5 mb-3 text-muted">Acesso Rápido</h5>
-<div class="row g-3">
-    <div class="col-md-4">
-        <a href="{% url 'players_list' %}" class="text-decoration-none">
-            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
-                <div class="card-body text-dark">
-                    <i class="bi bi-people-fill fs-1 text-primary mb-2"></i>
-                    <h5 class="card-title">Gerenciar Jogadores</h5>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="{% url 'tournament_types_list' %}" class="text-decoration-none">
-            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
-                <div class="card-body text-dark">
-                    <i class="bi bi-gear-fill fs-1 text-secondary mb-2"></i>
-                    <h5 class="card-title">Tipos de Torneio</h5>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="/admin/" target="_blank" class="text-decoration-none">
-            <div class="card h-100 hover-shadow text-center p-3 border-0 bg-light">
-                <div class="card-body text-dark">
-                    <i class="bi bi-shield-lock-fill fs-1 text-danger mb-2"></i>
-                    <h5 class="card-title">Django Admin</h5>
-                </div>
-            </div>
-        </a>
     </div>
 </div>
 
-<style>
-    .hover-shadow:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-        transition: all 0.2s;
-    }
-</style>
+{% endif %}
+
+<!-- ATALHOS RÁPIDOS -->
+<div class="mb-5">
+    <h2 class="section-title">
+        <i class="bi bi-lightning-charge-fill"></i> Acesso Rápido
+    </h2>
+    
+    <div class="row g-3">
+        <div class="col-md-3">
+            <a href="{% url 'players_list' %}" class="quick-action" title="Gerenciar base de jogadores">
+                <i class="bi bi-people-fill"></i>
+                <h6>Jogadores</h6>
+                <small>Gerenciar base</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="{% url 'financial_dashboard' %}" class="quick-action" title="Ver relatório financeiro">
+                <i class="bi bi-cash-coin"></i>
+                <h6>Financeiro</h6>
+                <small>Relatórios</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="{% url 'tournament_types_list' %}" class="quick-action" title="Configurar tipos de torneio">
+                <i class="bi bi-gear"></i>
+                <h6>Tipos de Torneios</h6>
+                <small>Configuração</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="{% url 'blind_structures_list' %}" class="quick-action" title="Gerenciar estruturas">
+                <i class="bi bi-clock-history"></i>
+                <h6>Blinds</h6>
+                <small>Estrutura</small>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- INFO BOX -->
+<div class="alert alert-info-light d-flex align-items-center" role="alert">
+    <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+    <div>
+        <strong>Ranking é essencial!</strong> Garanta que todos os torneios estejam configurados corretamente para que os pontos sejam calculados automaticamente.
+    </div>
+</div>
+
 {% endblock %}
