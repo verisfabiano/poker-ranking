@@ -150,14 +150,14 @@
             <a href="{% url 'painel_home' %}" class="nav-link {% if request.resolver_match.url_name == 'painel_home' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
-            <a href="{% url 'seasons_list' %}" class="nav-link {% if request.resolver_match.url_name == 'seasons_list' %}active{% endif %}">
-                <i class="bi bi-trophy"></i> Temporadas
-            </a>
         </div>
         
         <!-- GESTÃO -->
         <div class="nav-section">
             <div class="nav-section-title">Gestão</div>
+            <a href="{% url 'seasons_list' %}" class="nav-link {% if request.resolver_match.url_name == 'seasons_list' %}active{% endif %}">
+                <i class="bi bi-trophy"></i> Temporadas
+            </a>
             <a href="{% url 'players_list' %}" class="nav-link {% if request.resolver_match.url_name == 'players_list' %}active{% endif %}">
                 <i class="bi bi-people"></i> Jogadores
             </a>
@@ -167,11 +167,6 @@
             <a href="{% url 'blind_structures_list' %}" class="nav-link {% if request.resolver_match.url_name == 'blind_structures_list' %}active{% endif %}">
                 <i class="bi bi-hourglass"></i> Blinds
             </a>
-        </div>
-        
-        <!-- CONFIGURAÇÃO -->
-        <div class="nav-section">
-            <div class="nav-section-title">Configuração</div>
             <a href="{% url 'financial_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_dashboard' %}active{% endif %}">
                 <i class="bi bi-graph-up"></i> Financeiro
             </a>
