@@ -410,3 +410,79 @@ class SeasonInitialPoints(models.Model):
 
     def __str__(self):
         return f"{self.season} - {self.player} ({self.pontos_iniciais} pts iniciais)"
+
+
+# ============================================================
+#  ESTATÍSTICAS DO JOGADOR
+# ============================================================
+
+class PlayerStatistics(models.Model):
+    """
+    Armazena estatísticas consolidadas de um jogador em uma temporada.
+    Permite cálculos rápidos no ranking sem processar todos os torneios.
+    """
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    
+    # Participações
+    total_torneios = models.IntegerField(default=0)  # Total de inscrições
+    torneios_com_resultado = models.IntegerField(default=0)  # Com posição registrada
+    
+    # Prêmios
+    vitórias = models.IntegerField(default=0)  # 1º lugares
+    top_3 = models.IntegerField(default=0)  # Finalizações top 3
+    top_5 = models.IntegerField(default=0)  # Finalizações top 5
+    
+    # Financeiro
+    total_buyin = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_premio = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    roi = models.DecimalField(max_digits=8, decimal_places=2, default=0)  # (Prêmios - Buy-ins) / Buy-ins * 100
+    
+    # Taxa de ITM (In The Money)
+    taxa_itm = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # % de prêmios
+    
+    # Pontos
+    pontos_totais = models.IntegerField(default=0)
+    media_pontos = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    
+    # Última atualização
+    atualizado_em = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ("season", "player")
+        verbose_name = "Estatística do Jogador"
+        verbose_name_plural = "Estatísticas do Jogador"
+    
+    def __str__(self):
+        return f"{self.player} - {self.season} ({self.pontos_totais} pts)"
+
+
+class PlayerAchievement(models.Model):
+    """
+    Badges/achievements conquistados pelos jogadores.
+    """
+    ACHIEVEMENT_TYPES = (
+        ('CAMPEAO', 'Campeão'),
+        ('FINALISTA', 'Finalista'),
+        ('CONSISTENTE', 'Consistente'),
+        ('CRAQUE', 'Craque'),
+        ('STREAKER', 'Streaker'),
+        ('ALL_IN', 'All-in'),
+        ('COMEBACK', 'Comeback'),
+        ('HOT_STREAK', 'Hot Streak'),
+    )
+    
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=ACHIEVEMENT_TYPES)
+    
+    descricao = models.CharField(max_length=200)
+    obtido_em = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ("season", "player", "tipo")
+        verbose_name = "Achievement"
+        verbose_name_plural = "Achievements"
+    
+    def __str__(self):
+        return f"{self.player} - {self.get_tipo_display()} ({self.season})"

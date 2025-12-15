@@ -56,6 +56,11 @@ from .views import (
     season_financial,
     financial_by_period,
     api_financial_summary,
+
+    # Ranking avançado
+    ranking_avancado,
+    api_ranking_json,
+    estatisticas_jogador,
 )
 
 urlpatterns = [
@@ -144,4 +149,11 @@ urlpatterns = [
     #  ATALHO /login/ (compatibilidade)
     # ============================================================
     path("login/", RedirectView.as_view(pattern_name="player_login", permanent=False), name="login_redirect"),
+
+    # ============================================================
+    #  RANKING AVANÇADO (JOGADOR)
+    # ============================================================
+    path("ranking/<int:season_id>/avancado/", ranking_avancado, name="ranking_avancado"),
+    path("ranking/<int:season_id>/jogador/<int:player_id>/", estatisticas_jogador, name="estatisticas_jogador"),
+    path("api/ranking/<int:season_id>/json/", api_ranking_json, name="api_ranking_json"),
 ]

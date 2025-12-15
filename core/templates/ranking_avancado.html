@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ranking - {{ season.nome }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ranking-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .ranking-header h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .ranking-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .stat-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .stat-card-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .stat-card-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        margin-top: 5px;
+    }
+    
+    .top-10-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .top-10-table table {
+        margin-bottom: 0;
+    }
+    
+    .top-10-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .top-10-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .top-10-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .posicao-badge {
+        display: inline-block;
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 35px;
+        font-weight: bold;
+    }
+    
+    .posicao-badge.pos-1 {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    }
+    
+    .posicao-badge.pos-2 {
+        background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+    }
+    
+    .posicao-badge.pos-3 {
+        background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    }
+    
+    .player-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .player-avatar {
+        width: 45px;
+        height: 45px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .badge-achievement {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        background: #f0f0f0;
+    }
+    
+    .highlight-stat {
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .roi-positive {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .roi-negative {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .tabs-section {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    /* Classes de cores para badges de ITM */
+    .badge-itm-alto {
+        background-color: #28a745 !important;
+    }
+    
+    .badge-itm-medio {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+    
+    .badge-itm-baixo {
+        background-color: #dc3545 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="ranking-header">
+    <h1><i class="bi bi-trophy-fill"></i> Ranking - {{ season.nome }}</h1>
+    <p>
+        <strong>{{ total_jogadores }}</strong> jogadores | 
+        <strong>{{ total_torneios }}</strong> torneios
+    </p>
+</div>
+
+<!-- CARDS DE DESTAQUE -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-value">{{ total_jogadores }}</div>
+            <div class="stat-card-label">Jogadores</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-value">{{ total_torneios }}</div>
+            <div class="stat-card-label">Torneios</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            {% if maior_vencedor %}
+                <div class="stat-card-value">{{ maior_vencedor.vitórias }}</div>
+                <div class="stat-card-label">{{ maior_vencedor.player.apelido|truncatechars:10 }} - Vitórias</div>
+            {% else %}
+                <div class="stat-card-value">0</div>
+                <div class="stat-card-label">Vitórias</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            {% if melhor_roi %}
+                <div class="stat-card-value">{{ melhor_roi.roi|floatformat:0 }}%</div>
+                <div class="stat-card-label">{{ melhor_roi.player.apelido|truncatechars:10 }} - Melhor ROI</div>
+            {% else %}
+                <div class="stat-card-value">0%</div>
+                <div class="stat-card-label">Melhor ROI</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- TABELA TOP 10 -->
+<div class="top-10-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 50px;">Pos</th>
+                <th>Jogador</th>
+                <th style="text-align: center;">Pontos</th>
+                <th style="text-align: center;">Vitórias</th>
+                <th style="text-align: center;">Top 3</th>
+                <th style="text-align: center;">ROI</th>
+                <th style="text-align: center;">Taxa ITM</th>
+                <th style="text-align: center;">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in top_10 %}
+            <tr>
+                <td>
+                    <span class="posicao-badge {% if stat.posicao == 1 %}pos-1{% elif stat.posicao == 2 %}pos-2{% elif stat.posicao == 3 %}pos-3{% endif %}">
+                        {{ stat.posicao }}
+                    </span>
+                </td>
+                <td>
+                    <div class="player-row">
+                        <div class="player-avatar">{{ stat.player.apelido|first|upper }}</div>
+                        <div>
+                            <strong>{{ stat.player.apelido|default:stat.player.nome }}</strong>
+                            <br>
+                            <small class="text-muted">{{ stat.total_torneios }} torneios</small>
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <span class="highlight-stat">{{ stat.pontos_totais }}</span>
+                </td>
+                <td style="text-align: center;">
+                    {% if stat.vitórias > 0 %}
+                        <span class="badge bg-success">{{ stat.vitórias }}</span>
+                    {% else %}
+                        <span class="text-muted">0</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% if stat.top_3 > 0 %}
+                        <span class="badge bg-info">{{ stat.top_3 }}</span>
+                    {% else %}
+                        <span class="text-muted">0</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">
+                    {% if stat.roi > 0 %}
+                        <span class="roi-positive">↑ {{ stat.roi|floatformat:0 }}%</span>
+                    {% elif stat.roi < 0 %}
+                        <span class="roi-negative">↓ {{ stat.roi|floatformat:0 }}%</span>
+                    {% else %}
+                        <span class="text-muted">0%</span>
+                    {% endif %}
+                </td>
+                <td style="text-align: center;">
+                    <span class="badge {% if stat.taxa_itm > 60 %}badge-itm-alto{% elif stat.taxa_itm > 30 %}badge-itm-medio{% else %}badge-itm-baixo{% endif %}">
+                        {{ stat.taxa_itm|floatformat:0 }}%
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    <a href="{% url 'estatisticas_jogador' season.id stat.player.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- RANKING COMPLETO -->
+{% if ranking|length > 10 %}
+<div class="tabs-section">
+    <h4 class="mb-3"><i class="bi bi-list"></i> Ranking Completo</h4>
+    
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Pos</th>
+                    <th>Jogador</th>
+                    <th>Pontos</th>
+                    <th>Torneios</th>
+                    <th>V/T3/T5</th>
+                    <th>ROI</th>
+                    <th>ITM</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in ranking %}
+                <tr>
+                    <td><strong>#{{ stat.posicao }}</strong></td>
+                    <td>
+                        <a href="{% url 'estatisticas_jogador' season.id stat.player.id %}" style="text-decoration: none; color: inherit;">
+                            <strong>{{ stat.player.apelido|default:stat.player.nome }}</strong>
+                        </a>
+                    </td>
+                    <td><span class="highlight-stat">{{ stat.pontos_totais }}</span></td>
+                    <td>{{ stat.total_torneios }}</td>
+                    <td>{{ stat.vitórias }}/{{ stat.top_3 }}/{{ stat.top_5 }}</td>
+                    <td>
+                        {% if stat.roi > 0 %}
+                            <span class="roi-positive">{{ stat.roi|floatformat:0 }}%</span>
+                        {% elif stat.roi < 0 %}
+                            <span class="roi-negative">{{ stat.roi|floatformat:0 }}%</span>
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if stat.taxa_itm > 60 %}badge-itm-alto{% elif stat.taxa_itm > 30 %}badge-itm-medio{% else %}badge-itm-baixo{% endif %}">
+                            {{ stat.taxa_itm|floatformat:0 }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Carrega dados JSON para futuros gráficos
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiUrl = "{% url 'api_ranking_json' season.id %}";
+        
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dados: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dados de ranking:', data);
+                // Próximas features: gráficos com Chart.js
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+    });
+</script>
+{% endblock %}

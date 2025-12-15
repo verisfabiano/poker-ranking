@@ -7,3 +7,4 @@ from .blinds import *
 from .director import *
 from .api import *
 from .financial import *
+from .ranking import *

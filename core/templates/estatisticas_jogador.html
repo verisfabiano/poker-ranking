@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ player.apelido }} - Estatísticas - {{ season.nome }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .player-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .player-avatar-large {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    
+    .player-header h1 {
+        font-size: 2rem;
+        margin: 0;
+    }
+    
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .stat-box .value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .stat-box .label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+        text-transform: uppercase;
+    }
+    
+    .comparison-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .comparison-bar {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .comparison-label {
+        min-width: 150px;
+        font-weight: bold;
+    }
+    
+    .progress-bar-custom {
+        flex: 1;
+        height: 25px;
+        background: #e9ecef;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-custom .fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: bold;
+        transition: width 0.3s ease;
+        min-width: 30px;
+    }
+    
+    .achievements-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .achievement-badge {
+        display: inline-block;
+        padding: 10px 15px;
+        background: #f0f0f0;
+        border-radius: 8px;
+        margin: 5px 5px 5px 0;
+        text-align: center;
+    }
+    
+    .achievement-badge i {
+        display: block;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        color: #667eea;
+    }
+    
+    .achievement-badge .badge-text {
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .tournament-history {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .tournament-history table {
+        margin-bottom: 0;
+    }
+    
+    .tournament-history thead {
+        background: #f8f9fa;
+    }
+    
+    .tournament-history tbody tr:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER DO JOGADOR -->
+<div class="player-header">
+    <div class="player-avatar-large">{{ player.apelido|first|upper }}</div>
+    <div>
+        <h1>{{ player.apelido|default:player.nome }}</h1>
+        <p style="margin: 0; opacity: 0.9;">{{ season.nome }}</p>
+    </div>
+</div>
+
+<!-- GRID DE ESTATÍSTICAS PRINCIPAIS -->
+<div class="stat-grid">
+    <div class="stat-box">
+        <div class="value">{{ stats.pontos_totais }}</div>
+        <div class="label">Pontos Totais</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">{{ stats.total_torneios }}</div>
+        <div class="label">Torneios</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">{{ stats.vitórias }}</div>
+        <div class="label">Vitórias</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">{{ stats.top_3 }}</div>
+        <div class="label">Top 3</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">
+            {% if stats.roi > 0 %}
+                <span style="color: #28a745;">+{{ stats.roi|floatformat:0 }}%</span>
+            {% elif stats.roi < 0 %}
+                <span style="color: #dc3545;">{{ stats.roi|floatformat:0 }}%</span>
+            {% else %}
+                <span>0%</span>
+            {% endif %}
+        </div>
+        <div class="label">ROI</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">{{ stats.taxa_itm|floatformat:0 }}%</div>
+        <div class="label">Taxa ITM</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">R$ {{ stats.total_premio|floatformat:2 }}</div>
+        <div class="label">Prêmios</div>
+    </div>
+</div>
+
+<!-- COMPARAÇÃO COM MÉDIA -->
+<div class="comparison-section">
+    <h4 class="mb-3"><i class="bi bi-bar-chart"></i> Comparação com Média</h4>
+    
+    {% if media_pontos_season > 0 %}
+        <div class="comparison-bar">
+            <div class="comparison-label">Média de Pontos</div>
+            <div class="progress-bar-custom">
+                <div class="fill" id="comparison-fill">
+                    <span>{{ stats.pontos_totais }} / {{ media_pontos_season }}</span>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if variacao >= 0 %}
+        <p class="text-success"><strong>↑ {{ variacao }}</strong> pontos acima da média</p>
+    {% else %}
+        <p class="text-danger"><strong>↓ {{ variacao }}</strong> pontos abaixo da média</p>
+    {% endif %}
+</div>
+
+<!-- ACHIEVEMENTS -->
+{% if achievements %}
+<div class="achievements-section">
+    <h4 class="mb-3"><i class="bi bi-award"></i> Conquistas</h4>
+    <div>
+        {% for achievement in achievements %}
+        <div class="achievement-badge" title="{{ achievement.descricao }}">
+            <i class="bi bi-trophy-fill"></i>
+            <div class="badge-text">{{ achievement.get_tipo_display }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- HISTÓRICO DE TORNEIOS -->
+<div class="tournament-history">
+    <div style="padding: 20px;">
+        <h4><i class="bi bi-list"></i> Histórico de Torneios</h4>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Torneio</th>
+                    <th>Data</th>
+                    <th>Posição</th>
+                    <th>Pontos</th>
+                    <th>Prêmio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resultado in resultados %}
+                <tr>
+                    <td><strong>{{ resultado.tournament.nome }}</strong></td>
+                    <td>{{ resultado.tournament.data|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if resultado.posicao == 1 %}
+                            <span class="badge bg-warning text-dark">🥇 {{ resultado.posicao }}º</span>
+                        {% elif resultado.posicao == 2 %}
+                            <span class="badge bg-secondary">🥈 {{ resultado.posicao }}º</span>
+                        {% elif resultado.posicao == 3 %}
+                            <span class="badge bg-danger">🥉 {{ resultado.posicao }}º</span>
+                        {% elif resultado.posicao <= 5 %}
+                            <span class="badge bg-info">{{ resultado.posicao }}º</span>
+                        {% else %}
+                            <span class="text-muted">{{ resultado.posicao }}º</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="color: #667eea;">{{ resultado.pontos_finais }}</strong>
+                    </td>
+                    <td>
+                        {% if resultado.premiacao_recebida > 0 %}
+                            <span style="color: #28a745; font-weight: bold;">R$ {{ resultado.premiacao_recebida|floatformat:2 }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">
+                        Nenhum resultado registrado
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- BOTÃO VOLTAR -->
+<div class="mt-4 mb-4">
+    <a href="{% url 'ranking_avancado' season.id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar ao Ranking
+    </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cálculo dinâmico da barra de comparação
+    document.addEventListener('DOMContentLoaded', function() {
+        const pontosTotais = parseInt("{{ stats.pontos_totais|default:'0' }}") || 0;
+        const mediaSeasonPts = parseInt("{{ media_pontos_season|default:'0' }}") || 0;
+        
+        if (mediaSeasonPts > 0) {
+            const percentage = (pontosTotais / mediaSeasonPts) * 100;
+            const fillWidth = Math.min(percentage, 100);
+            const fillElement = document.getElementById('comparison-fill');
+            
+            if (fillElement) {
+                fillElement.style.width = fillWidth + '%';
+            }
+        }
+    });
+    
+    // Dados para gráfico (próxima feature)
+    try {
+        const historicoJson = '{{ historico_json|escapejs }}';
+        if (historicoJson && historicoJson.trim() !== '' && historicoJson !== 'null') {
+            const historico = JSON.parse(historicoJson);
+            if (historico && historico.length > 0) {
+                console.log('Histórico:', historico);
+            }
+        }
+    } catch (e) {
+        console.log('Sem dados de histórico');
+    }
+</script>
+{% endblock %}
