@@ -283,7 +283,7 @@
         <div class="container-fluid">
             <!-- LOGO -->
             <a class="navbar-brand me-auto" href="{% if user.is_staff and request.tenant %}{% url 'painel_home' %}{% else %}{% url 'player_home' %}{% endif %}">
-                <i class="bi bi-suit-spade-fill"></i> {{ request.tenant.nome|default:"PokerClube" }}
+                <i class="bi bi-suit-spade-fill"></i> {% if request.tenant %}{{ request.tenant.nome }}{% else %}PokerClube{% endif %}
             </a>
             
             <!-- BREADCRUMB -->
