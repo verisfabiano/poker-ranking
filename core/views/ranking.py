@@ -186,7 +186,6 @@ def _calcular_e_atualizar_stats(season, player, tenant):
     return stats
 
 
-@tenant_required
 def ranking_avancado(request, season_id):
     """
     Dashboard de Ranking Avançado - Multi-tenant.
@@ -256,7 +255,6 @@ def ranking_avancado(request, season_id):
     return render(request, 'ranking_avancado.html', context)
 
 
-@tenant_required
 def estatisticas_jogador(request, season_id, player_id):
     """
     Página detalhada de estatísticas de um jogador - Multi-tenant.
@@ -320,7 +318,6 @@ def estatisticas_jogador(request, season_id, player_id):
     return render(request, 'estatisticas_jogador.html', context)
 
 
-@tenant_required
 def api_ranking_json(request, season_id):
     """
     API que retorna ranking em JSON - Multi-tenant.
@@ -351,7 +348,6 @@ def api_ranking_json(request, season_id):
     return JsonResponse(data)
 
 
-@tenant_required
 @moderator_or_admin_required
 def gerar_relatorio_ranking(request, season_id):
     """

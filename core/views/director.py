@@ -94,7 +94,6 @@ def director_change_level(request, tournament_id, direction):
     t.save()
     return redirect("director_panel", tournament_id=t.id)
 
-@tenant_required
 def tv_dashboard(request, tournament_id):
     t = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
     return render(request, "tv_dashboard.html", {"tournament": t})

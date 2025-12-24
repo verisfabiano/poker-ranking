@@ -12,9 +12,21 @@ from django.db.models import Sum, Q, F, Case, When, Count, Max, DecimalField, In
 # --- HOME DO JOGADOR ---
 
 @login_required
-@tenant_required
 def player_home(request):
     """Dashboard inicial do jogador - mostra temporadas ativas e próximos torneios"""
+    
+    # Garantir que o tenant está configurado
+    if not hasattr(request, 'tenant') or not request.tenant:
+        from ..models import TenantUser
+        tenant_user = TenantUser.objects.select_related('tenant').filter(
+            user=request.user, tenant__ativo=True
+        ).first()
+        
+        if tenant_user:
+            request.tenant = tenant_user.tenant
+        else:
+            return redirect('player_login')
+    
     try:
         player = Player.objects.get(user=request.user, tenant=request.tenant)
     except Player.DoesNotExist:
@@ -196,7 +208,6 @@ def select_tenant_register(request):
 
 # --- LISTA DE JOGADORES (PÚBLICA) ---
 
-@tenant_required
 def players_list(request):
     """Lista todos os jogadores"""
     players = Player.objects.filter(tenant=request.tenant).order_by("nome")
@@ -205,7 +216,6 @@ def players_list(request):
 
 # --- CRUD DE JOGADOR ---
 
-@tenant_required
 def player_create(request):
     """Criar novo jogador (registro)"""
     # Verificar se tenant foi definido
@@ -246,7 +256,6 @@ def player_create(request):
     return render(request, "player_form.html", {"player": None, "tenant": request.tenant})
 
 
-@tenant_required
 def player_edit(request, player_id):
     """Editar dados do jogador"""
     player = get_object_or_404(Player, id=player_id, tenant=request.tenant)
@@ -300,7 +309,6 @@ def player_edit(request, player_id):
     return render(request, "player_form.html", {"player": player})
 
 
-@tenant_required
 def player_profile(request):
     """Perfil do jogador logado (não precisa de ID)"""
     # Buscar o jogador associado ao usuário logado
@@ -414,7 +422,6 @@ def player_register(request):
 
 # --- TORNEIOS DO JOGADOR ---
 
-@tenant_required
 def player_tournaments(request):
     """Listar torneios disponíveis para o jogador se inscrever"""
     try:
@@ -455,7 +462,6 @@ def player_tournaments(request):
     return render(request, "player_tournaments.html", context)
 
 
-@tenant_required
 def confirm_presence(request, tournament_id):
     """Jogador confirma presença em um torneio"""
     tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
@@ -583,7 +589,6 @@ def player_progress_season(request, season_id, player_id):
 # --- CADASTRO RÁPIDO DE JOGADOR (AJAX) ---
 
 @admin_required
-@tenant_required
 def player_create_quick(request):
     """Criar novo jogador rapidamente (via AJAX para uso em tournament_entries)
     - Se username e email: cria Player com User (pode fazer login)
@@ -677,7 +682,6 @@ def player_create_quick(request):
 # --- GESTÃO DO CLUBE ---
 
 @login_required
-@tenant_required
 def club_edit(request):
     """Editar informações do clube (apenas para staff/admin do club)"""
     # Verificar permissão

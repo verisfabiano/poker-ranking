@@ -861,7 +861,6 @@ def tournament_product_purchase_delete(request, purchase_id):
 # ============================================================
 
 @admin_required
-@tenant_required
 def tournament_add_rebuy_addon(request, tournament_id):
     """
     AJAX: Adicionar rebuy, rebuy duplo, addon ou time chip a um jogador

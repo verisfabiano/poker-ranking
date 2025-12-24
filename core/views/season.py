@@ -191,7 +191,6 @@ def _build_ranking_for_season(season, tenant=None):
 # ============================================================
 
 @login_required
-@tenant_required
 def ranking_season(request, season_id):
     """
     Renderiza o ranking da temporada.
@@ -250,7 +249,6 @@ def ranking_season(request, season_id):
 
 
 @login_required
-@tenant_required
 def tv_ranking_season(request, season_id):
     season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
     return render(request, "tv_ranking.html", {"season": season, "ranking": _build_ranking_for_season(season, request.tenant)})
@@ -412,7 +410,6 @@ def season_initial_points(request, season_id):
     )
 
 
-@tenant_required
 def player_progress_season(request, season_id, player_id):
     season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
     player = get_object_or_404(Player, id=player_id, tenant=request.tenant)
