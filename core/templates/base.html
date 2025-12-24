@@ -188,7 +188,7 @@
 <body>
 
     <!-- SIDEBAR ADMIN (SÓ MOSTRA SE FOR ADMIN) -->
-    {% if user.is_staff %}
+    {% if user.is_staff and request.tenant %}
     <div class="sidebar-admin">
         <div class="logo">
             {% if request.tenant and request.tenant.logo %}
@@ -279,10 +279,10 @@
     {% endif %}
 
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg sticky-top {% if user.is_staff %}with-sidebar{% endif %}">
+    <nav class="navbar navbar-expand-lg sticky-top {% if user.is_staff and request.tenant %}with-sidebar{% endif %}">
         <div class="container-fluid">
             <!-- LOGO -->
-            <a class="navbar-brand me-auto" href="{% if user.is_staff %}{% url 'painel_home' %}{% else %}{% url 'player_home' %}{% endif %}">
+            <a class="navbar-brand me-auto" href="{% if user.is_staff and request.tenant %}{% url 'painel_home' %}{% else %}{% url 'player_home' %}{% endif %}">
                 <i class="bi bi-suit-spade-fill"></i> {{ request.tenant.nome|default:"PokerClube" }}
             </a>
             
@@ -342,7 +342,7 @@
     </nav>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="{% if user.is_staff %}with-sidebar{% endif %}">
+    <main class="{% if user.is_staff and request.tenant %}with-sidebar{% endif %}">
         <div class="container-fluid p-4">
             {% block content %}{% endblock %}
         </div>
