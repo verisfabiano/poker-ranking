@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Organizador</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --sidebar-width: 260px;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        /* SIDEBAR ADMIN */
+        .sidebar-admin {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            overflow-y: auto;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        
+        .sidebar-admin .logo {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-admin .logo img {
+            display: block;
+            margin: 0 auto 12px;
+        }
+        
+        .sidebar-admin .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            word-wrap: break-word;
+        }
+        
+        .sidebar-admin .logo i {
+            font-size: 2.5rem;
+            color: #007bff;
+        }
+        
+        .sidebar-admin .nav-section {
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+        
+        .sidebar-admin .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #aaa;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar-admin .nav-link {
+            color: #ccc;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-admin .nav-link:hover {
+            background-color: rgba(0, 123, 255, 0.2);
+            color: white;
+        }
+        
+        .sidebar-admin .nav-link.active {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sidebar-admin .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* SUBSECÇÕES */
+        .sidebar-admin .nav-subsection {
+            margin-top: 12px;
+            margin-left: 8px;
+            border-left: 2px solid #444;
+            padding-left: 12px;
+        }
+        
+        .sidebar-admin .nav-subsection-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sidebar-admin .nav-subsection-title i {
+            font-size: 0.85rem;
+        }
+        
+        .sidebar-admin .nav-sublink {
+            padding: 8px 12px;
+            font-size: 0.95rem;
+        }
+        
+        .sidebar-admin .nav-sublink i {
+            width: 18px;
+            font-size: 0.9rem;
+        }
+        
+        /* LAYOUT COM SIDEBAR */
+        .with-sidebar {
+            margin-left: var(--sidebar-width);
+        }
+        
+        /* NAVBAR */
+        .navbar {
+            background-color: white;
+            border-bottom: 2px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: #007bff !important;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .navbar-logo {
+            height: 40px;
+            max-width: 120px;
+            object-fit: contain;
+        }
+        
+        /* BREADCRUMB */
+        .breadcrumb {
+            background-color: transparent;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+        
+        .breadcrumb-item a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    
+    
+<style>
+    .ranking-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ranking-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    
+    .ranking-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .ranking-hero h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    
+    .ranking-hero p {
+        font-size: 1rem;
+        opacity: 0.95;
+        margin-bottom: 24px;
+    }
+    
+    .ranking-hero-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .ranking-season-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .ranking-season-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .ranking-season-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+    }
+    
+    .ranking-season-card h5 {
+        margin: 0 0 8px 0;
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    .ranking-season-card p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .ranking-season-card .badge {
+        margin-top: 8px;
+        display: inline-block;
+    }
+    
+    .onboarding-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 40px 30px;
+        margin-bottom: 40px;
+    }
+    
+    .step-card {
+        border-left: 4px solid var(--primary);
+        padding: 20px;
+        margin-bottom: 16px;
+        background: white;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .step-card:hover {
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+        transform: translateX(4px);
+    }
+    
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        font-weight: bold;
+        margin-right: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .quick-action {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-height: 120px;
+        justify-content: center;
+    }
+    
+    .quick-action:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        color: inherit;
+        text-decoration: none;
+    }
+    
+    .quick-action i {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .quick-action h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .quick-action small {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .season-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+    
+    .season-card:hover {
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+    }
+    
+    .season-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .season-title h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .season-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 4px 0 0 0;
+    }
+    
+    .season-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+</style>
+
+</head>
+<body>
+
+    <!-- SIDEBAR ADMIN (SÓ MOSTRA SE FOR ADMIN) -->
+    
+    <div class="sidebar-admin">
+        <div class="logo">
+            
+                <img src="/media/tenant_logos/2025/12/Imagem_do_WhatsApp_de_2025-08-11_%C3%A0s_15.13.30_e7aa3329.jpg" alt="Veris Poker" 
+                     style="max-width: 80px; max-height: 80px; object-fit: contain;">
+            
+            <h4>Veris Poker</h4>
+        </div>
+        
+        <!-- RANKING -->
+        <div class="nav-section">
+            <div class="nav-section-title">📊 RANKING</div>
+            <a href="/painel/" class="nav-link active">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            
+        </div>
+        
+        <!-- TORNEIOS -->
+        <div class="nav-section">
+            <div class="nav-section-title">🎰 TORNEIOS</div>
+            <a href="/torneios/dashboard/" class="nav-link ">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="/torneios/" class="nav-link ">
+                <i class="bi bi-dice-5"></i> Torneios
+            </a>
+            
+            <a href="/temporadas/" class="nav-link ">
+                <i class="bi bi-calendar2-event"></i> Temporadas
+            </a>
+            <a href="/tipos-torneio/" class="nav-link ">
+                <i class="bi bi-bookmark"></i> Tipos de Torneio
+            </a>
+            
+            
+            <a href="/produtos/" class="nav-link ">
+                <i class="bi bi-gift"></i> Produtos
+            </a>
+            <div class="nav-subsection">
+                <div class="nav-subsection-title" style="margin-top: 8px;">
+                    <i class="bi bi-gear"></i> Configuração
+                </div>
+                <a href="/blinds/" class="nav-link nav-sublink ">">
+                    <i class="bi bi-hourglass"></i> Estruturas de Blinds
+                </a>
+            </div>
+            
+        
+        <!-- GESTÃO -->
+        <div class="nav-section">
+            <div class="nav-section-title">👥 GESTÃO</div>
+            <a href="/jogadores/" class="nav-link ">
+                <i class="bi bi-people"></i> Jogadores
+            </a>
+        </div>
+        
+        <!-- FINANCEIRO -->
+        <div class="nav-section">
+            <div class="nav-section-title">💰 FINANCEIRO</div>
+            <a href="/financeiro/" class="nav-link ">
+                <i class="bi bi-graph-up"></i> Dashboard
+            </a>
+            <a href="/financeiro/periodo/" class="nav-link ">
+                <i class="bi bi-calendar-range"></i> Por Período
+            </a>
+            <a href="/financeiro/relatorio-completo/" class="nav-link ">
+                <i class="bi bi-file-earmark-pdf"></i> Relatório Completo
+            </a>
+            <a href="#" class="nav-link" onclick="selecionarTemporada(); return false;">
+                <i class="bi bi-trophy"></i> Por Temporada
+            </a>
+        </div>
+        
+        <!-- SAIR -->
+        <div class="nav-section" style="border-top: 1px solid #444; padding-top: 20px;">
+            <a href="/jogador/logout/" class="nav-link" style="color: #ff6b6b;">
+                <i class="bi bi-door-left"></i> Sair
+            </a>
+        </div>
+    </div>
+    
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg sticky-top with-sidebar">
+        <div class="container-fluid">
+            <!-- LOGO -->
+            <a class="navbar-brand me-auto" href="/painel/">
+                <i class="bi bi-suit-spade-fill"></i> Veris Poker
+            </a>
+            
+            <!-- BREADCRUMB -->
+            <div class="breadcrumb ms-auto me-auto" style="margin-bottom: 0;">
+                <a class="breadcrumb-item" href="/redirect/">Home</a>
+                <span class="breadcrumb-item active">Página</span>
+            </div>
+            
+            <!-- USER MENU -->
+            <div class="ms-auto">
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> veris
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                        
+                        <!-- ADMIN MENU (Staff) -->
+                        <li><a class="dropdown-item" href="/painel/">
+                            <i class="bi bi-speedometer2"></i> Painel Admin
+                        </a></li>
+                        <li><a class="dropdown-item" href="/clube/">
+                            <i class="bi bi-building"></i> Meu Clube
+                        </a></li>
+                        <li><a class="dropdown-item" href="/temporadas/">
+                            <i class="bi bi-calendar-event"></i> Temporadas
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <li><a class="dropdown-item" href="/jogador/logout/">
+                            <i class="bi bi-door-left"></i> Sair
+                        </a></li>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="with-sidebar">
+        <div class="container-fluid p-4">
+            
+<div class="page-header">
+    <h1><i class="bi bi-speedometer2"></i> Painel de Controle</h1>
+    <a href="/temporadas/nova/" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nova Temporada
+    </a>
+</div>
+
+<!-- 🏆 RANKING HERO - DESTAQUE PRINCIPAL -->
+
+<div class="ranking-hero">
+    <div class="ranking-hero-content">
+        <h2><i class="bi bi-trophy-fill me-2"></i>Ranking das Temporadas</h2>
+        <p>Acompanhe a classificação de seus jogadores em tempo real</p>
+        
+        <div class="ranking-season-selector">
+            
+            <a href="/ranking/9/" class="ranking-season-card" title="Ver ranking de Teste 2">
+                <h5>Teste 2</h5>
+                <p><i class="bi bi-calendar3"></i> 19/12/2025 - 31/12/2025</p>
+                
+                    <span class="badge bg-success">Ativa</span>
+                
+            </a>
+            
+            <a href="/ranking/8/" class="ranking-season-card" title="Ver ranking de Temporada Teste">
+                <h5>Temporada Teste</h5>
+                <p><i class="bi bi-calendar3"></i> 01/12/2025 - 31/12/2025</p>
+                
+                    <span class="badge bg-success">Ativa</span>
+                
+            </a>
+            
+            <a href="/ranking/13/" class="ranking-season-card" title="Ver ranking de Temporada 2025">
+                <h5>Temporada 2025</h5>
+                <p><i class="bi bi-calendar3"></i> 01/01/2025 - 31/12/2025</p>
+                
+                    <span class="badge bg-success">Ativa</span>
+                
+            </a>
+            
+            <a href="/ranking/12/" class="ranking-season-card" title="Ver ranking de Temporada 2024">
+                <h5>Temporada 2024</h5>
+                <p><i class="bi bi-calendar3"></i> 01/01/2024 - 31/12/2024</p>
+                
+                    <span class="badge bg-success">Ativa</span>
+                
+            </a>
+            
+        </div>
+    </div>
+</div>
+
+
+<!-- TEMPORADAS ATIVAS -->
+
+<div class="mb-5">
+    <h2 class="section-title">
+        <i class="bi bi-calendar2-check"></i> Suas Temporadas
+    </h2>
+    
+    
+    <div class="season-card">
+        <div class="season-header">
+            <div class="season-title">
+                <h5>Teste 2</h5>
+                <p class="season-date">
+                    <i class="bi bi-calendar3"></i>
+                    19/12/2025 → 31/12/2025
+                    
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    
+                </p>
+            </div>
+        </div>
+        
+        <div class="season-actions">
+            <a href="/season/9/torneios/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-table me-1"></i> Torneios
+            </a>
+            <a href="/temporadas/9/pontos-iniciais/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-list-ol me-1"></i> Pts Iniciais
+            </a>
+            <a href="/financeiro/temporada/9/" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cash-coin me-1"></i> Financeiro
+            </a>
+            <a href="/ranking/9/" class="btn btn-sm btn-primary">
+                <i class="bi bi-trophy-fill me-1"></i> Ranking
+            </a>
+            <a href="/tv/ranking/9/" target="_blank" class="btn btn-sm btn-success">
+                <i class="bi bi-display me-1"></i> Telão
+            </a>
+        </div>
+    </div>
+    
+    <div class="season-card">
+        <div class="season-header">
+            <div class="season-title">
+                <h5>Temporada Teste</h5>
+                <p class="season-date">
+                    <i class="bi bi-calendar3"></i>
+                    01/12/2025 → 31/12/2025
+                    
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    
+                </p>
+            </div>
+        </div>
+        
+        <div class="season-actions">
+            <a href="/season/8/torneios/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-table me-1"></i> Torneios
+            </a>
+            <a href="/temporadas/8/pontos-iniciais/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-list-ol me-1"></i> Pts Iniciais
+            </a>
+            <a href="/financeiro/temporada/8/" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cash-coin me-1"></i> Financeiro
+            </a>
+            <a href="/ranking/8/" class="btn btn-sm btn-primary">
+                <i class="bi bi-trophy-fill me-1"></i> Ranking
+            </a>
+            <a href="/tv/ranking/8/" target="_blank" class="btn btn-sm btn-success">
+                <i class="bi bi-display me-1"></i> Telão
+            </a>
+        </div>
+    </div>
+    
+    <div class="season-card">
+        <div class="season-header">
+            <div class="season-title">
+                <h5>Temporada 2025</h5>
+                <p class="season-date">
+                    <i class="bi bi-calendar3"></i>
+                    01/01/2025 → 31/12/2025
+                    
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    
+                </p>
+            </div>
+        </div>
+        
+        <div class="season-actions">
+            <a href="/season/13/torneios/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-table me-1"></i> Torneios
+            </a>
+            <a href="/temporadas/13/pontos-iniciais/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-list-ol me-1"></i> Pts Iniciais
+            </a>
+            <a href="/financeiro/temporada/13/" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cash-coin me-1"></i> Financeiro
+            </a>
+            <a href="/ranking/13/" class="btn btn-sm btn-primary">
+                <i class="bi bi-trophy-fill me-1"></i> Ranking
+            </a>
+            <a href="/tv/ranking/13/" target="_blank" class="btn btn-sm btn-success">
+                <i class="bi bi-display me-1"></i> Telão
+            </a>
+        </div>
+    </div>
+    
+    <div class="season-card">
+        <div class="season-header">
+            <div class="season-title">
+                <h5>Temporada 2024</h5>
+                <p class="season-date">
+                    <i class="bi bi-calendar3"></i>
+                    01/01/2024 → 31/12/2024
+                    
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    
+                </p>
+            </div>
+        </div>
+        
+        <div class="season-actions">
+            <a href="/season/12/torneios/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-table me-1"></i> Torneios
+            </a>
+            <a href="/temporadas/12/pontos-iniciais/" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-list-ol me-1"></i> Pts Iniciais
+            </a>
+            <a href="/financeiro/temporada/12/" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-cash-coin me-1"></i> Financeiro
+            </a>
+            <a href="/ranking/12/" class="btn btn-sm btn-primary">
+                <i class="bi bi-trophy-fill me-1"></i> Ranking
+            </a>
+            <a href="/tv/ranking/12/" target="_blank" class="btn btn-sm btn-success">
+                <i class="bi bi-display me-1"></i> Telão
+            </a>
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!-- ATALHOS RÁPIDOS -->
+<div class="mb-5">
+    <h2 class="section-title">
+        <i class="bi bi-lightning-charge-fill"></i> Acesso Rápido
+    </h2>
+    
+    <div class="row g-3">
+        <div class="col-md-3">
+            <a href="/jogadores/" class="quick-action" title="Gerenciar base de jogadores">
+                <i class="bi bi-people-fill"></i>
+                <h6>Jogadores</h6>
+                <small>Gerenciar base</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="/financeiro/" class="quick-action" title="Ver relatório financeiro">
+                <i class="bi bi-cash-coin"></i>
+                <h6>Financeiro</h6>
+                <small>Relatórios</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="/tipos-torneio/" class="quick-action" title="Configurar tipos de torneio">
+                <i class="bi bi-gear"></i>
+                <h6>Tipos de Torneios</h6>
+                <small>Configuração</small>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="/blinds/" class="quick-action" title="Gerenciar estruturas">
+                <i class="bi bi-clock-history"></i>
+                <h6>Blinds</h6>
+                <small>Estrutura</small>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- INFO BOX -->
+<div class="alert alert-info-light d-flex align-items-center" role="alert">
+    <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+    <div>
+        <strong>Ranking é essencial!</strong> Garanta que todos os torneios estejam configurados corretamente para que os pontos sejam calculados automaticamente.
+    </div>
+</div>
+
+
+        </div>
+    </main>
+
+    <!-- Modal para Selecionar Temporada -->
+    <div class="modal fade" id="selecionarTemporadaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Selecione a Temporada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Escolha a temporada para ver o financeiro:</p>
+                    <div id="seasonsList" class="list-group">
+                        <!-- Será preenchido por JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function selecionarTemporada() {
+            // Abrir modal
+            const modal = new bootstrap.Modal(document.getElementById('selecionarTemporadaModal'));
+            
+            // Preencher lista de temporadas
+            const seasonsList = document.getElementById('seasonsList');
+            seasonsList.innerHTML = '';
+            
+            // Buscar temporadas do servidor
+            fetch('/api/seasons/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.seasons && data.seasons.length > 0) {
+                        data.seasons.forEach(season => {
+                            const link = document.createElement('a');
+                            link.href = `/financeiro/temporada/${season.id}/`;
+                            link.className = 'list-group-item list-group-item-action';
+                            link.innerHTML = `<strong>${season.nome}</strong><br><small class="text-muted">${season.data_inicio} a ${season.data_fim}</small>`;
+                            seasonsList.appendChild(link);
+                        });
+                    } else {
+                        seasonsList.innerHTML = '<div class="alert alert-info mb-0">Nenhuma temporada criada.</div>';
+                    }
+                })
+                .catch(err => {
+                    seasonsList.innerHTML = '<div class="alert alert-danger mb-0">Erro ao carregar temporadas.</div>';
+                    console.error(err);
+                });
+            
+            modal.show();
+        }
+    </script>
+    
+    
+</body>
+</html>

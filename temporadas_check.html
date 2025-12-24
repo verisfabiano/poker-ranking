@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Temporadas</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --sidebar-width: 260px;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        /* SIDEBAR ADMIN */
+        .sidebar-admin {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            overflow-y: auto;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        
+        .sidebar-admin .logo {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-admin .logo img {
+            display: block;
+            margin: 0 auto 12px;
+        }
+        
+        .sidebar-admin .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            word-wrap: break-word;
+        }
+        
+        .sidebar-admin .logo i {
+            font-size: 2.5rem;
+            color: #007bff;
+        }
+        
+        .sidebar-admin .nav-section {
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+        
+        .sidebar-admin .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #aaa;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .sidebar-admin .nav-link {
+            color: #ccc;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-admin .nav-link:hover {
+            background-color: rgba(0, 123, 255, 0.2);
+            color: white;
+        }
+        
+        .sidebar-admin .nav-link.active {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sidebar-admin .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* SUBSECÇÕES */
+        .sidebar-admin .nav-subsection {
+            margin-top: 12px;
+            margin-left: 8px;
+            border-left: 2px solid #444;
+            padding-left: 12px;
+        }
+        
+        .sidebar-admin .nav-subsection-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .sidebar-admin .nav-subsection-title i {
+            font-size: 0.85rem;
+        }
+        
+        .sidebar-admin .nav-sublink {
+            padding: 8px 12px;
+            font-size: 0.95rem;
+        }
+        
+        .sidebar-admin .nav-sublink i {
+            width: 18px;
+            font-size: 0.9rem;
+        }
+        
+        /* LAYOUT COM SIDEBAR */
+        .with-sidebar {
+            margin-left: var(--sidebar-width);
+        }
+        
+        /* NAVBAR */
+        .navbar {
+            background-color: white;
+            border-bottom: 2px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: #007bff !important;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .navbar-logo {
+            height: 40px;
+            max-width: 120px;
+            object-fit: contain;
+        }
+        
+        /* BREADCRUMB */
+        .breadcrumb {
+            background-color: transparent;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+        
+        .breadcrumb-item a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    
+    
+<style>
+    .ranking-section {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .ranking-section.show {
+        max-height: 1000px;
+    }
+
+    .btn-toggle-ranking {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-toggle-ranking.collapsed i {
+        transform: rotate(-90deg);
+    }
+</style>
+
+</head>
+<body>
+
+    <!-- SIDEBAR ADMIN (SÓ MOSTRA SE FOR ADMIN) -->
+    
+    <div class="sidebar-admin">
+        <div class="logo">
+            
+                <img src="/media/tenant_logos/2025/12/Imagem_do_WhatsApp_de_2025-08-11_%C3%A0s_15.13.30_e7aa3329.jpg" alt="Veris Poker" 
+                     style="max-width: 80px; max-height: 80px; object-fit: contain;">
+            
+            <h4>Veris Poker</h4>
+        </div>
+        
+        <!-- RANKING -->
+        <div class="nav-section">
+            <div class="nav-section-title">📊 RANKING</div>
+            <a href="/painel/" class="nav-link ">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            
+        </div>
+        
+        <!-- TORNEIOS -->
+        <div class="nav-section">
+            <div class="nav-section-title">🎰 TORNEIOS</div>
+            <a href="/torneios/dashboard/" class="nav-link ">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="/torneios/" class="nav-link ">
+                <i class="bi bi-dice-5"></i> Torneios
+            </a>
+            
+            <a href="/temporadas/" class="nav-link active">
+                <i class="bi bi-calendar2-event"></i> Temporadas
+            </a>
+            <a href="/tipos-torneio/" class="nav-link ">
+                <i class="bi bi-bookmark"></i> Tipos de Torneio
+            </a>
+            
+            
+            <a href="/produtos/" class="nav-link ">
+                <i class="bi bi-gift"></i> Produtos
+            </a>
+            <div class="nav-subsection">
+                <div class="nav-subsection-title" style="margin-top: 8px;">
+                    <i class="bi bi-gear"></i> Configuração
+                </div>
+                <a href="/blinds/" class="nav-link nav-sublink ">">
+                    <i class="bi bi-hourglass"></i> Estruturas de Blinds
+                </a>
+            </div>
+            
+        
+        <!-- GESTÃO -->
+        <div class="nav-section">
+            <div class="nav-section-title">👥 GESTÃO</div>
+            <a href="/jogadores/" class="nav-link ">
+                <i class="bi bi-people"></i> Jogadores
+            </a>
+        </div>
+        
+        <!-- FINANCEIRO -->
+        <div class="nav-section">
+            <div class="nav-section-title">💰 FINANCEIRO</div>
+            <a href="/financeiro/" class="nav-link ">
+                <i class="bi bi-graph-up"></i> Dashboard
+            </a>
+            <a href="/financeiro/periodo/" class="nav-link ">
+                <i class="bi bi-calendar-range"></i> Por Período
+            </a>
+            <a href="/financeiro/relatorio-completo/" class="nav-link ">
+                <i class="bi bi-file-earmark-pdf"></i> Relatório Completo
+            </a>
+            <a href="#" class="nav-link" onclick="selecionarTemporada(); return false;">
+                <i class="bi bi-trophy"></i> Por Temporada
+            </a>
+        </div>
+        
+        <!-- SAIR -->
+        <div class="nav-section" style="border-top: 1px solid #444; padding-top: 20px;">
+            <a href="/jogador/logout/" class="nav-link" style="color: #ff6b6b;">
+                <i class="bi bi-door-left"></i> Sair
+            </a>
+        </div>
+    </div>
+    
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg sticky-top with-sidebar">
+        <div class="container-fluid">
+            <!-- LOGO -->
+            <a class="navbar-brand me-auto" href="/painel/">
+                <i class="bi bi-suit-spade-fill"></i> Veris Poker
+            </a>
+            
+            <!-- BREADCRUMB -->
+            <div class="breadcrumb ms-auto me-auto" style="margin-bottom: 0;">
+                <a class="breadcrumb-item" href="/redirect/">Home</a>
+                <span class="breadcrumb-item active">Página</span>
+            </div>
+            
+            <!-- USER MENU -->
+            <div class="ms-auto">
+                
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> veris
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                        
+                        <!-- ADMIN MENU (Staff) -->
+                        <li><a class="dropdown-item" href="/painel/">
+                            <i class="bi bi-speedometer2"></i> Painel Admin
+                        </a></li>
+                        <li><a class="dropdown-item" href="/clube/">
+                            <i class="bi bi-building"></i> Meu Clube
+                        </a></li>
+                        <li><a class="dropdown-item" href="/temporadas/">
+                            <i class="bi bi-calendar-event"></i> Temporadas
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <li><a class="dropdown-item" href="/jogador/logout/">
+                            <i class="bi bi-door-left"></i> Sair
+                        </a></li>
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="with-sidebar">
+        <div class="container-fluid p-4">
+            
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-0">Temporadas</h2>
+            <p class="text-muted small mb-0">Gerencie os ciclos de pontuação do clube.</p>
+        </div>
+        <a href="/temporadas/nova/" class="btn btn-success rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Nova Temporada
+        </a>
+    </div>
+
+    <!-- TEMPORADAS -->
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 text-dark fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>Teste 2
+                    </h5>
+                    <small class="text-muted">
+                        19/12/2025 até 31/12/2025
+                        
+                            <span class="badge bg-success ms-2">ATIVA</span>
+                        
+                        <span class="badge bg-light text-dark ms-2">
+                            <i class="bi bi-calculator me-1"></i>
+                            
+                                Dinâmico
+                            
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-sm btn-outline-primary btn-toggle-ranking me-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#ranking-9"
+                            aria-expanded="false" 
+                            aria-controls="ranking-9">
+                        <i class="bi bi-chevron-down"></i> Ranking
+                    </button>
+                    <a href="/ranking/9/" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-trophy-fill me-1"></i> Ver Completo
+                    </a>
+                    <a href="/season/9/torneios/" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                        <i class="bi bi-table me-1"></i> Torneios
+                    </a>
+                    <a href="/temporadas/9/pontos-iniciais/" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                        <i class="bi bi-123 me-1"></i> Pts. Iniciais
+                    </a>
+                    <a href="/temporadas/editar/9/" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RANKING COLAPSÁVEL -->
+        <div class="collapse" id="ranking-9">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th>Jogador</th>
+                                <th class="text-center" style="width: 100px;">Iniciais</th>
+                                <th class="text-center" style="width: 100px;">Torneios</th>
+                                <th class="text-center" style="width: 100px;">Bônus</th>
+                                <th class="text-end pe-4" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- RANKING DA TEMPORADA (primeiros 10) -->
+                            
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        <i class="bi bi-graph-up d-block fs-1 mb-2 text-secondary opacity-25"></i>
+                                        Nenhum jogador pontuado ainda nesta temporada.
+                                    </td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 text-dark fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>Temporada Teste
+                    </h5>
+                    <small class="text-muted">
+                        01/12/2025 até 31/12/2025
+                        
+                            <span class="badge bg-success ms-2">ATIVA</span>
+                        
+                        <span class="badge bg-light text-dark ms-2">
+                            <i class="bi bi-calculator me-1"></i>
+                            
+                                Dinâmico
+                            
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-sm btn-outline-primary btn-toggle-ranking me-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#ranking-8"
+                            aria-expanded="false" 
+                            aria-controls="ranking-8">
+                        <i class="bi bi-chevron-down"></i> Ranking
+                    </button>
+                    <a href="/ranking/8/" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-trophy-fill me-1"></i> Ver Completo
+                    </a>
+                    <a href="/season/8/torneios/" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                        <i class="bi bi-table me-1"></i> Torneios
+                    </a>
+                    <a href="/temporadas/8/pontos-iniciais/" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                        <i class="bi bi-123 me-1"></i> Pts. Iniciais
+                    </a>
+                    <a href="/temporadas/editar/8/" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RANKING COLAPSÁVEL -->
+        <div class="collapse" id="ranking-8">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th>Jogador</th>
+                                <th class="text-center" style="width: 100px;">Iniciais</th>
+                                <th class="text-center" style="width: 100px;">Torneios</th>
+                                <th class="text-center" style="width: 100px;">Bônus</th>
+                                <th class="text-end pe-4" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- RANKING DA TEMPORADA (primeiros 10) -->
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥇</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">veris</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">50</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">50</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/30/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥈</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jaum</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">40</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">40</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/31/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogado9</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">30</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">30</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/38/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            4º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jog1</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/32/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            4º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador10</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">20</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/39/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            6º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador2</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/33/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            6º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador3</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/34/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            6º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador4</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/35/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            6º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador7</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/36/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            6º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">jogador8</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">10</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/8/season/37/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 text-dark fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>Temporada 2025
+                    </h5>
+                    <small class="text-muted">
+                        01/01/2025 até 31/12/2025
+                        
+                            <span class="badge bg-success ms-2">ATIVA</span>
+                        
+                        <span class="badge bg-light text-dark ms-2">
+                            <i class="bi bi-calculator me-1"></i>
+                            
+                                Dinâmico
+                            
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-sm btn-outline-primary btn-toggle-ranking me-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#ranking-13"
+                            aria-expanded="false" 
+                            aria-controls="ranking-13">
+                        <i class="bi bi-chevron-down"></i> Ranking
+                    </button>
+                    <a href="/ranking/13/" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-trophy-fill me-1"></i> Ver Completo
+                    </a>
+                    <a href="/season/13/torneios/" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                        <i class="bi bi-table me-1"></i> Torneios
+                    </a>
+                    <a href="/temporadas/13/pontos-iniciais/" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                        <i class="bi bi-123 me-1"></i> Pts. Iniciais
+                    </a>
+                    <a href="/temporadas/editar/13/" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RANKING COLAPSÁVEL -->
+        <div class="collapse" id="ranking-13">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th>Jogador</th>
+                                <th class="text-center" style="width: 100px;">Iniciais</th>
+                                <th class="text-center" style="width: 100px;">Torneios</th>
+                                <th class="text-center" style="width: 100px;">Bônus</th>
+                                <th class="text-end pe-4" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- RANKING DA TEMPORADA (primeiros 10) -->
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥇</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Marquinhos</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">140</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">140</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/59/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥈</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Diego</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">130</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">130</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/60/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Joãozinho</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/54/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Pedoca</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/55/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            5º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Flip</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/58/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            5º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Luc</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/57/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            7º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Fabiano</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/68/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            8º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Charlie</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/56/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            9º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Brunão</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/61/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            9º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Rafa</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/13/season/62/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0 text-dark fw-bold">
+                        <i class="bi bi-calendar-event me-2"></i>Temporada 2024
+                    </h5>
+                    <small class="text-muted">
+                        01/01/2024 até 31/12/2024
+                        
+                            <span class="badge bg-success ms-2">ATIVA</span>
+                        
+                        <span class="badge bg-light text-dark ms-2">
+                            <i class="bi bi-calculator me-1"></i>
+                            
+                                Dinâmico
+                            
+                        </span>
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-sm btn-outline-primary btn-toggle-ranking me-2" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#ranking-12"
+                            aria-expanded="false" 
+                            aria-controls="ranking-12">
+                        <i class="bi bi-chevron-down"></i> Ranking
+                    </button>
+                    <a href="/ranking/12/" class="btn btn-sm btn-primary me-2">
+                        <i class="bi bi-trophy-fill me-1"></i> Ver Completo
+                    </a>
+                    <a href="/season/12/torneios/" class="btn btn-sm btn-outline-dark" title="Gerenciar Torneios">
+                        <i class="bi bi-table me-1"></i> Torneios
+                    </a>
+                    <a href="/temporadas/12/pontos-iniciais/" class="btn btn-sm btn-outline-dark" title="Pontos Iniciais / Migração">
+                        <i class="bi bi-123 me-1"></i> Pts. Iniciais
+                    </a>
+                    <a href="/temporadas/editar/12/" class="btn btn-sm btn-outline-secondary" title="Configurações">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RANKING COLAPSÁVEL -->
+        <div class="collapse" id="ranking-12">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4" style="width: 60px;">#</th>
+                                <th>Jogador</th>
+                                <th class="text-center" style="width: 100px;">Iniciais</th>
+                                <th class="text-center" style="width: 100px;">Torneios</th>
+                                <th class="text-center" style="width: 100px;">Bônus</th>
+                                <th class="text-end pe-4" style="width: 120px;">Total</th>
+                                <th class="text-center" style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- RANKING DA TEMPORADA (primeiros 10) -->
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥇</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Joãozinho</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">170</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">170</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/54/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥈</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Rafa</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">100</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/62/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Charlie</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/56/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr style="background-color: rgba(255, 215, 0, 0.05);">
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            <span style="font-size: 1.5rem;">🥉</span>
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Diego</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">90</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/60/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            5º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Marquinhos</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/59/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            5º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Pedoca</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">80</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/55/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            7º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Brunão</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/61/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            7º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Thiago</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">70</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/63/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            9º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Flip</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/58/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr >
+                                    <td class="ps-4 fw-bold">
+                                        
+                                            9º
+                                        
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">Tiaguinho</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">0</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark"></span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <span class="fw-bold fs-5" style="color: #667eea;">60</span>
+                                    </td>
+                                    <td class="text-center">
+                                        
+                                            <a href="/jogador/12/season/66/evolucao/" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver evolução">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        
+                                    </td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+</div>
+
+        </div>
+    </main>
+
+    <!-- Modal para Selecionar Temporada -->
+    <div class="modal fade" id="selecionarTemporadaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Selecione a Temporada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Escolha a temporada para ver o financeiro:</p>
+                    <div id="seasonsList" class="list-group">
+                        <!-- Será preenchido por JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function selecionarTemporada() {
+            // Abrir modal
+            const modal = new bootstrap.Modal(document.getElementById('selecionarTemporadaModal'));
+            
+            // Preencher lista de temporadas
+            const seasonsList = document.getElementById('seasonsList');
+            seasonsList.innerHTML = '';
+            
+            // Buscar temporadas do servidor
+            fetch('/api/seasons/')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.seasons && data.seasons.length > 0) {
+                        data.seasons.forEach(season => {
+                            const link = document.createElement('a');
+                            link.href = `/financeiro/temporada/${season.id}/`;
+                            link.className = 'list-group-item list-group-item-action';
+                            link.innerHTML = `<strong>${season.nome}</strong><br><small class="text-muted">${season.data_inicio} a ${season.data_fim}</small>`;
+                            seasonsList.appendChild(link);
+                        });
+                    } else {
+                        seasonsList.innerHTML = '<div class="alert alert-info mb-0">Nenhuma temporada criada.</div>';
+                    }
+                })
+                .catch(err => {
+                    seasonsList.innerHTML = '<div class="alert alert-danger mb-0">Erro ao carregar temporadas.</div>';
+                    console.error(err);
+                });
+            
+            modal.show();
+        }
+    </script>
+    
+    
+</body>
+</html>

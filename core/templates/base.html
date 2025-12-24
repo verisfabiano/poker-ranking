@@ -188,7 +188,7 @@
 <body>
 
     <!-- SIDEBAR ADMIN (SÓ MOSTRA SE FOR ADMIN) -->
-    {% if user.is_staff and request.tenant %}
+    {% if user.is_staff %}
     <div class="sidebar-admin">
         <div class="logo">
             {% if request.tenant and request.tenant.logo %}

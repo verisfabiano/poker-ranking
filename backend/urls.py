@@ -12,9 +12,6 @@ urlpatterns = [
     # Admin padrão do Django
     path("admin/", admin.site.urls),
 
-    # Allauth authentication URLs
-    path("accounts/", include("allauth.urls")),
-
     # Todas as URLs da app core (ranking, torneios, login jogador, etc)
     path("", include("core.urls")),
 ]

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load socialaccount %}
 
 {% block title %}Criar Conta - Poker Ranking{% endblock %}
 
@@ -11,15 +10,6 @@
     
     <h1 style="color: #333; margin-bottom: 10px; font-size: 28px; text-align: center;">♠️ Criar Conta</h1>
     <p style="color: #666; margin-bottom: 30px; font-size: 14px; text-align: center;">Junte-se à comunidade poker</p>
-    
-    <!-- Signup com Google -->
-    <a href="{% provider_login_url 'google' %}" style="display: block; width: 100%; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; color: #333; text-align: center; text-decoration: none; font-weight: 500; margin-bottom: 20px; transition: all 0.3s; cursor: pointer;">
-        🔵 Criar com Google
-    </a>
-    
-    <div style="text-align: center; margin: 20px 0; color: #999; font-size: 12px;">
-        OU CADASTRE-SE COM EMAIL
-    </div>
     
     <!-- Signup Form -->
     <form method="post" style="margin-top: 20px;">

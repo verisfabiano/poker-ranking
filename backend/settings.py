@@ -48,13 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for allauth
-    
-    # Allauth
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
     
     "core",  # <= nosso app do ranking
 ]
@@ -68,8 +61,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # Allauth middleware
-    "allauth.account.middleware.AccountMiddleware",
     "core.middleware.tenant_middleware.TenantMiddleware",
 ]
 
@@ -85,8 +76,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                # Allauth context processors
-                'django.template.context_processors.request',
             ],
         },
     },
@@ -149,44 +138,10 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Allauth Configuration
-SITE_ID = 2
-
-AUTHENTICATION_BACKENDS = [
-    # Default Django authentication backend
-    'django.contrib.auth.backends.ModelBackend',
-    # Allauth authentication backends
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-
-# Allauth account settings (Django 5.2+ recommended settings)
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email', 'password1', 'password2']
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_UNIQUE_EMAIL = True
-
 # Login/Logout redirect
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'account_login'
-
-# Social account settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'APP': {
-            'client_id': '',  # Fill with your Google OAuth Client ID
-            'secret': '',  # Fill with your Google OAuth Client Secret
-            'key': ''
-        }
-    }
-}
 
 # Social account auto signup
 SOCIALACCOUNT_AUTO_SIGNUP = True
