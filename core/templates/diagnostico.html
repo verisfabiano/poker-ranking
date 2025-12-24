@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel - Diagnóstico{% endblock %}
+
+{% block extra_css %}
+<style>
+    main {
+        padding: 40px;
+        background: white;
+    }
+    h1 {
+        color: #333;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: #f9f9f9;
+    }
+    .card h2 {
+        font-size: 1.2rem;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>🔧 Diagnóstico do Sistema</h1>
+
+<div class="card">
+    <h2>✅ Servidor funcionando</h2>
+    <p>Django está respondendo corretamente</p>
+    <p><strong>Tenant:</strong> {{ request.tenant.nome|default:"Não definido" }}</p>
+    <p><strong>Usuário:</strong> {{ user.username|default:"Anônimo" }}</p>
+</div>
+
+<div class="card">
+    <h2>✅ Templates carregando</h2>
+    <p>Este HTML está sendo renderizado pelo Django</p>
+    <p><strong>Url:</strong> /diagnostico/</p>
+</div>
+
+<div class="card">
+    <h2>✅ CSS e Fonte</h2>
+    <p>Se você vê este texto com formatação, CSS está funcionando</p>
+    <p style="color: #007bff; font-weight: bold;">Texto azul = CSS funciona</p>
+</div>
+
+<div class="card">
+    <h2>Links de Teste</h2>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/painel/">Painel</a></li>
+        <li><a href="/jogador/">Dashboard Jogador</a></li>
+    </ul>
+</div>
+
+{% endblock %}
