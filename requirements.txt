@@ -4,6 +4,7 @@ Django==5.2.9
 gunicorn==23.0.0
 markdown2==2.4.12
 packaging==25.0
+Pillow==11.0.0
 psycopg2-binary==2.9.11
 PyJWT==2.10.1
 requests==2.32.5
