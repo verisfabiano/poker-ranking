@@ -20,20 +20,18 @@ class TenantMiddleware(MiddlewareMixin):
         
         if request.user.is_authenticated:
             try:
-                # Pega o primeiro tenant do usuário (considere permitir seleção)
+                # Pega o primeiro tenant ATIVO do usuário (considere permitir seleção)
                 tenant_user = TenantUser.objects.select_related('tenant').filter(
-                    user=request.user
+                    user=request.user,
+                    tenant__ativo=True
                 ).first()
                 
-                if tenant_user and tenant_user.tenant.ativo:
+                if tenant_user:
                     request.tenant = tenant_user.tenant
                     set_current_tenant(request.tenant)
                     logger.info(f"Tenant set for user {request.user.username}: {request.tenant.nome}")
                 else:
-                    if tenant_user:
-                        logger.warning(f"Tenant inactive for user {request.user.username}: {tenant_user.tenant.nome if tenant_user else 'None'}")
-                    else:
-                        logger.warning(f"No TenantUser found for user {request.user.username}")
+                    logger.warning(f"No active TenantUser found for user {request.user.username}")
             except Exception as e:
                 logger.error(f"Error in TenantMiddleware: {str(e)}", exc_info=True)
         
