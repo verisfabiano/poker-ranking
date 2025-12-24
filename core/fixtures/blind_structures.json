@@ -1,0 +1,541 @@
+[
+  {
+    "model": "core.blindstructure",
+    "pk": 1,
+    "fields": {
+      "nome": "Hyper 10 min",
+      "descricao": "Estrutura super rápida com aumentos a cada 10 minutos - ideal para torneios curtos"
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 1,
+    "fields": {
+      "structure": 1,
+      "ordem": 1,
+      "small_blind": 10,
+      "big_blind": 20,
+      "ante": 0,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 2,
+    "fields": {
+      "structure": 1,
+      "ordem": 2,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 0,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 3,
+    "fields": {
+      "structure": 1,
+      "ordem": 3,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 4,
+    "fields": {
+      "structure": 1,
+      "ordem": 4,
+      "small_blind": 75,
+      "big_blind": 150,
+      "ante": 15,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 5,
+    "fields": {
+      "structure": 1,
+      "ordem": 5,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 25,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 6,
+    "fields": {
+      "structure": 1,
+      "ordem": 6,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 40,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 7,
+    "fields": {
+      "structure": 1,
+      "ordem": 7,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 5,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 8,
+    "fields": {
+      "structure": 1,
+      "ordem": 8,
+      "small_blind": 200,
+      "big_blind": 400,
+      "ante": 50,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 9,
+    "fields": {
+      "structure": 1,
+      "ordem": 9,
+      "small_blind": 300,
+      "big_blind": 600,
+      "ante": 75,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 10,
+    "fields": {
+      "structure": 1,
+      "ordem": 10,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 125,
+      "tempo_minutos": 10,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindstructure",
+    "pk": 2,
+    "fields": {
+      "nome": "Turbo 15 min",
+      "descricao": "Estrutura turbo com aumentos a cada 15 minutos - comum em torneios ao vivo"
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 11,
+    "fields": {
+      "structure": 2,
+      "ordem": 1,
+      "small_blind": 10,
+      "big_blind": 25,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 12,
+    "fields": {
+      "structure": 2,
+      "ordem": 2,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 13,
+    "fields": {
+      "structure": 2,
+      "ordem": 3,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 14,
+    "fields": {
+      "structure": 2,
+      "ordem": 4,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 15,
+    "fields": {
+      "structure": 2,
+      "ordem": 5,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 10,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 16,
+    "fields": {
+      "structure": 2,
+      "ordem": 6,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 40,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 17,
+    "fields": {
+      "structure": 2,
+      "ordem": 7,
+      "small_blind": 250,
+      "big_blind": 500,
+      "ante": 60,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 18,
+    "fields": {
+      "structure": 2,
+      "ordem": 8,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 100,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 19,
+    "fields": {
+      "structure": 2,
+      "ordem": 9,
+      "small_blind": 750,
+      "big_blind": 1500,
+      "ante": 150,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 20,
+    "fields": {
+      "structure": 2,
+      "ordem": 10,
+      "small_blind": 1000,
+      "big_blind": 2000,
+      "ante": 200,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindstructure",
+    "pk": 3,
+    "fields": {
+      "nome": "Regular 20 min",
+      "descricao": "Estrutura padrão com aumentos a cada 20 minutos - equilibrada para torneios convencionais"
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 21,
+    "fields": {
+      "structure": 3,
+      "ordem": 1,
+      "small_blind": 10,
+      "big_blind": 25,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 22,
+    "fields": {
+      "structure": 3,
+      "ordem": 2,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 23,
+    "fields": {
+      "structure": 3,
+      "ordem": 3,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 24,
+    "fields": {
+      "structure": 3,
+      "ordem": 4,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 25,
+    "fields": {
+      "structure": 3,
+      "ordem": 5,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 30,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 26,
+    "fields": {
+      "structure": 3,
+      "ordem": 6,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 27,
+    "fields": {
+      "structure": 3,
+      "ordem": 7,
+      "small_blind": 250,
+      "big_blind": 500,
+      "ante": 50,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 28,
+    "fields": {
+      "structure": 3,
+      "ordem": 8,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 100,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 29,
+    "fields": {
+      "structure": 3,
+      "ordem": 9,
+      "small_blind": 1000,
+      "big_blind": 2000,
+      "ante": 200,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindstructure",
+    "pk": 4,
+    "fields": {
+      "nome": "Deep Stack 25 min",
+      "descricao": "Estrutura lenta para deep stack - ideal para torneios mais longos e estratégicos"
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 30,
+    "fields": {
+      "structure": 4,
+      "ordem": 1,
+      "small_blind": 5,
+      "big_blind": 10,
+      "ante": 0,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 31,
+    "fields": {
+      "structure": 4,
+      "ordem": 2,
+      "small_blind": 10,
+      "big_blind": 20,
+      "ante": 0,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 32,
+    "fields": {
+      "structure": 4,
+      "ordem": 3,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 5,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 33,
+    "fields": {
+      "structure": 4,
+      "ordem": 4,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 34,
+    "fields": {
+      "structure": 4,
+      "ordem": 5,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 35,
+    "fields": {
+      "structure": 4,
+      "ordem": 6,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 30,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 36,
+    "fields": {
+      "structure": 4,
+      "ordem": 7,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 37,
+    "fields": {
+      "structure": 4,
+      "ordem": 8,
+      "small_blind": 250,
+      "big_blind": 500,
+      "ante": 50,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 38,
+    "fields": {
+      "structure": 4,
+      "ordem": 9,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 100,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 39,
+    "fields": {
+      "structure": 4,
+      "ordem": 10,
+      "small_blind": 1000,
+      "big_blind": 2000,
+      "ante": 200,
+      "tempo_minutos": 25,
+      "is_break": false
+    }
+  }
+]

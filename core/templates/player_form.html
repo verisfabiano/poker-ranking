@@ -19,7 +19,7 @@
         </div>
 
         <div class="card-body p-4">
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="mb-3">
@@ -47,6 +47,51 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <label for="id_foto" class="form-label">Foto do Jogador</label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="id_foto" name="foto" accept="image/*">
+                        <label class="input-group-text" for="id_foto">
+                            <i class="bi bi-cloud-upload me-2"></i> Escolher
+                        </label>
+                    </div>
+                    {% if player and player.foto %}
+                        <div class="mt-2">
+                            <small class="text-muted">Foto atual:</small><br>
+                            <img src="{{ player.foto.url }}" alt="Foto" style="max-width: 200px; max-height: 200px; border-radius: 4px;">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4 pt-3 border-top">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" id="toggleCriarUsuario" 
+                               {% if player and player.user %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="toggleCriarUsuario">
+                            Criar usuário de acesso?
+                        </label>
+                        <div class="form-text">Deixe desmarcado se for apenas um jogador de passagem.</div>
+                    </div>
+
+                    <!-- Campos de Usuário (aparecem apenas se o toggle estiver marcado) -->
+                    <div id="camposUsuario" class="mt-3" style="display: {% if player and player.user %}block{% else %}none{% endif %};">
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="id_username" name="username" 
+                                   value="{% if player.user %}{{ player.user.username }}{% endif %}" 
+                                   placeholder="Ex: joao_silva">
+                            <small class="form-text text-muted">Será usado para fazer login.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   value="{% if player.user %}{{ player.user.email }}{% endif %}" 
+                                   placeholder="Ex: joao@example.com">
+                            <small class="form-text text-muted">Será usado para recuperar senha.</small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-4 pt-2 border-top">
                     <div class="form-check form-switch mt-3">
                         <input class="form-check-input" type="checkbox" id="id_ativo" name="ativo" 
@@ -70,4 +115,55 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleCriarUsuario = document.getElementById('toggleCriarUsuario');
+    const camposUsuario = document.getElementById('camposUsuario');
+    const inputUsername = document.getElementById('id_username');
+    const inputEmail = document.getElementById('id_email');
+
+    // Quando o toggle mudar
+    toggleCriarUsuario.addEventListener('change', function() {
+        if (this.checked) {
+            camposUsuario.style.display = 'block';
+        } else {
+            camposUsuario.style.display = 'none';
+            // Limpar os campos quando desmarcar
+            inputUsername.value = '';
+            inputEmail.value = '';
+        }
+    });
+
+    // Validação ao enviar o formulário
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const nomeValue = document.getElementById('id_nome').value.trim();
+        
+        if (!nomeValue) {
+            e.preventDefault();
+            alert('Nome Completo é obrigatório');
+            return;
+        }
+
+        // Se o toggle está marcado, validar username e email
+        if (toggleCriarUsuario.checked) {
+            const username = inputUsername.value.trim();
+            const email = inputEmail.value.trim();
+
+            if (!username || !email) {
+                e.preventDefault();
+                alert('Username e Email são obrigatórios quando criar usuário de acesso');
+                return;
+            }
+
+            // Validar se username contém espaços
+            if (username.includes(' ')) {
+                e.preventDefault();
+                alert('Username não pode conter espaços');
+                return;
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

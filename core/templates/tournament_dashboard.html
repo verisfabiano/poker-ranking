@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Torneios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tournament-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .tournament-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    
+    .tournament-card-body {
+        flex-grow: 1;
+    }
+    
+    .tournament-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    
+    .tournament-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .tournament-info {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 8px 0;
+    }
+    
+    .tournament-info i {
+        width: 16px;
+        text-align: center;
+        margin-right: 6px;
+        color: #0d6efd;
+    }
+    
+    .participant-count {
+        display: inline-block;
+        background: #e7f1ff;
+        color: #0d6efd;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .tab-pane {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .btn-group-tournament {
+        gap: 6px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: #999;
+    }
+    
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="mb-4">
+        <h1 class="mb-1">Dashboard de Torneios</h1>
+        <p class="text-muted">Gestão rápida dos seus torneios por status</p>
+    </div>
+
+    <!-- Abas -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="agendados-tab" data-bs-toggle="tab" data-bs-target="#agendados" type="button" role="tab">
+                <i class="bi bi-calendar-event"></i> Agendados
+                <span class="badge bg-primary ms-2">{{ tournaments_agendados|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="andamento-tab" data-bs-toggle="tab" data-bs-target="#andamento" type="button" role="tab">
+                <i class="bi bi-play-circle"></i> Em Andamento
+                <span class="badge bg-success ms-2">{{ tournaments_andamento|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="finalizados-tab" data-bs-toggle="tab" data-bs-target="#finalizados" type="button" role="tab">
+                <i class="bi bi-check-circle"></i> Finalizados
+                <span class="badge bg-secondary ms-2">{{ tournaments_finalizados|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Abas -->
+    <div class="tab-content">
+        
+        <!-- TAB: AGENDADOS -->
+        <div class="tab-pane fade show active" id="agendados" role="tabpanel">
+            {% if tournaments_agendados %}
+                <div class="row g-3">
+                    {% for tournament in tournaments_agendados %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card tournament-card border-warning">
+                                <div class="card-body tournament-card-body">
+                                    <div class="tournament-header">
+                                        <h5 class="tournament-title">{{ tournament.nome }}</h5>
+                                        <span class="badge bg-warning text-dark">Agendado</span>
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-calendar-event"></i>
+                                        {{ tournament.data|date:"d/m/Y H:i" }}
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-people"></i>
+                                        <span class="participant-count">{{ tournament.tournamententry_set.count }} inscritos</span>
+                                    </div>
+                                    
+                                    {% if tournament.tournament_type %}
+                                        <div class="tournament-info">
+                                            <i class="bi bi-tag"></i>
+                                            {{ tournament.tournament_type.nome }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if tournament.blind_structure %}
+                                        <div class="tournament-info">
+                                            <i class="bi bi-speedometer2"></i>
+                                            {{ tournament.blind_structure.nome }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group-tournament">
+                                        <a href="{% url 'tournament_entries_manage' tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-people-fill"></i> Gerenciar
+                                        </a>
+                                        <a href="{% url 'tournament_edit' tournament.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+                                        <a href="{% url 'director_panel' tournament.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-play-circle"></i> Iniciar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div><i class="bi bi-inbox"></i></div>
+                    <p>Nenhum torneio agendado</p>
+                    <a href="{% url 'seasons_list' %}" class="btn btn-sm btn-primary mt-2">
+                        <i class="bi bi-plus-lg"></i> Criar Novo Torneio
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB: EM ANDAMENTO -->
+        <div class="tab-pane fade" id="andamento" role="tabpanel">
+            {% if tournaments_andamento %}
+                <div class="row g-3">
+                    {% for tournament in tournaments_andamento %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card tournament-card border-success">
+                                <div class="card-body tournament-card-body">
+                                    <div class="tournament-header">
+                                        <h5 class="tournament-title">{{ tournament.nome }}</h5>
+                                        <span class="badge bg-success">Em Andamento</span>
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-clock"></i>
+                                        Iniciado em {{ tournament.data|date:"d/m/Y H:i" }}
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-people"></i>
+                                        <span class="participant-count">{{ tournament.tournamententry_set.count }} inscritos</span>
+                                    </div>
+                                    
+                                    {% if tournament.tournament_type %}
+                                        <div class="tournament-info">
+                                            <i class="bi bi-tag"></i>
+                                            {{ tournament.tournament_type.nome }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group-tournament">
+                                        <a href="{% url 'tournament_entries_manage' tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-plus"></i> +Rebuy
+                                        </a>
+                                        <a href="{% url 'director_panel' tournament.id %}" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-clock-history"></i> Painel
+                                        </a>
+                                        <a href="{% url 'tournament_edit' tournament.id %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-stop-circle"></i> Finalizar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div><i class="bi bi-play-circle"></i></div>
+                    <p>Nenhum torneio em andamento</p>
+                    <p class="text-muted small">Inicie um torneio agendado para vê-lo aqui</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB: FINALIZADOS -->
+        <div class="tab-pane fade" id="finalizados" role="tabpanel">
+            {% if tournaments_finalizados %}
+                <div class="row g-3">
+                    {% for tournament in tournaments_finalizados %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card tournament-card border-secondary">
+                                <div class="card-body tournament-card-body">
+                                    <div class="tournament-header">
+                                        <h5 class="tournament-title">{{ tournament.nome }}</h5>
+                                        <span class="badge bg-secondary">Finalizado</span>
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-check-circle"></i>
+                                        Finalizado em {{ tournament.data|date:"d/m/Y H:i" }}
+                                    </div>
+                                    
+                                    <div class="tournament-info">
+                                        <i class="bi bi-people"></i>
+                                        <span class="participant-count">{{ tournament.tournamententry_set.count }} participantes</span>
+                                    </div>
+                                    
+                                    {% if tournament.tournament_type %}
+                                        <div class="tournament-info">
+                                            <i class="bi bi-tag"></i>
+                                            {{ tournament.tournament_type.nome }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group-tournament">
+                                        <a href="{% url 'tournament_results' tournament.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-trophy"></i> Resultados
+                                        </a>
+                                        <a href="{% url 'prize_distribution' tournament.id %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-gift"></i> Prêmios
+                                        </a>
+                                        <a href="{% url 'tournament_financial' tournament.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-cash-coin"></i> Financeiro
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div><i class="bi bi-archive"></i></div>
+                    <p>Nenhum torneio finalizado</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

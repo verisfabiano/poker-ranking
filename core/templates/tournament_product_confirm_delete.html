@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão de Produto{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger bg-opacity-10 py-3">
+                    <h4 class="mb-0 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <p class="lead mb-3">
+                        Tem certeza que deseja deletar o produto?
+                    </p>
+
+                    <div class="alert alert-warning mb-4">
+                        <strong>{{ product.nome }}</strong><br>
+                        <small class="text-muted">R$ {{ product.valor|floatformat:2 }}</small>
+                    </div>
+
+                    <p class="text-muted">
+                        ⚠️ Esta ação não pode ser desfeita. Se há registros de venda deste produto, 
+                        eles não serão removidos.
+                    </p>
+
+                    <form method="post" class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        {% csrf_token %}
+                        <a href="{% url 'tournament_products_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Sim, Deletar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

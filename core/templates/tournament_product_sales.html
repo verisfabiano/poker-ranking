@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendas de Produtos - {{ tournament.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">🛒 Vendas de Produtos</h2>
+            <small class="text-muted">{{ tournament.nome }} • {{ tournament.data|date:"d/m/Y" }}</small>
+        </div>
+        <a href="{% url 'tournament_entries_manage' tournament.id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total de Jogadores</h6>
+                    <h2 class="display-6 fw-bold">{{ total_entries }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Produtos Disponíveis</h6>
+                    <h2 class="display-6 fw-bold">{{ products|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABELA PRINCIPAL -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Registro de Vendas por Jogador</h5>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Jogador</th>
+                        {% for product in products %}
+                        <th class="text-center" title="{{ product.descricao }}">
+                            <small>{{ product.nome|truncatewords:2 }}</small><br>
+                            <strong>R$ {{ product.valor|floatformat:2 }}</strong>
+                        </th>
+                        {% endfor %}
+                        <th class="text-end">Total</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in sales_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.entry.player.nome }}</strong><br>
+                            <small class="text-muted">{{ row.entry.player.apelido }}</small>
+                        </td>
+                        
+                        {% for product_row in row.products %}
+                        <td class="text-center">
+                            {% if product_row.purchased %}
+                            <form method="post" action="{% url 'tournament_product_purchase_delete' product_row.purchase_id %}" 
+                                  class="d-inline" style="display:inline-block;">
+                                {% csrf_token %}
+                                <div class="input-group input-group-sm" style="width: 120px;">
+                                    <input type="number" class="form-control text-center" value="{{ product_row.quantity }}" 
+                                           disabled readonly style="font-size: 0.875rem;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                    onclick="openAddProductModal('{{ row.entry.tournament.id }}', '{{ row.entry.player.id }}', '{{ product_row.product.id }}', '{{ product_row.product.nome }}', parseFloat('{{ product_row.product.valor }}'))"
+                                    title="Adicionar produto">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        
+                        <td class="text-end fw-bold">
+                            {% comment %} Total de compras do jogador {% endcomment %}
+                            R$ 
+                            {% for product_row in row.products %}
+                                {% if product_row.purchased %}
+                                    {{ product_row.valor_pago|floatformat:2 }}{% if not forloop.last %} + {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">-</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA ADICIONAR PRODUTO -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">➕ Adicionar Produto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'tournament_product_purchase_add' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="tournament_id" id="modal_tournament_id">
+                    <input type="hidden" name="player_id" id="modal_player_id">
+                    <input type="hidden" name="product_id" id="modal_product_id">
+                    
+                    <div class="mb-3">
+                        <label for="modal_product_name" class="form-label">Produto</label>
+                        <input type="text" class="form-control" id="modal_product_name" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal_quantidade" class="form-label">Quantidade</label>
+                        <input type="number" class="form-control" id="modal_quantidade" name="quantidade" 
+                               value="1" min="1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal_valor_pago" class="form-label">Valor Pago (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" step="0.01" class="form-control" id="modal_valor_pago" 
+                                   name="valor_pago" required>
+                        </div>
+                        <small class="form-text text-muted">Valor padrão aparecerá abaixo</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar Venda</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openAddProductModal(tournament_id, player_id, product_id, product_name, product_value) {
+    document.getElementById('modal_tournament_id').value = tournament_id;
+    document.getElementById('modal_player_id').value = player_id;
+    document.getElementById('modal_product_id').value = product_id;
+    document.getElementById('modal_product_name').value = product_name;
+    document.getElementById('modal_valor_pago').value = product_value.toFixed(2);
+    
+    new bootstrap.Modal(document.getElementById('addProductModal')).show();
+}
+</script>
+{% endblock %}

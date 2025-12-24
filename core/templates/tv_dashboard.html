@@ -169,11 +169,17 @@
                 <div class="stat-label">Stack Médio</div>
                 <div class="stat-value" id="avgStack">--</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-label">Premiação</div>
+                <div class="stat-value" id="prizeValue">--</div>
+            </div>
         </div>
     </div>
 
     <div class="footer">
         PRÓXIMO NÍVEL: <span class="next-blind-val" id="nextBlind">--</span>
+        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+        INTERVALO EM: <span class="next-blind-val" id="timeToBreak">--</span>
     </div>
 
     <script>
@@ -187,6 +193,10 @@
         const elAnte = document.getElementById('anteVal');
         const elPlayers = document.getElementById('playersCount');
         const elTables = document.getElementById('tablesCount');
+        const elAvgStack = document.getElementById('avgStack');
+        const elPrizeValue = document.getElementById('prizeValue');
+        const elNextBlind = document.getElementById('nextBlind');
+        const elTimeToBreak = document.getElementById('timeToBreak');
         
         // Estado local
         let secondsLeft = 0;
@@ -239,8 +249,33 @@
                 // Atualiza Textos
                 elPlayers.innerText = data.players_count;
                 elTables.innerText = data.active_tables;
+                elAvgStack.innerText = data.average_stack.toLocaleString('pt-BR');
 
-                // Atualiza Blinds
+                // Premiação
+                if (data.prize && data.prize.configured) {
+                    const totalPrize = data.prize.total_prize.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    elPrizeValue.innerText = `${data.prize.itm_count} pos. - ${totalPrize}`;
+                } else {
+                    elPrizeValue.innerText = "Não configurada";
+                }
+
+                // Tempo até próximo intervalo
+                if (data.time_to_next_break) {
+                    elTimeToBreak.innerText = `${data.time_to_next_break} min`;
+                } else {
+                    elTimeToBreak.innerText = "N/A";
+                }
+
+                // Próximo Nível
+                if (data.next_level) {
+                    if (data.next_level.is_break) {
+                        elNextBlind.innerText = `INTERVALO (${data.next_level.tempo_minutos} min)`;
+                    } else {
+                        elNextBlind.innerText = `${data.next_level.small_blind}/${data.next_level.big_blind} (${data.next_level.tempo_minutos} min)`;
+                    }
+                } else {
+                    elNextBlind.innerText = "FIM";
+                }
                 if (data.level) {
                     if (data.level.is_break) {
                         elLevel.innerText = "INTERVALO";

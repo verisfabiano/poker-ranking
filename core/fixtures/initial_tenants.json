@@ -1,0 +1,14 @@
+[
+    {
+        "model": "core.tenant",
+        "pk": 1,
+        "fields": {
+            "nome": "Tenant Padrão",
+            "slug": "tenant-padrao",
+            "descricao": "Tenant padrão do sistema",
+            "ativo": true,
+            "max_jogadores": 100,
+            "max_torneios": 50
+        }
+    }
+]

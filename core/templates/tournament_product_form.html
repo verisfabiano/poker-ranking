@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if edit %}Editar{% else %}Novo{% endif %} Produto{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        {% if edit %}
+                            ✏️ Editar Produto
+                        {% else %}
+                            ➕ Novo Produto
+                        {% endif %}
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome do Produto *</label>
+                            <input type="text" class="form-control" id="nome" name="nome" 
+                                   value="{% if product %}{{ product.nome }}{% endif %}" 
+                                   placeholder="Ex: Jack Pot, Staff, Bounty" required>
+                            <small class="form-text text-muted">
+                                Identifique o produto claramente (Ex: "Jack Pot", "Taxa de Staff", etc)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="valor" class="form-label">Valor (R$) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" class="form-control" id="valor" name="valor" 
+                                       value="{% if product %}{{ product.valor }}{% else %}0.00{% endif %}" 
+                                       placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricao" name="descricao" rows="4" 
+                                      placeholder="Descreva o produto (obrigatório/opcional, como funciona, etc)">{% if product %}{{ product.descricao }}{% endif %}</textarea>
+                            <small class="form-text text-muted">
+                                Exemplo: "Participação no Jack Pot (OPCIONAL)" ou "Taxa de Staff/Dealer (OBRIGATÓRIO)"
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="entra_em_premiacao" name="entra_em_premiacao" 
+                                       {% if product and product.entra_em_premiacao %}checked{% endif %}>
+                                <label class="form-check-label" for="entra_em_premiacao">
+                                    <strong>Entra para Premiação</strong>
+                                </label>
+                            </div>
+                            <small class="form-text text-muted d-block mt-2">
+                                ✅ Marque se este produto entra no cálculo de premiação (ex: Add-on, Rebuy)<br>
+                                ❌ Deixe desmarcado se não entra (ex: Jack Pot, Staff, Bounty)
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'tournament_products_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> {% if edit %}Salvar Alterações{% else %}Criar Produto{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

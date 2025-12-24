@@ -34,16 +34,17 @@
                               placeholder="Detalhes sobre a estrutura ou regras específicas">{{ tipo.descricao|default:'' }}</textarea>
                 </div>
 
-                <div class="mb-4">
-                    <label for="multiplicador" class="form-label">Multiplicador de Pontos (Peso)</label>
+                <div class="mb-3">
+                    <label for="multiplicador_pontos" class="form-label">
+                        Multiplicador de Pontos
+                        <i class="bi bi-question-circle" data-bs-toggle="tooltip" title="Usado apenas no modo FIXO. Ex: 1.5 multiplica todos os pontos por 1.5"></i>
+                    </label>
                     <div class="input-group">
+                        <input type="number" class="form-control" id="multiplicador_pontos" name="multiplicador_pontos" 
+                               value="{{ tipo.multiplicador_pontos|default:'1.00' }}" step="0.01" min="0.1" max="10" required>
                         <span class="input-group-text">x</span>
-                        <input type="number" step="0.01" class="form-control" id="multiplicador" name="multiplicador" 
-                               value="{{ tipo.multiplicador_pontos|stringformat:'.2f'|default:'1.00' }}" placeholder="1.00">
                     </div>
-                    <div class="form-text">
-                        Define o peso deste torneio no ranking. Ex: 1.5 vale 50% mais pontos.
-                    </div>
+                    <div class="form-text">Multiplicador aplicado apenas quando a temporada usa o modo FIXO de pontuação.</div>
                 </div>
 
                 <div class="mb-4 pt-2 border-top">

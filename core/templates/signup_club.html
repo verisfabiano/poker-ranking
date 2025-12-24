@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Novo Clube - Poker Ranking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .signup-container h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+        
+        .signup-container p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        label small {
+            color: #999;
+            font-weight: 400;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .form-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-section h3 .section-icon {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-row-thirds {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .form-row-thirds {
+                grid-template-columns: 1fr;
+            }
+            .signup-container {
+                padding: 20px;
+            }
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .general-error {
+            background: #ffe6e6;
+            color: #c33;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h1>♠️ Criar Novo Clube</h1>
+        <p>Preencha os dados abaixo para criar sua conta</p>
+        
+        {% if errors.general %}
+            <div class="general-error">{{ errors.general }}</div>
+        {% endif %}
+        
+        <form method="post" id="signupForm">
+            {% csrf_token %}
+            
+            <!-- DADOS DO CLUBE -->
+            <div class="form-section">
+                <h3><span class="section-icon">♣️</span>Dados do Clube</h3>
+                
+                <div class="form-group">
+                    <label for="club_name">Nome do Clube <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="club_name" 
+                        name="club_name" 
+                        required
+                        value="{{ club_name }}"
+                        placeholder="ex: Poker Club São Paulo"
+                    >
+                    {% if errors.club_name %}
+                        <span class="error">{{ errors.club_name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="club_description">Descrição</label>
+                    <textarea 
+                        id="club_description" 
+                        name="club_description"
+                        placeholder="Conte um pouco sobre seu clube..."
+                    >{{ club_description }}</textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="club_email">Email de Contato <span class="required">*</span></label>
+                        <input 
+                            type="email" 
+                            id="club_email" 
+                            name="club_email"
+                            required
+                            value="{{ club_email }}"
+                            placeholder="contato@clube.com"
+                        >
+                        {% if errors.club_email %}
+                            <span class="error">{{ errors.club_email }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="club_phone">Telefone</label>
+                        <input 
+                            type="tel" 
+                            id="club_phone" 
+                            name="club_phone"
+                            value="{{ club_phone }}"
+                            placeholder="(11) 98765-4321"
+                            class="mask-phone"
+                        >
+                        {% if errors.club_phone %}
+                            <span class="error">{{ errors.club_phone }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="club_cnpj">CNPJ</label>
+                        <input 
+                            type="text" 
+                            id="club_cnpj" 
+                            name="club_cnpj"
+                            value="{{ club_cnpj }}"
+                            placeholder="XX.XXX.XXX/XXXX-XX"
+                            class="mask-cnpj"
+                        >
+                        {% if errors.club_cnpj %}
+                            <span class="error">{{ errors.club_cnpj }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="club_website">Website</label>
+                        <input 
+                            type="url" 
+                            id="club_website" 
+                            name="club_website"
+                            value="{{ club_website }}"
+                            placeholder="https://www.clube.com"
+                        >
+                        {% if errors.club_website %}
+                            <span class="error">{{ errors.club_website }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ENDEREÇO DO CLUBE -->
+            <div class="form-section">
+                <h3><span class="section-icon">📍</span>Endereço do Clube</h3>
+                
+                <div class="form-group">
+                    <label for="address_cep">CEP</label>
+                    <input 
+                        type="text" 
+                        id="address_cep" 
+                        name="address_cep"
+                        value="{{ address_cep }}"
+                        placeholder="XXXXX-XXX"
+                        class="mask-cep"
+                        data-autocomplete="true"
+                    >
+                    <small style="color: #999;">Digite o CEP para preencher automaticamente os campos abaixo</small>
+                    {% if errors.address_cep %}
+                        <span class="error">{{ errors.address_cep }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="address_street">Rua/Avenida</label>
+                    <input 
+                        type="text" 
+                        id="address_street" 
+                        name="address_street"
+                        value="{{ address_street }}"
+                        placeholder="ex: Avenida Paulista"
+                    >
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="address_number">Número</label>
+                        <input 
+                            type="text" 
+                            id="address_number" 
+                            name="address_number"
+                            value="{{ address_number }}"
+                            placeholder="ex: 1000"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address_complement">Complemento</label>
+                        <input 
+                            type="text" 
+                            id="address_complement" 
+                            name="address_complement"
+                            value="{{ address_complement }}"
+                            placeholder="ex: Apto 1500"
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address_neighborhood">Bairro</label>
+                    <input 
+                        type="text" 
+                        id="address_neighborhood" 
+                        name="address_neighborhood"
+                        value="{{ address_neighborhood }}"
+                        placeholder="ex: Bela Vista"
+                        readonly
+                    >
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="address_city">Cidade</label>
+                        <input 
+                            type="text" 
+                            id="address_city" 
+                            name="address_city"
+                            value="{{ address_city }}"
+                            placeholder="ex: São Paulo"
+                            readonly
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address_state">Estado</label>
+                        <select id="address_state" name="address_state">
+                            <option value="">-- Selecione --</option>
+                            <option value="AC" {% if address_state == 'AC' %}selected{% endif %}>Acre</option>
+                            <option value="AL" {% if address_state == 'AL' %}selected{% endif %}>Alagoas</option>
+                            <option value="AP" {% if address_state == 'AP' %}selected{% endif %}>Amapá</option>
+                            <option value="AM" {% if address_state == 'AM' %}selected{% endif %}>Amazonas</option>
+                            <option value="BA" {% if address_state == 'BA' %}selected{% endif %}>Bahia</option>
+                            <option value="CE" {% if address_state == 'CE' %}selected{% endif %}>Ceará</option>
+                            <option value="DF" {% if address_state == 'DF' %}selected{% endif %}>Distrito Federal</option>
+                            <option value="ES" {% if address_state == 'ES' %}selected{% endif %}>Espírito Santo</option>
+                            <option value="GO" {% if address_state == 'GO' %}selected{% endif %}>Goiás</option>
+                            <option value="MA" {% if address_state == 'MA' %}selected{% endif %}>Maranhão</option>
+                            <option value="MT" {% if address_state == 'MT' %}selected{% endif %}>Mato Grosso</option>
+                            <option value="MS" {% if address_state == 'MS' %}selected{% endif %}>Mato Grosso do Sul</option>
+                            <option value="MG" {% if address_state == 'MG' %}selected{% endif %}>Minas Gerais</option>
+                            <option value="PA" {% if address_state == 'PA' %}selected{% endif %}>Pará</option>
+                            <option value="PB" {% if address_state == 'PB' %}selected{% endif %}>Paraíba</option>
+                            <option value="PR" {% if address_state == 'PR' %}selected{% endif %}>Paraná</option>
+                            <option value="PE" {% if address_state == 'PE' %}selected{% endif %}>Pernambuco</option>
+                            <option value="PI" {% if address_state == 'PI' %}selected{% endif %}>Piauí</option>
+                            <option value="RJ" {% if address_state == 'RJ' %}selected{% endif %}>Rio de Janeiro</option>
+                            <option value="RN" {% if address_state == 'RN' %}selected{% endif %}>Rio Grande do Norte</option>
+                            <option value="RS" {% if address_state == 'RS' %}selected{% endif %}>Rio Grande do Sul</option>
+                            <option value="RO" {% if address_state == 'RO' %}selected{% endif %}>Rondônia</option>
+                            <option value="RR" {% if address_state == 'RR' %}selected{% endif %}>Roraima</option>
+                            <option value="SC" {% if address_state == 'SC' %}selected{% endif %}>Santa Catarina</option>
+                            <option value="SP" {% if address_state == 'SP' %}selected{% endif %}>São Paulo</option>
+                            <option value="SE" {% if address_state == 'SE' %}selected{% endif %}>Sergipe</option>
+                            <option value="TO" {% if address_state == 'TO' %}selected{% endif %}>Tocantins</option>
+                        </select>
+                        {% if errors.address_state %}
+                            <span class="error">{{ errors.address_state }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DADOS DO ADMINISTRADOR -->
+            <div class="form-section">
+                <h3><span class="section-icon">👤</span>Dados do Administrador</h3>
+                
+                <div class="form-group">
+                    <label for="admin_full_name">Nome Completo <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="admin_full_name" 
+                        name="admin_full_name"
+                        required
+                        value="{{ admin_full_name }}"
+                        placeholder="ex: João da Silva Santos"
+                    >
+                    {% if errors.admin_full_name %}
+                        <span class="error">{{ errors.admin_full_name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin_phone">Telefone <span class="required">*</span></label>
+                        <input 
+                            type="tel" 
+                            id="admin_phone" 
+                            name="admin_phone"
+                            required
+                            value="{{ admin_phone }}"
+                            placeholder="(11) 98765-4321"
+                            class="mask-phone"
+                        >
+                        {% if errors.admin_phone %}
+                            <span class="error">{{ errors.admin_phone }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="admin_role">Cargo/Função</label>
+                        <select id="admin_role" name="admin_role">
+                            <option value="">-- Selecione --</option>
+                            <option value="Proprietário" {% if admin_role == 'Proprietário' %}selected{% endif %}>Proprietário</option>
+                            <option value="Gerente" {% if admin_role == 'Gerente' %}selected{% endif %}>Gerente</option>
+                            <option value="Administrador" {% if admin_role == 'Administrador' %}selected{% endif %}>Administrador</option>
+                            <option value="Outro" {% if admin_role == 'Outro' %}selected{% endif %}>Outro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin_cpf">CPF</label>
+                    <input 
+                        type="text" 
+                        id="admin_cpf" 
+                        name="admin_cpf"
+                        value="{{ admin_cpf }}"
+                        placeholder="XXX.XXX.XXX-XX"
+                        class="mask-cpf"
+                    >
+                    <small style="color: #999;">Informação sensível - será armazenada com segurança</small>
+                    {% if errors.admin_cpf %}
+                        <span class="error">{{ errors.admin_cpf }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- DADOS DA CONTA -->
+            <div class="form-section">
+                <h3><span class="section-icon">🔐</span>Dados de Acesso</h3>
+                
+                <div class="form-group">
+                    <label for="email">Email <span class="required">*</span></label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        value="{{ email }}"
+                        placeholder="seu@email.com"
+                    >
+                    {% if errors.email %}
+                        <span class="error">{{ errors.email }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Senha <span class="required">*</span></label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            placeholder="Mínimo 8 caracteres"
+                        >
+                        <small style="color: #999;">Mínimo 8 caracteres</small>
+                        {% if errors.password %}
+                            <span class="error">{{ errors.password }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password_confirm">Confirmar Senha <span class="required">*</span></label>
+                        <input 
+                            type="password" 
+                            id="password_confirm" 
+                            name="password_confirm" 
+                            required
+                            placeholder="Confirme sua senha"
+                        >
+                        {% if errors.password_confirm %}
+                            <span class="error">{{ errors.password_confirm }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit">♠️ Criar Meu Clube</button>
+            
+            <div class="login-link">
+                Já tem uma conta? <a href="{% url 'login' %}">Entrar aqui</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // ===== MÁSCARAS DE INPUT =====
+        
+        // Máscara CNPJ
+        document.querySelectorAll('.mask-cnpj').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 14) value = value.slice(0, 14);
+                
+                if (value.length > 8) {
+                    e.target.value = value.slice(0, 2) + '.' + value.slice(2, 5) + '.' + 
+                                     value.slice(5, 8) + '/' + value.slice(8, 12) + '-' + value.slice(12, 14);
+                } else if (value.length > 5) {
+                    e.target.value = value.slice(0, 2) + '.' + value.slice(2, 5) + '.' + value.slice(5);
+                } else if (value.length > 2) {
+                    e.target.value = value.slice(0, 2) + '.' + value.slice(2);
+                } else {
+                    e.target.value = value;
+                }
+            });
+        });
+        
+        // Máscara CPF
+        document.querySelectorAll('.mask-cpf').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 6) {
+                    e.target.value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + 
+                                     value.slice(6, 9) + '-' + value.slice(9, 11);
+                } else if (value.length > 3) {
+                    e.target.value = value.slice(0, 3) + '.' + value.slice(3, 6) + '.' + value.slice(6);
+                } else if (value.length > 0) {
+                    e.target.value = value.slice(0, 3) + '.' + value.slice(3);
+                } else {
+                    e.target.value = value;
+                }
+            });
+        });
+        
+        // Máscara CEP
+        document.querySelectorAll('.mask-cep').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.slice(0, 8);
+                
+                if (value.length > 5) {
+                    e.target.value = value.slice(0, 5) + '-' + value.slice(5);
+                } else {
+                    e.target.value = value;
+                }
+            });
+            
+            // Auto-preenchimento via ViaCEP
+            input.addEventListener('blur', function(e) {
+                let cep = e.target.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                document.getElementById('address_street').value = data.logradouro;
+                                document.getElementById('address_neighborhood').value = data.bairro;
+                                document.getElementById('address_city').value = data.localidade;
+                                document.getElementById('address_state').value = data.uf;
+                            } else {
+                                alert('CEP não encontrado');
+                            }
+                        })
+                        .catch(err => console.error('Erro ao buscar CEP:', err));
+                }
+            });
+        });
+        
+        // Máscara Telefone
+        document.querySelectorAll('.mask-phone').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 7) {
+                    if (value.length === 11) {
+                        e.target.value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 7) + '-' + value.slice(7);
+                    } else {
+                        e.target.value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 6) + '-' + value.slice(6);
+                    }
+                } else if (value.length > 2) {
+                    e.target.value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+                } else if (value.length > 0) {
+                    e.target.value = '(' + value;
+                } else {
+                    e.target.value = value;
+                }
+            });
+        });
+        
+        // Validar senha em tempo real
+        document.getElementById('password').addEventListener('input', function() {
+            let password = this.value;
+            let confirm = document.getElementById('password_confirm').value;
+            
+            if (confirm && password !== confirm) {
+                document.getElementById('password_confirm').style.borderColor = '#e74c3c';
+            } else if (confirm) {
+                document.getElementById('password_confirm').style.borderColor = '#4caf50';
+            }
+        });
+        
+        document.getElementById('password_confirm').addEventListener('input', function() {
+            let password = document.getElementById('password').value;
+            let confirm = this.value;
+            
+            if (password && confirm && password !== confirm) {
+                this.style.borderColor = '#e74c3c';
+            } else if (password && confirm) {
+                this.style.borderColor = '#4caf50';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Selecionar Clube - Cadastro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="mb-2">🏆 Bem-vindo ao Sistema</h2>
+                        <p class="text-muted">Selecione seu clube para se registrar</p>
+                    </div>
+
+                    {% if tenants %}
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="tenant_id" class="form-label">Qual é seu clube?</label>
+                            <select class="form-select form-select-lg" id="tenant_id" name="tenant_id" required>
+                                <option value="">-- Selecione um clube --</option>
+                                {% for tenant in tenants %}
+                                <option value="{{ tenant.id }}">{{ tenant.nome }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted d-block mt-2">
+                                Se não vir seu clube, entre em contato com o administrador
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-arrow-right me-2"></i> Próximo
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Nenhum clube disponível</strong>
+                        <p class="mb-0 mt-2">
+                            Não há clubes registrados no sistema. 
+                            Por favor, entre em contato com o administrador.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted small">
+                            Já tem uma conta? 
+                            <a href="{% url 'login' %}">Faça login aqui</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

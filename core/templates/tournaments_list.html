@@ -83,8 +83,16 @@
                                             <i class="bi bi-people-fill"></i> <span class="d-none d-xl-inline">Jogadores</span>
                                         </a>
 
+                                        <a href="{% url 'tournament_product_sales' t.id %}" class="btn btn-sm btn-outline-success" title="Registrar Vendas de Produtos">
+                                            <i class="bi bi-gift"></i> <span class="d-none d-xl-inline">Produtos</span>
+                                        </a>
+
                                         <a href="{% url 'tournament_results' t.id %}" class="btn btn-sm btn-outline-primary" title="Lançar Resultados">
                                             <i class="bi bi-trophy-fill"></i> <span class="d-none d-xl-inline">Resultados</span>
+                                        </a>
+
+                                        <a href="{% url 'prize_distribution' t.id %}" class="btn btn-sm btn-outline-warning" title="Distribuir Prêmios">
+                                            <i class="bi bi-gift"></i> <span class="d-none d-xl-inline">Prêmios</span>
                                         </a>
 
                                         <div class="btn-group" role="group">
@@ -97,6 +105,12 @@
                                                         <i class="bi bi-pencil me-2"></i> Editar Dados
                                                     </a>
                                                 </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'tournament_financial' t.id %}">
+                                                        <i class="bi bi-cash-coin me-2"></i> Financeiro
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <a class="dropdown-item" href="{% url 'ranking_season' season.id %}" target="_blank">
                                                         <i class="bi bi-bar-chart me-2"></i> Ver Ranking

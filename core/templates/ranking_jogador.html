@@ -112,6 +112,24 @@
     .badge-itm-baixo {
         background-color: #dc3545 !important;
     }
+
+    .evolution-button {
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #667eea;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .evolution-button:hover {
+        background-color: #764ba2;
+        color: white;
+        text-decoration: none;
+        transform: scale(1.05);
+    }
     
     .info-box {
         background: white;
@@ -161,6 +179,7 @@
                     <th style="text-align: center; width: 80px;">Vitórias</th>
                     <th style="text-align: center; width: 80px;">Top 3</th>
                     <th style="text-align: center; width: 100px;">ITM</th>
+                    <th style="text-align: center; width: 80px;">Evolução</th>
                 </tr>
             </thead>
             <tbody>
@@ -202,6 +221,14 @@
                         <span class="badge {% if stat.taxa_itm > 60 %}badge-itm-alto{% elif stat.taxa_itm > 30 %}badge-itm-medio{% else %}badge-itm-baixo{% endif %}">
                             {{ stat.taxa_itm|floatformat:0 }}%
                         </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'player_progress_season' stat.player.id season.id %}" 
+                           class="evolution-button"
+                           target="_blank"
+                           title="Ver evolução de {{ stat.player.apelido|default:stat.player.nome }}">
+                            <i class="bi bi-graph-up"></i>
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}

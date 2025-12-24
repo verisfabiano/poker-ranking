@@ -235,7 +235,7 @@
                 </td>
                 <td>
                     <div class="player-row">
-                        <div class="player-avatar">{{ stat.player.apelido|first|upper }}</div>
+                        <div class="player-avatar">{{ stat.player.apelido|default:stat.player.nome|first|upper }}</div>
                         <div>
                             <strong>{{ stat.player.apelido|default:stat.player.nome }}</strong>
                             <br>

@@ -10,7 +10,8 @@ from ..models import (
     Season, Tournament, TournamentType, BlindStructure, 
     TournamentEntry, TournamentResult
 )
-from .auth import admin_required
+from ..decorators.tenant_decorators import admin_required
+from .ranking import tenant_required
 
 
 # ============================================================
@@ -38,7 +39,7 @@ def blind_structure_manage(request, structure_id):
 
 @admin_required
 def tournament_results(request, tournament_id):
-    tournament = get_object_or_404(Tournament, id=tournament_id)
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
     season = tournament.season
     mensagem = None
     mensagem_erro = None
@@ -131,7 +132,7 @@ def tournament_results(request, tournament_id):
                 "entry": e,
                 "result": r,
                 "pos_valor": r.posicao if r else "",
-                "prize_valor": r.premiacao_recebida if r else "0.00",
+                "prize_valor": f"{float(r.premiacao_recebida):.2f}" if r and r.premiacao_recebida else "0.00",
                 "ajuste_valor": r.pontos_ajuste_deal if r else "",
             }
         linhas.append(linha_dict)

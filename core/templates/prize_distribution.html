@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Distribuição de Prêmios - {{ tournament.nome }}
+{% endblock %}
+
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'tournament_dashboard' %}">Torneios</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' tournament.season.id %}">{{ tournament.season.nome }}</a></li>
+    <li class="breadcrumb-item active">Distribuição de Prêmios</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .prize-container {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .prize-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .prize-header h2 {
+        margin-bottom: 10px;
+    }
+
+    .pool-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .pool-stat {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .pool-stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .pool-stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .mode-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .mode-btn {
+        flex: 1;
+        padding: 12px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .mode-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .mode-btn:hover {
+        border-color: #667eea;
+    }
+
+    .prize-position {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        display: grid;
+        grid-template-columns: 60px 1fr 150px 150px 100px;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .prize-position.incomplete {
+        background: #ffe5e5;
+        border-left-color: #ef5350;
+    }
+
+    .prize-position-num {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #667eea;
+        text-align: center;
+    }
+
+    .prize-position-num.grande {
+        font-size: 1.5rem;
+    }
+
+    .prize-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .prize-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+
+    .prize-input.percentage {
+        max-width: 120px;
+    }
+
+    .template-selector {
+        margin-bottom: 20px;
+    }
+
+    .btn-apply-template {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    .template-badge {
+        background: #e7f3ff;
+        color: #0066cc;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    .prize-summary {
+        background: #f0f4ff;
+        padding: 15px;
+        border-radius: 6px;
+        margin-top: 20px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e0e7ff;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .summary-row.total {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #667eea;
+        padding-top: 12px;
+        border-top: 2px solid #e0e7ff;
+        margin-top: 12px;
+    }
+
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .alert-info-small {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        margin-bottom: 15px;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    .badge-itm {
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-left: 10px;
+    }
+
+    .btn-finalize {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .btn-finalize:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    .btn-finalize:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="prize-header">
+        <h2><i class="bi bi-award"></i> Distribuição de Prêmios</h2>
+        <p class="mb-0">{{ tournament.nome }} • {{ tournament.season.nome }}</p>
+        
+        <div class="pool-info">
+            <div class="pool-stat">
+                <div class="pool-stat-label">Pote Total</div>
+                <div class="pool-stat-value">R$ {{ prize_structure.total_prize_pool|floatformat:2 }}</div>
+            </div>
+            <div class="pool-stat">
+                <div class="pool-stat-label">Premiados</div>
+                <div class="pool-stat-value">{{ prize_structure.itm_count }}</div>
+            </div>
+            <div class="pool-stat">
+                <div class="pool-stat-label">Já Distribuído</div>
+                <div class="pool-stat-value">R$ <span id="distributed">0.00</span></div>
+            </div>
+            <div class="pool-stat">
+                <div class="pool-stat-label">Faltando</div>
+                <div class="pool-stat-value">R$ <span id="remaining">{{ prize_structure.total_prize_pool|floatformat:2 }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- SEÇÃO: CONFIGURAÇÃO -->
+            <div class="prize-container">
+                <h5><i class="bi bi-gear"></i> Configuração</h5>
+                
+                <div class="alert-info-small alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Você pode usar templates pré-definidos ou configurar manualmente os percentuais/valores.
+                </div>
+
+                <!-- MODO SELEÇÃO -->
+                <div class="form-group">
+                    <label class="form-label fw-bold mb-3">Modo de Distribuição</label>
+                    <div class="mode-selector">
+                        <button type="button" class="mode-btn active" data-mode="PERCENTUAL" id="btn-mode-percentual">
+                            <i class="bi bi-percent"></i> Percentual do Pote
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="FIXO" id="btn-mode-fixo">
+                            <i class="bi bi-cash"></i> Valores Fixos (R$)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TEMPLATES -->
+                {% if templates %}
+                <div class="template-selector">
+                    <label class="form-label fw-bold">Templates Sugeridos</label>
+                    <div class="row g-2">
+                        {% for template in templates %}
+                        <div class="col-md-6">
+                            <button type="button" 
+                                    class="btn btn-outline-secondary w-100 btn-apply-template"
+                                    data-template-id="{{ template.id }}"
+                                    onclick="applyTemplate({{ template.id }})">
+                                <i class="bi bi-plus-circle"></i> {{ template.nome }}
+                                <small class="d-block">{{ template.itm_count }} premiados</small>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ITM COUNT -->
+                <div class="form-group mt-4">
+                    <label for="itm-count" class="form-label fw-bold">Quantas Posições Serão Premiadas?</label>
+                    <input type="number" id="itm-count" class="form-control" 
+                           value="{{ prize_structure.itm_count }}" min="1" max="20"
+                           onchange="updateITMCount(this.value)">
+                </div>
+            </div>
+
+            <!-- SEÇÃO: PRÊMIOS -->
+            <div class="prize-container">
+                <h5><i class="bi bi-gift"></i> Prêmios por Posição</h5>
+                
+                <div id="error-message" class="error-message"></div>
+
+                <div id="prize-positions">
+                    <!-- Preenchido via JavaScript -->
+                </div>
+
+                <!-- RESUMO -->
+                <div class="prize-summary">
+                    <div class="summary-row">
+                        <span>Distribuído até agora:</span>
+                        <strong>R$ <span id="sum-distributed">0.00</span></strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Pote total:</span>
+                        <strong>R$ {{ prize_structure.total_prize_pool|floatformat:2 }}</strong>
+                    </div>
+                    <div class="summary-row total" id="difference-row">
+                        <span>Diferença:</span>
+                        <strong id="difference-value">R$ 0.00</strong>
+                    </div>
+                </div>
+
+                <!-- BOTÃO FINALIZAR -->
+                <button type="button" class="btn-finalize" id="btn-finalize" onclick="finalizePrizeDistribution()">
+                    <i class="bi bi-check-circle"></i> Finalizar Distribuição de Prêmios
+                </button>
+            </div>
+        </div>
+
+        <!-- SIDEBAR: INFORMAÇÕES DO TORNEIO -->
+        <div class="col-lg-4">
+            <div class="prize-container">
+                <h5><i class="bi bi-info-circle"></i> Informações</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label small text-muted">TORNEIO</label>
+                    <p class="mb-0">{{ tournament.nome }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">TEMPORADA</label>
+                    <p class="mb-0">{{ tournament.season.nome }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">DATA</label>
+                    <p class="mb-0">{{ tournament.data|date:"d/m/Y H:i" }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">BUY-IN</label>
+                    <p class="mb-0">R$ {{ tournament.buyin|floatformat:2 }}</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">STATUS</label>
+                    <p class="mb-0">
+                        <span class="badge bg-success">{{ tournament.get_status_display }}</span>
+                    </p>
+                </div>
+
+                <hr>
+
+                <div class="alert alert-info small">
+                    <i class="bi bi-lightbulb"></i> <strong>Dica:</strong>
+                    Use templates para configuração rápida, ou customize os percentuais/valores manualmente.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para selecionar jogador -->
+<div class="modal fade" id="modalSelectPlayer" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Jogador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="player-search" class="form-control mb-3" placeholder="Buscar por nome...">
+                <div id="player-list" style="max-height: 400px; overflow-y: auto;">
+                    {% for entry in entries %}
+                    <div class="list-group-item" onclick="selectPlayer({{ entry.player.id }}, '{{ entry.player.nome }}')">
+                        {{ entry.player.nome }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dados iniciais
+    const tournamentId = {{ tournament.id }};
+    const prizeStructure = {
+        modo: '{{ prize_structure.modo }}',
+        itm_count: {{ prize_structure.itm_count }},
+        total_pool: parseFloat('{{ prize_structure.total_prize_pool }}'.replace(',', '.'))
+    };
+
+    // Dados das posições (jogadores + prêmios já atribuídos)
+    const positionData = {
+        {% for payment in payments %}
+            '{{ payment.position }}': {
+                player_name: '{{ payment.player.nome|escapejs|default:"" }}',
+                player_id: '{{ payment.player.id|default:"" }}',
+                amount: parseFloat('{{ payment.amount|default:0 }}'),
+                percentage: {% if payment.percentage %}parseFloat('{{ payment.percentage }}'){% else %}null{% endif %},
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    console.log('positionData carregado:', positionData);
+
+    let payments = {};
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded - carregando dados...');
+        setMode(prizeStructure.modo);
+        generatePrizeFields();
+        
+        // Preencher dados existentes
+        loadPositionData();
+        
+        updateSummary();
+    });
+
+    // Alterar modo
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const newMode = this.dataset.mode;
+            updateMode(newMode);
+            setMode(newMode);
+        });
+    });
+
+    function setMode(mode) {
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(`btn-mode-${mode.toLowerCase()}`).classList.add('active');
+        prizeStructure.modo = mode;
+        generatePrizeFields();
+    }
+
+    function loadPositionData() {
+        // Preencher os dados já existentes de cada posição
+        console.log('loadPositionData() iniciada');
+        console.log('Tentando carregar dados para', Object.keys(positionData).length, 'posições');
+        
+        setTimeout(() => {
+            for (let position in positionData) {
+                const data = positionData[position];
+                console.log(`Posição ${position}:`, data);
+                
+                // Preencher nome do jogador
+                const playerField = document.getElementById(`player-${position}`);
+                if (playerField && data.player_name) {
+                    playerField.value = data.player_name;
+                    console.log(`  ✓ Nome preenchido: ${data.player_name}`);
+                }
+                
+                // Preencher valor
+                if (data.amount > 0 || data.percentage) {
+                    if (prizeStructure.modo === 'PERCENTUAL' && data.percentage) {
+                        const pctField = document.getElementById(`prize-pct-${position}`);
+                        if (pctField) {
+                            pctField.value = parseFloat(data.percentage).toFixed(2);
+                            console.log(`  ✓ Percentual preenchido: ${data.percentage}%`);
+                        }
+                    } else if (data.amount > 0) {
+                        if (prizeStructure.modo === 'PERCENTUAL') {
+                            // Se está em percentual mas temos amount, calcular percentual
+                            const pct = (data.amount / prizeStructure.total_pool * 100);
+                            const pctField = document.getElementById(`prize-pct-${position}`);
+                            if (pctField) {
+                                pctField.value = pct.toFixed(2);
+                                console.log(`  ✓ Percentual calculado: ${pct.toFixed(2)}%`);
+                            }
+                        } else {
+                            const amtField = document.getElementById(`prize-amount-${position}`);
+                            if (amtField) {
+                                amtField.value = parseFloat(data.amount).toFixed(2);
+                                console.log(`  ✓ Valor preenchido: R$ ${data.amount}`);
+                            }
+                        }
+                    }
+                }
+            }
+            console.log('loadPositionData() finalizada - chamando updateSummary()');
+            updateSummary();
+        }, 200);
+    }
+
+    function updateMode(newMode) {
+        fetch(`{% url 'update_prize_config' tournament.id %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'modo=' + newMode
+        })
+        .then(r => r.json())
+        .catch(e => showError('Erro ao atualizar modo: ' + e));
+    }
+
+    function updateITMCount(count) {
+        prizeStructure.itm_count = parseInt(count);
+        generatePrizeFields();
+    }
+
+    function generatePrizeFields() {
+        const container = document.getElementById('prize-positions');
+        container.innerHTML = '';
+
+        for (let i = 1; i <= prizeStructure.itm_count; i++) {
+            const positionLabel = i === 1 ? '1º' : i === 2 ? '2º' : i === 3 ? '3º' : i + 'º';
+            const isTopThree = i <= 3;
+
+            let inputHtml = '';
+            if (prizeStructure.modo === 'PERCENTUAL') {
+                inputHtml = `<input type="number" step="0.01" min="0" max="100" 
+                            class="prize-input percentage" 
+                            placeholder="0.00" 
+                            onchange="updatePayment(${i}, 'percentage', this.value)"
+                            id="prize-pct-${i}">
+                        <span>%</span>`;
+            } else {
+                inputHtml = `<span>R$</span>
+                        <input type="number" step="0.01" min="0"
+                            class="prize-input"
+                            placeholder="0.00"
+                            onchange="updatePayment(${i}, 'amount', this.value)"
+                            id="prize-amount-${i}">`;
+            }
+
+            const html = `
+            <div class="prize-position" id="position-${i}">
+                <div class="prize-position-num ${isTopThree ? 'grande' : ''}">
+                    ${positionLabel}
+                </div>
+                <div>
+                    <input type="text" class="form-control" placeholder="Nome do jogador (opcional)" 
+                           id="player-${i}" readonly onclick="showPlayerSelector(${i})">
+                </div>
+                <div class="prize-input-group">
+                    ${inputHtml}
+                </div>
+                <div class="prize-value" id="value-${i}" style="font-weight: bold;">
+                    R$ 0.00
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearPosition(${i})">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            `;
+
+            container.innerHTML += html;
+        }
+    }
+
+    function updatePayment(position, field, value) {
+        const amount = prizeStructure.modo === 'PERCENTUAL'
+            ? (prizeStructure.total_pool * parseFloat(value) / 100)
+            : parseFloat(value.replace(',', '.'));
+
+        fetch(`{% url 'set_prize_payment' tournament.id %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `position=${position}&${field}=${value}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                payments[position] = data.data;
+                document.getElementById(`value-${position}`).textContent = 
+                    `R$ ${parseFloat(data.data.amount).toFixed(2)}`;
+                updateSummary();
+            } else {
+                showError(data.error);
+            }
+        })
+        .catch(e => showError('Erro: ' + e));
+    }
+
+    function updateSummary() {
+        let totalDistributed = 0;
+
+        // Ler os valores dos campos de prêmio
+        for (let i = 1; i <= prizeStructure.itm_count; i++) {
+            let amount = 0;
+            
+            if (prizeStructure.modo === 'PERCENTUAL') {
+                const field = document.getElementById(`prize-pct-${i}`);
+                if (field && field.value) {
+                    const percentage = parseFloat(field.value);
+                    amount = (prizeStructure.total_pool * percentage / 100);
+                }
+            } else {
+                const field = document.getElementById(`prize-amount-${i}`);
+                if (field && field.value) {
+                    amount = parseFloat(field.value);
+                }
+            }
+            
+            // Atualizar o campo de valor em R$
+            const valueDisplay = document.getElementById(`value-${i}`);
+            if (valueDisplay) {
+                valueDisplay.textContent = `R$ ${amount.toFixed(2)}`;
+            }
+            
+            totalDistributed += amount;
+        }
+
+        const distributed = totalDistributed.toFixed(2);
+        const remaining = (prizeStructure.total_pool - totalDistributed).toFixed(2);
+        const difference = (prizeStructure.total_pool - totalDistributed).toFixed(2);
+
+        document.getElementById('distributed').textContent = distributed;
+        document.getElementById('remaining').textContent = remaining;
+        document.getElementById('sum-distributed').textContent = distributed;
+
+        const diffRow = document.getElementById('difference-row');
+        const diffVal = document.getElementById('difference-value');
+        diffVal.textContent = `R$ ${Math.abs(difference)}`;
+
+        if (Math.abs(difference) < 0.11) {
+            diffRow.classList.remove('text-danger');
+            diffRow.classList.add('text-success');
+            document.getElementById('btn-finalize').disabled = false;
+        } else {
+            diffRow.classList.add('text-danger');
+            diffRow.classList.remove('text-success');
+            document.getElementById('btn-finalize').disabled = true;
+        }
+    }
+
+    function applyTemplate(templateId) {
+        console.log('Aplicando template:', templateId);
+
+        fetch(`{% url 'apply_prize_template' tournament.id %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'template_id=' + templateId
+        })
+        .then(r => r.json())
+        .then(data => {
+            console.log('Template response:', data);
+            
+            if (data.success) {
+                // Atualizar estrutura do prêmio
+                prizeStructure.itm_count = data.itm_count;
+                prizeStructure.modo = data.modo;
+                
+                // Regenerar campos com o novo modo e contagem
+                generatePrizeFields();
+                
+                // Aguardar um pouco para os campos serem renderizados
+                setTimeout(() => {
+                    // Preencher os valores dos pagamentos retornados
+                    if (data.payments && data.payments.length > 0) {
+                        data.payments.forEach(payment => {
+                            const position = payment.position;
+                            console.log(`Preenchendo posição ${position}:`, payment);
+                            
+                            if (data.modo === 'PERCENTUAL' && payment.percentage !== null) {
+                                const field = document.getElementById(`prize-pct-${position}`);
+                                if (field) {
+                                    field.value = parseFloat(payment.percentage).toFixed(2);
+                                    console.log(`Preenchido percentual ${position}:`, field.value);
+                                }
+                            } else if (payment.amount !== null) {
+                                const field = document.getElementById(`prize-amount-${position}`);
+                                if (field) {
+                                    field.value = parseFloat(payment.amount).toFixed(2);
+                                    console.log(`Preenchido valor ${position}:`, field.value);
+                                }
+                            }
+                        });
+                    }
+                    
+                    updateSummary();
+                    alert(data.message);
+                }, 100);
+            } else {
+                showError(data.error || 'Erro desconhecido ao aplicar template');
+            }
+        })
+        .catch(e => {
+            console.error('Erro no fetch:', e);
+            showError('Erro: ' + e);
+        });
+    }
+
+    function finalizePrizeDistribution() {
+        if (document.getElementById('btn-finalize').disabled) {
+            showError('Total de prêmios não corresponde ao pote!');
+            return;
+        }
+
+        if (confirm('Tem certeza que deseja finalizar a distribuição de prêmios? Isso não poderá ser alterado depois.')) {
+            fetch(`{% url 'finalize_prize_distribution' tournament.id %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = data.redirect_url;
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(e => showError('Erro: ' + e));
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('error-message');
+        el.textContent = '❌ ' + msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function clearPosition(position) {
+        document.getElementById(`player-${position}`).value = '';
+        if (prizeStructure.modo === 'PERCENTUAL') {
+            document.getElementById(`prize-pct-${position}`).value = '';
+        } else {
+            document.getElementById(`prize-amount-${position}`).value = '';
+        }
+        payments[position] = { amount: 0 };
+        updateSummary();
+    }
+</script>
+{% endblock %}

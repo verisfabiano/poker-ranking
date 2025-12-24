@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Ranking - Sistema de Gerenciamento de Torneios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        header a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .btn-primary {
+            background: #00d4ff;
+            color: #333;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #00a8cc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 16px 40px;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+        
+        /* FEATURES */
+        .features {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 60px;
+            color: #333;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        
+        .feature-card p {
+            color: #666;
+        }
+        
+        /* CTA */
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .cta p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        
+        /* FOOTER */
+        footer {
+            background: #333;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        /* CLUB ACCESS */
+        .club-access {
+            padding: 60px 0;
+            background: #fff;
+        }
+
+        .club-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .club-card:hover {
+            border-color: #764ba2;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .club-card h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .club-card p {
+            color: #666;
+            margin-bottom: 15px;
+            min-height: 50px;
+            font-size: 14px;
+        }
+
+        .club-buttons {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .club-btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+
+        .club-btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .club-btn-register {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .club-btn-register:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .btn-secondary {
+                display: block;
+                margin: 10px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">♠️ Poker Ranking</div>
+            <div>
+                <a href="{% url 'login' %}">Entrar</a>
+                <a href="{% url 'signup_club' %}">Criar Clube</a>
+            </div>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h1>Gerencie seus Torneios de Poker</h1>
+            <p>Sistema completo para rankings, resultados e análises de torneios</p>
+            <a href="{% url 'signup_club' %}" class="btn-primary">Começar Agora</a>
+            <a href="#features" class="btn-secondary">Conhecer Mais</a>
+        </div>
+    </section>
+    
+    <section class="features" id="features">
+        <div class="container">
+            <h2>O que você consegue fazer</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Rankings em Tempo Real</h3>
+                    <p>Acompanhe pontuações e rankings atualizados em tempo real</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Gerenciamento de Torneios</h3>
+                    <p>Crie, edite e controle todos os seus torneios</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Análise Financeira</h3>
+                    <p>Controle buy-ins, prêmios e resultados financeiros</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Gerenciamento de Jogadores</h3>
+                    <p>Administre estatísticas e informações dos jogadores</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Acesso Multiplataforma</h3>
+                    <p>Acesse de qualquer dispositivo, em qualquer lugar</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Rápido e Seguro</h3>
+                    <p>Sistema otimizado e seguro para seus dados</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta">
+        <div class="container">
+            <h2>Pronto para começar?</h2>
+            <p>Crie sua conta agora e gerencie seus torneios gratuitamente</p>
+            <a href="{% url 'signup_club' %}" class="btn-primary">Criar Meu Clube</a>
+        </div>
+    </section>
+
+    <!-- CLUB ACCESS SECTION -->
+    <section class="club-access">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="color: #333; margin-bottom: 10px;">Já é membro de um clube?</h2>
+                <p style="color: #666; font-size: 18px;">Acesse seu clube e acompanhe os torneios e rankings</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto;">
+                {% for tenant in clubs %}
+                    <div class="club-card">
+                        <h4>{{ tenant.nome }}</h4>
+                        <p>{{ tenant.descricao }}</p>
+                        <div class="club-buttons">
+                            <a href="{% url 'player_login_club' tenant.slug %}" class="club-btn-login">
+                                🔐 Entrar no Clube
+                            </a>
+                            <a href="{% url 'player_register_public' tenant.slug %}" class="club-btn-register">
+                                📝 Registre-se Agora
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Poker Ranking. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>

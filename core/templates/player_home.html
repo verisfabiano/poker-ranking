@@ -1,14 +1,31 @@
 {% extends 'base.html' %}
 
-{% block title %}Home - {{ player.nome }}{% endblock %}
+{% block title %}Dashboard - {{ player.nome }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     
-    <div class="row mb-4 mt-2">
+    <!-- HEADER com FOTO DO JOGADOR -->
+    <div class="row mb-4 mt-2 align-items-center">
         <div class="col">
-            <h2 class="mb-1">Bem-vindo, {{ player.apelido|default:player.nome }}! 👋</h2>
-            <div class="text-muted">Seu portal de torneios e ranking</div>
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <!-- Foto do Jogador -->
+                <div style="flex-shrink: 0;">
+                    {% if player.foto %}
+                        <img src="{{ player.foto.url }}" alt="{{ player.apelido }}" 
+                             style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #0d6efd; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    {% else %}
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border: 3px solid #0d6efd; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <i class="bi bi-person-fill text-secondary" style="font-size: 40px;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="mb-0">Bem-vindo, {{ player.apelido|default:player.nome }}! 👋</h2>
+                    <div class="text-muted small">{{ request.tenant.nome }}</div>
+                </div>
+            </div>
+            <div class="text-muted">Seu dashboard de performance em torneios</div>
         </div>
         <div class="col-auto">
             <a href="{% url 'player_tournaments' %}" class="btn btn-primary">
@@ -17,21 +34,138 @@
         </div>
     </div>
 
-    <!-- TEMPORADAS ATIVAS -->
-    {% if seasons_ativas %}
+    <!-- PHASE 1: RESUMO FINANCEIRO -->
     <div class="row mb-4">
         <div class="col-12">
-            <h5 class="mb-3"><i class="bi bi-trophy-fill text-warning me-2"></i> Temporadas Ativas</h5>
+            <h5 class="mb-3"><i class="bi bi-wallet2 text-success me-2"></i> Resumo Financeiro</h5>
             <div class="row g-3">
-                {% for season in seasons_ativas %}
-                <div class="col-md-6 col-lg-4">
+                <!-- Gasto Total -->
+                <div class="col-md-6 col-lg-3">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body">
-                            <h6 class="card-title">{{ season.nome }}</h6>
-                            <p class="text-muted small mb-3">{{ season.descricao }}</p>
-                            <div class="d-flex gap-2">
-                                <a href="{% url 'ranking_season' season.id %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-bar-chart me-1"></i> Ranking
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Gasto Total</p>
+                                    <h4 class="text-danger mb-0">R$ {{ gasto_total|floatformat:2 }}</h4>
+                                </div>
+                                <span class="badge bg-danger">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ganho Total -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Ganho Total</p>
+                                    <h4 class="text-success mb-0">R$ {{ ganho_total|floatformat:2 }}</h4>
+                                </div>
+                                <span class="badge bg-success">+</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Saldo Líquido -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Saldo Líquido</p>
+                                    <h4 class="{% if saldo_liquido >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                                        R$ {{ saldo_liquido|floatformat:2 }}
+                                    </h4>
+                                </div>
+                                <span class="badge {% if saldo_liquido >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if saldo_liquido >= 0 %}↑{% else %}↓{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ROI -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">ROI</p>
+                                    <h4 class="{% if roi >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                                        {{ roi|floatformat:1 }}%
+                                    </h4>
+                                </div>
+                                <span class="badge {% if roi >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if roi >= 0 %}+{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRÓXIMOS TORNEIOS -->
+    {% if proximos_torneios %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="mb-3"><i class="bi bi-calendar-check text-success me-2"></i> Próximos Torneios (7 dias)</h5>
+            <div class="row g-3">
+                {% for torneio in proximos_torneios %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100 tournament-card">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-primary fw-bold mb-3">{{ torneio.nome }}</h6>
+                            
+                            <div class="mb-3">
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-calendar3 text-info"></i> Data
+                                </p>
+                                <p class="fw-bold mb-0">{{ torneio.data|date:"d/m/Y" }} às {{ torneio.data|date:"H:i" }}</p>
+                            </div>
+
+                            <!-- Buy-in, Rebuy, Add-on -->
+                            <div class="mb-3">
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-cash-coin text-warning"></i> Custos
+                                </p>
+                                <div class="tournament-costs">
+                                    <div class="cost-item">
+                                        <span class="cost-label">Buy-in:</span>
+                                        <span class="cost-value">R$ {{ torneio.buyin|floatformat:2 }}</span>
+                                    </div>
+                                    {% if torneio.permite_rebuy and torneio.rebuy_valor %}
+                                    <div class="cost-item">
+                                        <span class="cost-label">Rebuy:</span>
+                                        <span class="cost-value">R$ {{ torneio.rebuy_valor|floatformat:2 }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if torneio.permite_addon and torneio.addon_valor %}
+                                    <div class="cost-item">
+                                        <span class="cost-label">Add-on:</span>
+                                        <span class="cost-value">R$ {{ torneio.addon_valor|floatformat:2 }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if torneio.local %}
+                            <div class="mb-3">
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-geo-alt text-danger"></i> Local
+                                </p>
+                                <p class="small mb-0">{{ torneio.local }}</p>
+                            </div>
+                            {% endif %}
+
+                            <div class="mt-auto">
+                                <a href="{% url 'confirm_presence' torneio.id %}" class="btn btn-success btn-sm w-100 fw-bold">
+                                    <i class="bi bi-check-circle me-1"></i> Inscrever-se
                                 </a>
                             </div>
                         </div>
@@ -43,25 +177,155 @@
     </div>
     {% endif %}
 
-    <!-- PRÓXIMOS TORNEIOS -->
-    {% if proximos_torneios %}
+    <!-- PHASE 1: ESTATÍSTICAS GERAIS -->
     <div class="row mb-4">
         <div class="col-12">
-            <h5 class="mb-3"><i class="bi bi-calendar-check text-success me-2"></i> Próximos Torneios (7 dias)</h5>
-            <div class="list-group">
-                {% for torneio in proximos_torneios %}
-                <a href="{% url 'confirm_presence' torneio.id %}" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">{{ torneio.nome }}</h6>
-                            <p class="text-muted small mb-0">
-                                <i class="bi bi-calendar3"></i> {{ torneio.data|date:"d/m/Y H:i" }}
-                                <span class="ms-2"><i class="bi bi-cash"></i> Buy-in: R$ {{ torneio.buyin|floatformat:2 }}</span>
-                            </p>
+            <h5 class="mb-3"><i class="bi bi-graph-up text-info me-2"></i> Estatísticas</h5>
+            <div class="row g-3">
+                <!-- Total de Torneios -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">Participações</p>
+                            <h5 class="mb-3">
+                                <span class="text-primary">{{ total_torneios }}</span> 
+                                <span class="text-muted small">torneios</span>
+                            </h5>
+                            {% if total_rebuys > 0 or total_addons > 0 %}
+                            <div class="text-muted small">
+                                {% if total_rebuys > 0 %}<i class="bi bi-arrow-repeat"></i> {{ total_rebuys }} rebuys • {% endif %}
+                                {% if total_addons > 0 %}<i class="bi bi-plus-lg"></i> {{ total_addons }} add-ons{% endif %}
+                            </div>
+                            {% else %}
+                            <div class="text-muted small text-center py-2">
+                                <em>Comece a participar de torneios!</em>
+                            </div>
+                            {% endif %}
                         </div>
-                        <span class="badge bg-info text-dark">Inscrever-se</span>
                     </div>
-                </a>
+                </div>
+                
+                <!-- Colocações -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">Colocações</p>
+                            <div class="row g-2">
+                                <div class="col">
+                                    <div class="text-center">
+                                        <h6 class="text-success">{{ primeiro_lugar }}</h6>
+                                        <small class="text-muted">1º lugar</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center">
+                                        <h6 class="text-info">{{ top_3 }}</h6>
+                                        <small class="text-muted">Top 3</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center">
+                                        <h6 class="text-primary">{{ top_10 }}</h6>
+                                        <small class="text-muted">Top 10</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Taxa ITM -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">Performance</p>
+                            <h5 class="text-warning mb-0">{{ taxa_itm|floatformat:1 }}%</h5>
+                            <small class="text-muted">Taxa ITM (com prêmio)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHASE 1: POSIÇÃO NO RANKING -->
+    {% if temporada_ativa %}
+    <!-- PHASE 1: ÚLTIMOS RESULTADOS -->
+    {% if ultimos_resultados %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="mb-3"><i class="bi bi-clock-history text-secondary me-2"></i> Últimos Resultados</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Torneio</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Posição</th>
+                            <th class="text-end">Prêmio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for resultado in ultimos_resultados %}
+                        <tr>
+                            <td>
+                                <strong>{{ resultado.tournament.nome }}</strong>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ resultado.tournament.data|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ resultado.tournament.tipo.nome }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if resultado.posicao == 1 %}
+                                    <span class="badge bg-success">🥇 1º</span>
+                                {% elif resultado.posicao == 2 %}
+                                    <span class="badge bg-info">🥈 2º</span>
+                                {% elif resultado.posicao == 3 %}
+                                    <span class="badge bg-info">🥉 3º</span>
+                                {% elif resultado.posicao <= 10 %}
+                                    <span class="badge bg-primary">{{ resultado.posicao }}º</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ resultado.posicao }}º</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if resultado.premiacao_recebida > 0 %}
+                                    <span class="text-success fw-bold">+R$ {{ resultado.premiacao_recebida|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- TEMPORADAS ATIVAS -->
+    {% if seasons_ativas %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="mb-3"><i class="bi bi-star-fill text-warning me-2"></i> Temporadas Ativas</h5>
+            <div class="row g-3">
+                {% for season in seasons_ativas %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ season.nome }}</h6>
+                            <p class="text-muted small mb-3">{{ season.descricao }}</p>
+                            <a href="{% url 'ranking_season' season.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-bar-chart me-1"></i> Ver Ranking
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -72,7 +336,7 @@
     {% if minhas_inscricoes %}
     <div class="row">
         <div class="col-12">
-            <h5 class="mb-3"><i class="bi bi-check-circle text-success me-2"></i> Minhas Participações Recentes</h5>
+            <h5 class="mb-3"><i class="bi bi-check-circle text-success me-2"></i> Minhas Inscrições Recentes</h5>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -103,14 +367,74 @@
             </div>
         </div>
     </div>
-    {% else %}
-    <div class="alert alert-info text-center py-5">
-        <i class="bi bi-info-circle me-2"></i>
-        <strong>Você ainda não se inscreveu em nenhum torneio.</strong>
-        <br>
-        <small><a href="{% url 'player_tournaments' %}">Clique aqui para ver torneios disponíveis</a></small>
-    </div>
     {% endif %}
 
 </div>
+
+<style>
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.tournament-card {
+    border-left: 4px solid #198754 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.tournament-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, transparent 70%);
+    border-radius: 0 0 0 100%;
+}
+
+.tournament-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.5rem 2rem rgba(25, 135, 84, 0.3) !important;
+    border-left-color: #0d6efd !important;
+}
+
+.tournament-costs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: rgba(255, 193, 7, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+}
+
+.cost-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.cost-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffc107;
+}
+
+.dashboard-club-logo {
+    height: 60px;
+    max-width: 150px;
+    object-fit: contain;
+}
+</style>
 {% endblock %}

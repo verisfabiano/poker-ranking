@@ -2,6 +2,27 @@
 
 {% block title %}Inscrições - {{ tournament.nome }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .table-responsive {
+        overflow: visible !important;
+    }
+    .products-badge {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        padding: 4px 0;
+    }
+    .product-badge {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+    .products-popover {
+        max-width: 300px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     
@@ -60,6 +81,11 @@
                                     </th>
                                     <th>Jogador</th>
                                     <th>Solicitação</th>
+                                    <th>Produtos</th>
+                                    {% if tournament.permite_rebuy %}<th class="text-center">Rebuy</th>{% endif %}
+                                    {% if tournament.permite_rebuy_duplo %}<th class="text-center">Rebuy Duplo</th>{% endif %}
+                                    {% if tournament.permite_addon %}<th class="text-center">Add-on</th>{% endif %}
+                                    {% if tournament.timechip_chips %}<th class="text-center">Time Chip</th>{% endif %}
                                     <th class="text-center">Confirmado?</th>
                                 </tr>
                             </thead>
@@ -83,6 +109,103 @@
                                                 <span class="text-muted small">Inserido pelo Admin</span>
                                             {% endif %}
                                         </td>
+                                        <td>
+                                            <div class="products-badge">
+                                                {% if entry.product_purchases %}
+                                                    {% for product in products %}
+                                                        {% if product.id in entry.product_purchases %}
+                                                            <span class="badge bg-success product-badge">
+                                                                <i class="bi bi-check-lg"></i> {{ product.nome }}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-secondary btn-sm"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#produtosModal"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}"
+                                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                                <i class="bi bi-gift"></i> <span class="d-none d-sm-inline">Adicionar</span>
+                                            </button>
+                                        </td>
+                                        {% if tournament.permite_rebuy %}
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-warning rebuy-btn"
+                                                    data-tournament-id="{{ tournament.id }}"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}"
+                                                    data-tipo="REBUY"
+                                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                {% with rebuy_count=entry.get_rebuy_count %}
+                                                <span class="badge bg-warning rebuy-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY" style="{% if rebuy_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                    <span class="badge-text">{{ rebuy_count }}</span>
+                                                    <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
+                                                </span>
+                                                {% endwith %}
+                                            </button>
+                                        </td>
+                                        {% endif %}
+                                        {% if tournament.permite_rebuy_duplo %}
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-warning rebuy-duplo-btn"
+                                                    data-tournament-id="{{ tournament.id }}"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}"
+                                                    data-tipo="REBUY_DUPLO"
+                                                    title="Rebuy Duplo (2x ou valor diferenciado)"
+                                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                {% with rebuy_duplo_count=entry.get_rebuy_duplo_count %}
+                                                <span class="badge bg-warning rebuy-duplo-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY_DUPLO" style="{% if rebuy_duplo_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                    <span class="badge-text">{{ rebuy_duplo_count }}</span>
+                                                    <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
+                                                </span>
+                                                {% endwith %}
+                                            </button>
+                                        </td>
+                                        {% endif %}
+                                        {% if tournament.permite_addon %}
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-info addon-btn"
+                                                    data-tournament-id="{{ tournament.id }}"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}"
+                                                    data-tipo="ADDON"
+                                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                                <i class="bi bi-plus-lg"></i>
+                                                {% with addon_count=entry.get_addon_count %}
+                                                <span class="badge bg-info addon-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="ADDON" style="{% if addon_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                    <span class="badge-text">{{ addon_count }}</span>
+                                                    <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
+                                                </span>
+                                                {% endwith %}
+                                            </button>
+                                        </td>
+                                        {% endif %}
+                                        {% if tournament.timechip_chips %}
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-success timechip-btn"
+                                                    data-tournament-id="{{ tournament.id }}"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}"
+                                                    data-tipo="TIME_CHIP"
+                                                    title="Time Chip - Jogador chegou a tempo"
+                                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                                <i class="bi bi-clock-fill"></i>
+                                                {% with timechip_count=entry.get_timechip_count %}
+                                                <span class="badge bg-success timechip-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="TIME_CHIP" style="{% if timechip_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                    <span class="badge-text">{{ timechip_count }}</span>
+                                                    <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
+                                                </span>
+                                                {% endwith %}
+                                            </button>
+                                        </td>
+                                        {% endif %}
                                         <td class="text-center">
                                             <div class="form-check form-switch d-inline-block">
                                                 <input class="form-check-input" type="checkbox" name="conf_admin_{{ entry.id }}" 
@@ -93,7 +216,7 @@
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="4" class="text-center py-5 text-muted">
+                                        <td colspan="5" class="text-center py-5 text-muted">
                                             Nenhum jogador inscrito neste torneio.
                                         </td>
                                     </tr>
@@ -133,7 +256,7 @@
                         
                         <div class="mb-3">
                             <label for="novo_player_id" class="form-label fw-bold">Selecione o Jogador</label>
-                            <select class="form-select" name="novo_player_id" id="novo_player_id" {% if edicao_bloqueada %}disabled{% endif %}>
+                            <select class="form-select" name="novo_player_id" id="novo_player_id" {% if entrada_bloqueada %}disabled{% endif %}>
                                 <option value="">Buscar jogador...</option>
                                 {% for p in players_disponiveis %}
                                     <option value="{{ p.id }}">{{ p.nome }} {% if p.apelido %}({{ p.apelido }}){% endif %}</option>
@@ -141,10 +264,14 @@
                             </select>
                         </div>
 
-                        <div class="d-grid">
+                        <div class="d-grid gap-2">
                             <button type="submit" name="add_player" class="btn btn-success fw-bold"
-                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                    {% if entrada_bloqueada %}disabled{% endif %}>
                                 <i class="bi bi-plus-lg"></i> Adicionar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovoJogador"
+                                    {% if edicao_bloqueada %}disabled{% endif %}>
+                                <i class="bi bi-person-check"></i> Criar Novo Jogador
                             </button>
                         </div>
                     </div>
@@ -154,4 +281,554 @@
         </div>
     </form>
 </div>
+
+<!-- Modal para Adicionar Produtos -->
+<div class="modal fade" id="produtosModal" tabindex="-1" aria-labelledby="produtosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="produtosModalLabel">
+                    <i class="bi bi-gift"></i> Adicionar Produtos - <span id="playerNameModal"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Selecione os produtos que este jogador adquiriu
+                </div>
+                <form id="productForm" method="POST" action="{% url 'tournament_entries_manage' tournament.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="add_products" value="1">
+                    <input type="hidden" id="playerId" name="player_id" value="">
+                    
+                    <div class="row g-3">
+                        {% for product in products %}
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input product-checkbox" 
+                                    type="checkbox" 
+                                    name="products" 
+                                    value="{{ product.id }}" 
+                                    id="product_{{ product.id }}"
+                                    data-product-name="{{ product.nome }}"
+                                    data-product-price="{{ product.valor }}">
+                                <label class="form-check-label w-100" for="product_{{ product.id }}">
+                                    <div class="fw-bold">{{ product.nome }}</div>
+                                    <small class="text-muted">R$ {{ product.valor|floatformat:2 }}</small>
+                                    {% if product.descricao %}
+                                        <div class="small text-muted">{{ product.descricao }}</div>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Total de Produtos:</h6>
+                            <span class="badge bg-primary fs-6" id="totalProducts">R$ 0,00</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="productForm" class="btn btn-success">
+                    <i class="bi bi-plus-lg"></i> Adicionar Produtos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('produtosModal');
+    const playerId = document.getElementById('playerId');
+    const playerNameModal = document.getElementById('playerNameModal');
+    const productCheckboxes = document.querySelectorAll('.product-checkbox');
+    const totalProducts = document.getElementById('totalProducts');
+
+    // Atualizar total quando checkbox é clicado
+    productCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateTotal();
+        });
+    });
+
+    function updateTotal() {
+        let total = 0;
+        productCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                total += parseFloat(checkbox.dataset.productPrice) || 0;
+            }
+        });
+        totalProducts.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+    }
+
+    // Quando o modal é aberto
+    modal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const id = button.dataset.playerId;
+        const name = button.dataset.playerName;
+        
+        playerId.value = id;
+        playerNameModal.textContent = name;
+
+        // Desmarcar todos os checkboxes
+        productCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        updateTotal();
+    });
+});
+</script>
+
+<!-- MODAL: Criar Novo Jogador -->
+<div class="modal fade" id="modalNovoJogador" tabindex="-1" aria-labelledby="modalNovoJogadorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalNovoJogadorLabel">
+                    <i class="bi bi-person-plus-fill"></i> Novo Jogador
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNovoJogador">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="inputNomeJogador" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="inputNomeJogador" name="nome" 
+                               placeholder="Ex: João da Silva" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inputApelidoJogador" class="form-label">Apelido (Como será chamado)</label>
+                        <input type="text" class="form-control" id="inputApelidoJogador" name="apelido" 
+                               placeholder="Ex: João">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="inputCpfJogador" class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="inputCpfJogador" name="cpf" 
+                                   placeholder="000.000.000-00">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inputTelefoneJogador" class="form-label">Telefone / WhatsApp</label>
+                            <input type="tel" class="form-control" id="inputTelefoneJogador" name="telefone" 
+                                   placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+
+                    <div class="mb-4 pt-2 border-top">
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" id="inputCriarUsuario" name="criar_usuario">
+                            <label class="form-check-label fw-bold" for="inputCriarUsuario">
+                                Criar usuário de acesso?
+                            </label>
+                            <div class="form-text">Deixe desmarcado se for apenas um jogador de passagem.</div>
+                        </div>
+                    </div>
+
+                    <div id="camposUsuario" style="display: none;">
+                        <div class="mb-3">
+                            <label for="inputUsernameJogador" class="form-label">
+                                Username
+                            </label>
+                            <input type="text" class="form-control" id="inputUsernameJogador" name="username" 
+                                   placeholder="Ex: joao_silva">
+                            <small class="form-text text-muted">Identificador único para login (sem espaços)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputEmailJogador" class="form-label">
+                                Email
+                            </label>
+                            <input type="email" class="form-control" id="inputEmailJogador" name="email" 
+                                   placeholder="Ex: joao@email.com">
+                            <small class="form-text text-muted">Para login e notificações</small>
+                        </div>
+                    </div>
+
+                    <div id="alertErroJogador" class="alert alert-danger d-none" role="alert"></div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </button>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold rounded-pill" id="btnCriarJogador">
+                        SALVAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Modal de Criar Novo Jogador
+const toggleCriarUsuario = document.getElementById('inputCriarUsuario');
+const camposUsuario = document.getElementById('camposUsuario');
+
+// Mostrar/esconder campos de usuário quando checkbox muda
+toggleCriarUsuario.addEventListener('change', function() {
+    if (this.checked) {
+        camposUsuario.style.display = 'block';
+        document.getElementById('inputUsernameJogador').focus();
+    } else {
+        camposUsuario.style.display = 'none';
+        document.getElementById('inputUsernameJogador').value = '';
+        document.getElementById('inputEmailJogador').value = '';
+    }
+});
+
+document.getElementById('formNovoJogador').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const nome = document.getElementById('inputNomeJogador').value.trim();
+    const apelido = document.getElementById('inputApelidoJogador').value.trim();
+    const cpf = document.getElementById('inputCpfJogador').value.trim();
+    const telefone = document.getElementById('inputTelefoneJogador').value.trim();
+    const criarUsuario = document.getElementById('inputCriarUsuario').checked;
+    const username = document.getElementById('inputUsernameJogador').value.trim();
+    const email = document.getElementById('inputEmailJogador').value.trim();
+    const alertError = document.getElementById('alertErroJogador');
+    const btnCriar = document.getElementById('btnCriarJogador');
+    
+    // Limpar alerta
+    alertError.classList.add('d-none');
+    alertError.innerHTML = '';
+    
+    // Validação básica - apenas Nome é obrigatório
+    if (!nome) {
+        alertError.innerHTML = '<i class="bi bi-exclamation-circle"></i> Por favor, preencha o nome do jogador.';
+        alertError.classList.remove('d-none');
+        return;
+    }
+
+    // Se vai criar usuário, validar os campos
+    if (criarUsuario) {
+        if (!username || !email) {
+            alertError.innerHTML = '<i class="bi bi-exclamation-circle"></i> Para criar usuário, preencha username e email.';
+            alertError.classList.remove('d-none');
+            return;
+        }
+
+        if (username.includes(' ')) {
+            alertError.innerHTML = '<i class="bi bi-exclamation-circle"></i> Username não pode conter espaços.';
+            alertError.classList.remove('d-none');
+            return;
+        }
+    }
+
+    btnCriar.disabled = true;
+    btnCriar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SALVANDO...';
+
+    try {
+        const response = await fetch('{% url "player_create_quick" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                nome: nome,
+                apelido: apelido || null,
+                cpf: cpf || null,
+                telefone: telefone || null,
+                username: criarUsuario ? username : null,
+                email: criarUsuario ? email : null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Adicionar novo jogador ao select
+            const select = document.getElementById('novo_player_id');
+            const option = document.createElement('option');
+            option.value = data.player_id;
+            option.textContent = data.player_nome + (data.player_apelido ? ' (' + data.player_apelido + ')' : '');
+            select.appendChild(option);
+            
+            // Selecionar o novo jogador
+            select.value = data.player_id;
+            
+            // Fechar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNovoJogador'));
+            modal.hide();
+            
+            // Resetar formulário
+            document.getElementById('formNovoJogador').reset();
+            toggleCriarUsuario.checked = false;
+            camposUsuario.style.display = 'none';
+            
+            // Mostrar mensagem de sucesso
+            const successAlert = document.createElement('div');
+            successAlert.className = 'alert alert-success alert-dismissible fade show';
+            const userInfo = data.tem_usuario ? ' (com acesso de login)' : ' (jogador de passagem)';
+            successAlert.innerHTML = `
+                <i class="bi bi-check-circle-fill"></i> Jogador <strong>${data.player_nome}</strong> criado com sucesso${userInfo}! 
+                Clique em "Adicionar" para adicioná-lo ao torneio.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('form'));
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => successAlert.remove(), 5000);
+        } else {
+            alertError.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${data.error || 'Erro ao criar jogador.'}`;
+            alertError.classList.remove('d-none');
+        }
+    } catch (error) {
+        alertError.innerHTML = '<i class="bi bi-exclamation-circle"></i> Erro ao criar jogador. Tente novamente.';
+        alertError.classList.remove('d-none');
+        console.error('Erro:', error);
+    } finally {
+        btnCriar.disabled = false;
+        btnCriar.innerHTML = 'SALVAR';
+    }
+});
+
+// ============================================================
+// REBUY E ADD-ON BUTTONS - COM DELEGAÇÃO DE EVENTO
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Procurar todos os botões
+    const rebuBtns = document.querySelectorAll('button.rebuy-btn');
+    const rebuyDuploBtns = document.querySelectorAll('button.rebuy-duplo-btn');
+    const addonBtns = document.querySelectorAll('button.addon-btn');
+    const timeChipBtns = document.querySelectorAll('button.timechip-btn');
+    
+    // Adicionar listeners a cada botão
+    [...rebuBtns, ...rebuyDuploBtns, ...addonBtns, ...timeChipBtns].forEach((btn) => {
+        btn.addEventListener('click', handleRebuyAddonClick);
+    });
+    
+    // Adicionar listeners aos badges com X (remover)
+    document.querySelectorAll('.badge-with-remove').forEach((badge) => {
+        badge.addEventListener('click', handleRemoveBadgeClick);
+    });
+});
+
+async function handleRemoveBadgeClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Se clicou no X, remover
+    if (!e.target.closest('.badge-remove')) {
+        return;
+    }
+    
+    const badge = this;
+    const playerId = badge.dataset.playerId;
+    const tournamentId = badge.dataset.tournamentId;
+    const tipo = badge.dataset.tipo;
+    
+    try {
+        const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/remove/`;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const payload = {
+            player_id: parseInt(playerId),
+            tipo: tipo
+        };
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Atualizar badge com nova quantidade
+            const badgeTextEl = badge.querySelector('.badge-text');
+            if (badgeTextEl) {
+                if (data.quantidade > 0) {
+                    badgeTextEl.textContent = data.quantidade;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.error || 'Erro ao remover', 'danger');
+        }
+    } catch (error) {
+        showNotification('Erro: ' + error.message, 'danger');
+    }
+}
+
+async function handleRebuyAddonClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const btn = this;
+    const tournamentId = btn.dataset.tournamentId;
+    const playerId = btn.dataset.playerId;
+    const playerName = btn.dataset.playerName;
+    const tipo = btn.dataset.tipo;
+    
+    if (!tournamentId || !playerId || !tipo) {
+        alert('Erro: Dados incompletos');
+        return;
+    }
+    
+    // Salvar todos os ícones originais (pode haver múltiplos para rebuy duplo)
+    const originalIcons = btn.querySelectorAll('i');
+    const originalIconsHTML = Array.from(originalIcons).map(i => i.outerHTML).join('');
+    
+    // Desabilitar botão e mostrar spinner
+    btn.disabled = true;
+    const spinner = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    // Manter os badges existentes
+    const badgesHTML = Array.from(btn.querySelectorAll('.badge'))
+        .map(badge => badge.outerHTML)
+        .join('');
+    
+    btn.innerHTML = spinner + badgesHTML;
+    
+    try {
+        const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/`;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const payload = {
+            player_id: parseInt(playerId),
+            tipo: tipo
+        };
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Atualizar contador
+            let counterClass;
+            if (tipo === 'REBUY') {
+                counterClass = `rebuy-count-${playerId}`;
+            } else if (tipo === 'REBUY_DUPLO') {
+                counterClass = `rebuy-duplo-count-${playerId}`;
+            } else if (tipo === 'ADDON') {
+                counterClass = `addon-count-${playerId}`;
+            } else if (tipo === 'TIME_CHIP') {
+                counterClass = `timechip-count-${playerId}`;
+            }
+            
+            let counter = document.querySelector(`.${counterClass}`);
+            
+            if (counter) {
+                // Atualizar badge existente
+                counter.textContent = data.quantidade;
+                counter.style.display = 'inline-block';
+            } else {
+                // Criar badge se não existir
+                const buttonSelector = tipo === 'REBUY' ? '.rebuy-btn' : 
+                                       tipo === 'REBUY_DUPLO' ? '.rebuy-duplo-btn' : 
+                                       tipo === 'ADDON' ? '.addon-btn' :
+                                       '.timechip-btn';
+                
+                const buttons = document.querySelectorAll(`button${buttonSelector}[data-player-id="${playerId}"]`);
+                
+                if (buttons.length > 0) {
+                    const button = buttons[0];
+                    counter = button.querySelector(`.${counterClass}`);
+                    
+                    if (!counter) {
+                        counter = document.createElement('span');
+                        const isAddon = tipo === 'ADDON';
+                        const bgClass = isAddon ? 'bg-info' : 'bg-warning';
+                        const bgColor = isAddon ? '#0dcaf0' : '#ffc107';
+                        
+                        counter.className = `badge ${bgClass} ${counterClass}`;
+                        counter.textContent = data.quantidade;
+                        counter.setAttribute('data-debug', 'novo-badge');
+                        
+                        // Aplicar estilos
+                        Object.assign(counter.style, {
+                            display: 'inline-block',
+                            marginLeft: '4px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            padding: '2px 6px',
+                            borderRadius: '10px',
+                            minWidth: '20px',
+                            textAlign: 'center',
+                            color: '#fff',
+                            backgroundColor: bgColor,
+                            border: 'none',
+                            whiteSpace: 'nowrap',
+                            visibility: 'visible',
+                            opacity: '1'
+                        });
+                        
+                        button.appendChild(counter);
+                    } else {
+                        counter.textContent = data.quantidade;
+                        counter.style.display = 'inline-block';
+                    }
+                } else {
+                    console.warn(`Nenhum botão encontrado para player ${playerId} com tipo ${tipo}`);
+                }
+            }
+            
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.error || 'Erro ao adicionar', 'danger');
+        }
+    } catch (error) {
+        showNotification('Erro: ' + error.message, 'danger');
+    } finally {
+        // Restaurar botão com ícones + badges mantidos
+        const badgesHTML = Array.from(btn.querySelectorAll('.badge'))
+            .map(badge => badge.outerHTML)
+            .join('');
+        
+        btn.disabled = false;
+        btn.innerHTML = originalIconsHTML + badgesHTML;
+    }
+}
+
+function showNotification(message, type) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.style.margin = '10px';
+    alert.innerHTML = `
+        <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle'}"></i> 
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Adicionar ao body - simples e seguro
+    document.body.appendChild(alert);
+    
+    // Auto-remover após 4 segundos
+    setTimeout(() => {
+        try {
+            alert.remove();
+        } catch (e) {
+        }
+    }, 4000);
+}
+</script>
+
 {% endblock %}

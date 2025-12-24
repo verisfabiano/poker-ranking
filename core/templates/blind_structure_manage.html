@@ -69,6 +69,12 @@
                                 </td>
 
                                 <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-sm btn-outline-primary border-0 me-2" 
+                                            data-bs-toggle="modal" data-bs-target="#editModal"
+                                            onclick="editLevel({{ level.id }}, {{ level.small_blind }}, {{ level.big_blind }}, {{ level.ante }}, {{ level.tempo_minutos }}, {{ level.is_break|lower }})"
+                                            title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     <form method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este nível?');">
                                         {% csrf_token %}
                                         <input type="hidden" name="delete_level" value="1">
@@ -152,6 +158,73 @@
     </div>
 </div>
 
+<!-- Modal de Edição -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Editar Nível
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="editForm">
+                {% csrf_token %}
+                <input type="hidden" name="edit_level" value="1">
+                <input type="hidden" name="level_id" id="editLevelId">
+                
+                <div class="modal-body">
+                    <div class="card border-warning mb-3">
+                        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between bg-white rounded">
+                            <label class="form-check-label fw-bold text-dark" for="editIsBreak">
+                                <i class="bi bi-cup-hot me-1"></i> É Intervalo?
+                            </label>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="editIsBreak" name="is_break" style="width: 3em; height: 1.5em;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="editBlindInputs">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Small Blind</label>
+                                <input type="number" name="small_blind" id="editSmallBlind" class="form-control fw-bold" value="0">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">Big Blind</label>
+                                <input type="number" name="big_blind" id="editBigBlind" class="form-control fw-bold" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Ante (Big Blind Ante)</label>
+                            <input type="number" name="ante" id="editAnte" class="form-control" value="0">
+                        </div>
+                        <hr class="text-muted">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Duração (Minutos)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-clock"></i></span>
+                            <input type="number" name="tempo" id="editTempo" class="form-control" value="20" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .transition-fade {
         transition: all 0.3s ease-in-out;
@@ -167,20 +240,52 @@
 </style>
 
 <script>
+    // Formulário de adição
     const breakCheck = document.getElementById('is_break');
     const blindInputs = document.getElementById('blind-inputs');
     const smallBlindInput = document.querySelector('input[name="small_blind"]');
     const bigBlindInput = document.querySelector('input[name="big_blind"]');
 
-    breakCheck.addEventListener('change', function() {
-        if(this.checked) {
-            blindInputs.classList.add('hidden-blinds');
-            // Zera valores visuais para indicar que não serão usados
-            smallBlindInput.value = 0;
-            bigBlindInput.value = 0;
+    if (breakCheck) {
+        breakCheck.addEventListener('change', function() {
+            if(this.checked) {
+                blindInputs.classList.add('hidden-blinds');
+                smallBlindInput.value = 0;
+                bigBlindInput.value = 0;
+            } else {
+                blindInputs.classList.remove('hidden-blinds');
+            }
+        });
+    }
+
+    // Funções para modal de edição
+    function editLevel(id, sb, bb, ante, tempo, isBreak) {
+        document.getElementById('editLevelId').value = id;
+        document.getElementById('editSmallBlind').value = sb;
+        document.getElementById('editBigBlind').value = bb;
+        document.getElementById('editAnte').value = ante;
+        document.getElementById('editTempo').value = tempo;
+        document.getElementById('editIsBreak').checked = isBreak === 'true';
+        
+        // Aplicar estado correto dos blinds inputs
+        updateEditBlindInputsVisibility();
+    }
+
+    const editBreakCheck = document.getElementById('editIsBreak');
+    const editBlindInputs = document.getElementById('editBlindInputs');
+    const editSmallBlind = document.getElementById('editSmallBlind');
+    const editBigBlind = document.getElementById('editBigBlind');
+
+    editBreakCheck.addEventListener('change', updateEditBlindInputsVisibility);
+
+    function updateEditBlindInputsVisibility() {
+        if(editBreakCheck.checked) {
+            editBlindInputs.classList.add('hidden-blinds');
+            editSmallBlind.value = 0;
+            editBigBlind.value = 0;
         } else {
-            blindInputs.classList.remove('hidden-blinds');
+            editBlindInputs.classList.remove('hidden-blinds');
         }
-    });
+    }
 </script>
 {% endblock %}

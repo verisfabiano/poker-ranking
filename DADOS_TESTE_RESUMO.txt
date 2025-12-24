@@ -1,0 +1,153 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   ✅ POPULAÇÃO DE DADOS DE TESTE - CONCLUÍDA                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📊 RESUMO DOS DADOS CRIADOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Clube/Tenant:          Clube Poker Teste
+✓ Jogadores:             15 (João, Pedro, Carlos, Lucas, Felipe, Marcos, Diego, 
+                             Bruno, Rafael, Thiago, Gustavo, André, Tiago, Victor, 
+                             Fabiano)
+✓ Temporadas:            2 (Temporada 2024 | Temporada 2025)
+✓ Torneios:              10 (5 por temporada)
+✓ Resultados:            114 (posições finais em todos os torneios)
+✓ Prêmios Distribuídos:  R$ 11.500,00
+✓ Estatísticas:          30 registros de PlayerStatistics
+
+🎰 TORNEIOS CRIADOS (POR TEMPORADA):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cada temporada possui:
+  1. Semanal #1 - Quarta       (8-15 inscritos)
+  2. Semanal #2 - Sexta        (12-15 inscritos)
+  3. Especial Sábado           (11-12 inscritos)
+  4. Torneio da Casa           (8-9 inscritos)
+  5. Mega Torneio              (8-13 inscritos)
+
+Todas com:
+  • Buy-in: R$ 100,00
+  • Rake: R$ 10,00 (fixo)
+  • Rebuy: Habilitado (40% dos jogadores fazem)
+  • Add-on: Habilitado (30% dos jogadores fazem)
+  • Prêmios: Distribuídos por posição (1º=R$500, 2º=R$300, 3º=R$150, 4-5º=R$100)
+
+🏆 TOP 5 JOGADORES (TEMPORADA 2025):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ 1. Diego      | 27 pts | 4 torneios | 1 vitória | ROI: 80.0%  | ITM: 75.0%
+ 2. Rafa       | 26 pts | 5 torneios | 1 vitória | ROI: -16.7% | ITM: 60.0%
+ 3. Vitão      | 22 pts | 4 torneios | 1 vitória | ROI: 14.3%  | ITM: 50.0%
+ 4. Charlie    | 20 pts | 3 torneios | 0 vitórias| ROI: -25.0% | ITM: 66.7%
+ 5. Pedoca     | 19 pts | 4 torneios | 1 vitória | ROI: 16.7%  | ITM: 75.0%
+
+🌐 URLs DE ACESSO AO SISTEMA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RANKING:
+  http://localhost:8000/ranking/          - Ranking Geral (todas temporadas)
+  http://localhost:8000/ranking/10/       - Ranking 2024
+  http://localhost:8000/ranking/11/       - Ranking 2025
+  
+RANKING AVANÇADO:
+  http://localhost:8000/ranking/10/avancado/    - Com estatísticas detalhadas (2024)
+  http://localhost:8000/ranking/11/avancado/    - Com estatísticas detalhadas (2025)
+
+FINANCEIRO:
+  http://localhost:8000/financeiro/dashboard/   - Dashboard financeiro geral
+
+DETALHES DOS TORNEIOS:
+  http://localhost:8000/torneio/1/financeiro/   - Detalhes Torneio 1
+  http://localhost:8000/torneio/2/financeiro/   - Detalhes Torneio 2
+  (Use IDs 1-10 para acessar os 10 torneios criados)
+
+📝 SCRIPTS DISPONÍVEIS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. populate_test_data.py
+   └─ Popula todos os dados de teste (Temporadas, Torneios, Jogadores, Resultados)
+      $ python populate_test_data.py
+
+2. show_test_data.py
+   └─ Exibe resumo completo dos dados populados
+      $ python show_test_data.py
+
+3. rebuild_ranking.py
+   └─ Reconstrói o ranking (idempotente, seguro rodar múltiplas vezes)
+      $ python rebuild_ranking.py
+
+4. debug_ranking.py
+   └─ Debuga cálculos de ranking e pontos
+      $ python debug_ranking.py
+
+🎯 O QUE VOCÊ PODE TESTAR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ RANKING SYSTEM
+   • Pontos calculados corretamente (modo DINÂMICO)
+   • Fórmula: (buy-in / 10) × posição_mult × torneio_mult
+   • Exibição correta de Top 1, 3, 5
+   • Cálculo de ROI (Return on Investment)
+   • Cálculo de Taxa ITM (In The Money)
+
+✅ FINANCIAL DASHBOARD
+   • Entradas = Buy-in + Rebuy + Add-on + Rake
+   • Saídas = Prêmios Pagos
+   • Resultado = Entradas - Saídas (lucro/prejuízo)
+   • Detalhamento por torneio
+
+✅ TOURNAMENT MANAGEMENT
+   • Exibição de torneios por temporada
+   • Buy-in, Rebuy, Add-on controlados
+   • Posições finais registradas
+   • Prêmios distribuídos corretamente
+
+✅ PLAYER STATISTICS
+   • Total de participações
+   • Contagem de vitórias
+   • Posicionamentos top 3 e top 5
+   • Cálculos de ROI e ITM
+   • Média de pontos por torneio
+
+🔧 DETALHES TÉCNICOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Configuração das Temporadas:
+  • Tipo de cálculo: DINÂMICO (baseado em buy-in e posição)
+  • Pontos fixos não usados (apenas para referência)
+  • Dados reais coletados em 10 torneios
+
+Estrutura de Blinds:
+  • 10 níveis de blinds + 1 intervalo
+  • Duração: 20 minutos por nível
+  • Progressão: 10/20 → 3200/6400
+
+Configuração Financeira:
+  • Rake fixo de R$ 10,00 por buy-in
+  • Rebuy e Add-on habilitados em todos os torneios
+  • Prêmios escalonados (1º maior, diminui conforme posição piora)
+
+💡 PRÓXIMOS PASSOS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Explore os URLs de ranking para verificar pontos
+2. Acesse o dashboard financeiro para ver receitas/despesas
+3. Teste o ranking avançado com estatísticas completas
+4. Verifique detalhes dos torneios individuais
+5. Use os scripts de debug se precisar investigar problemas
+
+📖 DOCUMENTAÇÃO COMPLETA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Veja GUIA_DADOS_TESTE.md para documentação completa com:
+  • Tabelas de jogadores e torneios
+  • Top 10 de cada temporada
+  • URLs específicas para cada recurso
+  • Como usar os dados para testes
+  • Troubleshooting
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                   ✨ PRONTO!                                 ║
+║                      Seus dados estão prontos para teste                    ║
+║                   Acesse http://localhost:8000/ranking/                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝

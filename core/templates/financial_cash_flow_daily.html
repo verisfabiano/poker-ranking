@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Saldo de Caixa - Fluxo Diário{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+        <div>
+            <h2 class="mb-0">💵 Saldo de Caixa - Fluxo Diário</h2>
+            <small class="text-muted">Acompanhamento dia-a-dia: Entradas vs Saídas</small>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 dias</a>
+            <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30 dias</a>
+            <a href="?days=90" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90 dias</a>
+        </div>
+    </div>
+
+    <!-- RESUMO GERAL -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Entradas Totais</h6>
+                    <h2 class="display-6 fw-bold mb-0">
+                        R$ {% load humanize %}
+                        {% for day_data in daily_cash_flow.values %}
+                            {% if forloop.first %}{{ day_data.total_entrada|floatformat:2 }}{% endif %}
+                        {% endfor %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Saídas Totais</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ 0,00</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Saldo Líquido</h6>
+                    <h2 class="display-6 fw-bold mb-0">R$ {{ saldo_final|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-secondary text-white">
+                <div class="card-body">
+                    <h6 class="card-title opacity-75">Período</h6>
+                    <p class="mb-0 small">{{ date_from|date:"d/m" }} a {{ date_to|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABELA DE FLUXO DIÁRIO -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Fluxo de Caixa Diário</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th class="text-center">Torneios</th>
+                        <th class="text-end">Entradas</th>
+                        <th class="text-end">Saídas</th>
+                        <th class="text-end">Saldo do Dia</th>
+                        <th class="text-end">Saldo Acumulado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day_iso, day_data in daily_cash_flow.items %}
+                    <tr>
+                        <td>
+                            <strong>{{ day_data.date|date:"d/m/Y" }}</strong><br>
+                            <small class="text-muted">{{ day_data.date|date:"l" }}</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ day_data.tournaments|length }}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="text-success fw-bold">+ R$ {{ day_data.total_entrada|floatformat:2 }}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="text-danger">- R$ {{ day_data.total_saida|floatformat:2 }}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge {% if day_data.saldo_dia >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                R$ {{ day_data.saldo_dia|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td class="text-end fw-bold">
+                            <span class="{% if day_data.saldo_acumulado >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                R$ {{ day_data.saldo_acumulado|floatformat:2 }}
+                            </span>
+                        </td>
+                    </tr>
+                    
+                    <!-- Detalhe dos torneios do dia -->
+                    {% if day_data.tournaments %}
+                        {% for tournament_data in day_data.tournaments %}
+                        <tr class="table-light">
+                            <td colspan="2" class="ps-4">
+                                <small class="text-muted">📌 {{ tournament_data.tournament.nome }}</small>
+                            </td>
+                            <td class="text-end small">
+                                <span class="text-success">+ R$ {{ tournament_data.entrada|floatformat:2 }}</span>
+                            </td>
+                            <td class="text-end small">
+                                <span class="text-danger">- R$ {{ tournament_data.saida|floatformat:2 }}</span>
+                            </td>
+                            <td class="text-end small">
+                                <span class="{% if tournament_data.saldo >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    R$ {{ tournament_data.saldo|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox"></i> Nenhum torneio neste período
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-body h2 {
+        font-size: 1.8rem;
+    }
+</style>
+{% endblock %}

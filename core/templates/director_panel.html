@@ -13,6 +13,14 @@
         <div class="d-flex gap-2">
             <a href="{% url 'season_tournaments' tournament.season.id %}" class="btn btn-outline-secondary">Sair</a>
             
+            <a href="{% url 'tournament_entries_manage' tournament.id %}" class="btn btn-outline-primary" title="Gerenciar Jogadores">
+                <i class="bi bi-people"></i> Jogadores
+            </a>
+
+            <a href="{% url 'prize_distribution' tournament.id %}" class="btn btn-outline-warning" title="Distribuir Prêmios">
+                <i class="bi bi-gift"></i> Prêmios
+            </a>
+            
             <a href="{% url 'tv_dashboard' tournament.id %}" target="_blank" class="btn btn-primary">
                 <i class="bi bi-display"></i> Abrir Telão TV
             </a>
@@ -91,20 +99,33 @@
         <div class="col-md-4">
             <div class="card p-3 border-0 shadow-sm">
                 <div class="text-muted small uppercase">Mesas Ativas</div>
-                <div class="h2 fw-bold mb-0">{{ tournament.active_tables }}</div>
+                <div class="h2 fw-bold mb-0">{{ tournament.get_active_tables_count }}</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card p-3 border-0 shadow-sm">
                 <div class="text-muted small uppercase">Stack Médio</div>
-                <div class="h2 fw-bold mb-0">--</div> </div>
+                <div class="h2 fw-bold mb-0">{{ tournament.get_average_stack|floatformat:0 }}</div>
+            </div>
         </div>
         <div class="col-md-4">
             <div class="card p-3 border-0 shadow-sm">
                 <div class="text-muted small uppercase">Jogadores</div>
-                <div class="h2 fw-bold mb-0">{{ tournament.entries.count }}</div>
+                <div class="h2 fw-bold mb-0">{{ tournament.get_active_players_count }}</div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Auto-refresh da página a cada 5 segundos enquanto o torneio estiver rodando
+    const tournamentStatus = "{{ tournament.status }}";
+    const isPaused = {% if tournament.is_paused %}true{% else %}false{% endif %};
+    
+    if (tournamentStatus === "EM_ANDAMENTO" && !isPaused) {
+        setInterval(function() {
+            location.reload();
+        }, 5000); // Recarrega a cada 5 segundos
+    }
+</script>
 {% endblock %}

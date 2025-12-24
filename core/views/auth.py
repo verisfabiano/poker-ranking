@@ -15,8 +15,8 @@ def is_admin(user):
 def is_player(user):
     return user.is_authenticated and not (user.is_staff or user.is_superuser)
 
-admin_required = user_passes_test(is_admin, login_url="player_login")
-player_required = user_passes_test(is_player, login_url="player_login")
+admin_required = user_passes_test(is_admin, login_url="login")
+player_required = user_passes_test(is_player, login_url="login")
 
 @login_required
 def home_redirect(request):
@@ -36,9 +36,19 @@ def player_login(request):
         if login_input:
             user_obj = User.objects.filter(email__iexact=login_input).first()
             if user_obj:
-                user = authenticate(request, username=user_obj.username, password=senha)
+                user = authenticate(
+                    request,
+                    username=user_obj.username,
+                    password=senha,
+                    backend='django.contrib.auth.backends.ModelBackend'
+                )
             else:
-                user = authenticate(request, username=login_input, password=senha)
+                user = authenticate(
+                    request,
+                    username=login_input,
+                    password=senha,
+                    backend='django.contrib.auth.backends.ModelBackend'
+                )
 
         if user is not None:
             login(request, user)

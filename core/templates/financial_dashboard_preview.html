@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro - Preview</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0">💰 Painel Financeiro</h2>
+                <small class="text-muted">Últimos 30 dias</small>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-sm btn-outline-primary">7 dias</button>
+                <button class="btn btn-sm btn-primary">30 dias</button>
+                <button class="btn btn-sm btn-outline-primary">90 dias</button>
+                <button class="btn btn-sm btn-outline-secondary">Custom</button>
+            </div>
+        </div>
+
+        <!-- CARDS DE RESUMO - NOVO LAYOUT -->
+        <div class="row g-3 mb-4">
+            <!-- Card 1: Torneios -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                    <div class="card-body">
+                        <h6 class="card-title opacity-75 small">Torneios</h6>
+                        <h2 class="fw-bold mb-0">2</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Faturamento Bruto com Explicação e Valores Adicionais -->
+            <div class="col-lg-9">
+                <div class="card border-0 shadow-sm bg-success text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <h6 class="card-title opacity-75 small">Faturamento Bruto</h6>
+                                <h2 class="fw-bold mb-3">R$ 5470.00</h2>
+                                <small class="opacity-75">
+                                    💡 Inclui: Buy-in + Rebuys + Add-ons + Staff/Taxa obrigatória
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="mb-3">
+                                    <small class="opacity-75 d-block">Premiação Paga</small>
+                                    <h5 class="fw-bold">R$ 5020.00</h5>
+                                </div>
+                                <div>
+                                    <small class="opacity-75 d-block">Lucro Bruto</small>
+                                    <h5 class="fw-bold text-success">R$ 450.00</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABELA DE TORNEIOS - NOVO LAYOUT COM MAIS DETALHES -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">Detalhes por Torneio</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Torneio</th>
+                            <th class="text-center">Jog.</th>
+                            <th class="text-end">Buy-in</th>
+                            <th class="text-center">Rebuys</th>
+                            <th class="text-center">Add-ons</th>
+                            <th class="text-end">Staff</th>
+                            <th class="text-end">Rake</th>
+                            <th class="text-end" style="background-color: #f0f9ff;"><strong>Faturamento</strong></th>
+                            <th class="text-end">Premiação</th>
+                            <th class="text-end" style="background-color: #f0f9ff;"><strong>Lucro</strong></th>
+                            <th class="text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="small">
+                                <strong>19/12/2025</strong>
+                                <br><small class="text-muted">07:23</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">QUINTA INSACA</div>
+                                <small class="text-muted">Temporada Teste</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">10</span>
+                            </td>
+                            <td class="text-end font-monospace">
+                                R$ 1000.00
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success">12x</span>
+                                <br><small class="text-muted">R$ 3170.00</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info">9x</span>
+                                <br><small class="text-muted">R$ 1000.00</small>
+                            </td>
+                            <td class="text-end font-monospace text-muted small">
+                                R$ 300.00
+                            </td>
+                            <td class="text-end font-monospace text-warning">
+                                R$ 775.50
+                            </td>
+                            <td class="text-end font-monospace fw-bold" style="background-color: #f0f9ff;">
+                                R$ 5470.00
+                            </td>
+                            <td class="text-end font-monospace text-info">
+                                R$ 5020.00
+                            </td>
+                            <td class="text-end font-monospace fw-bold" style="background-color: #f0f9ff;">
+                                <span class="text-success">R$ 450.00</span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary" title="Detalhes">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="small">
+                                <strong>18/12/2025</strong>
+                                <br><small class="text-muted">19:30</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold">Quinta Maluca</div>
+                                <small class="text-muted">Temporada Teste</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">6</span>
+                            </td>
+                            <td class="text-end font-monospace">
+                                R$ 0.00
+                            </td>
+                            <td class="text-center">
+                                <span class="text-muted">-</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="text-muted">-</span>
+                            </td>
+                            <td class="text-end font-monospace text-muted small">
+                                -
+                            </td>
+                            <td class="text-end font-monospace text-warning">
+                                R$ 0.00
+                            </td>
+                            <td class="text-end font-monospace fw-bold" style="background-color: #f0f9ff;">
+                                R$ 0.00
+                            </td>
+                            <td class="text-end font-monospace text-info">
+                                R$ 0.00
+                            </td>
+                            <td class="text-end font-monospace fw-bold" style="background-color: #f0f9ff;">
+                                <span class="text-success">R$ 0.00</span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary" title="Detalhes">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

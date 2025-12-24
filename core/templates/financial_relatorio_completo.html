@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório Financeiro Completo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- HEADER -->
+    <div class="mb-4 mt-3">
+        <h2 class="mb-3">📈 Relatório Financeiro Completo</h2>
+        
+        <!-- Filtro de Data -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Data Início</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date_str }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Data Fim</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date_str }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-2"></i> Filtrar
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Período: {{ start_date|date:"d/m/Y" }} a {{ end_date|date:"d/m/Y" }}</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPARATIVO: PERÍODO ATUAL vs ANTERIOR -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 Período Atual</h5>
+                    <small>{{ start_date|date:"d/m/Y" }} a {{ end_date|date:"d/m/Y" }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="text-muted small">Torneios</p>
+                            <h4>{{ totals_current.num_torneios }}</h4>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Jogadores</p>
+                            <h4>{{ totals_current.num_jogadores }}</h4>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p class="text-muted small">Faturamento Bruto</p>
+                            <h3 class="text-success fw-bold">R$ {{ totals_current.faturamento_bruto|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="text-muted small">Rake</p>
+                            <h5 class="text-warning">R$ {{ totals_current.rake_total|floatformat:2 }}</h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Margem</p>
+                            <h5>{{ totals_current.margem_percentual|floatformat:1 }}%</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="text-muted small">Premiações</p>
+                            <h5 class="text-danger">R$ {{ totals_current.premios_pagos|floatformat:2 }}</h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Saldo</p>
+                            <h5 class="{% if totals_current.saldo >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                R$ {{ totals_current.saldo|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">📊 Período Anterior</h5>
+                    <small>(Mesma duração para comparação)</small>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="text-muted small">Torneios</p>
+                            <h4>
+                                {{ totals_previous.num_torneios }}
+                                {% if variacao.torneios_pct != 0 %}
+                                    <span class="badge {% if variacao.torneios_pct >= 0 %}bg-success{% else %}bg-danger{% endif %} ms-2">
+                                        {{ variacao.torneios_pct|floatformat:0 }}%
+                                    </span>
+                                {% endif %}
+                            </h4>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Jogadores</p>
+                            <h4>
+                                {{ totals_previous.num_jogadores }}
+                                {% if variacao.jogadores_pct != 0 %}
+                                    <span class="badge {% if variacao.jogadores_pct >= 0 %}bg-success{% else %}bg-danger{% endif %} ms-2">
+                                        {{ variacao.jogadores_pct|floatformat:0 }}%
+                                    </span>
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p class="text-muted small">Faturamento Bruto</p>
+                            <h3 class="text-success fw-bold">
+                                R$ {{ totals_previous.faturamento_bruto|floatformat:2 }}
+                                {% if variacao.faturamento_pct != 0 %}
+                                    <span class="badge {% if variacao.faturamento_pct >= 0 %}bg-success{% else %}bg-danger{% endif %} ms-2">
+                                        {{ variacao.faturamento_pct|floatformat:0 }}%
+                                    </span>
+                                {% endif %}
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <p class="text-muted small">Rake</p>
+                            <h5 class="text-warning">R$ {{ totals_previous.rake_total|floatformat:2 }}</h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Margem</p>
+                            <h5>
+                                {{ totals_previous.margem_percentual|floatformat:1 }}%
+                                {% if variacao.margem_pct != 0 %}
+                                    <span class="badge {% if variacao.margem_pct >= 0 %}bg-success{% else %}bg-danger{% endif %} ms-2">
+                                        {{ variacao.margem_pct|floatformat:1 }}pp
+                                    </span>
+                                {% endif %}
+                            </h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="text-muted small">Premiações</p>
+                            <h5 class="text-danger">R$ {{ totals_previous.premios_pagos|floatformat:2 }}</h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted small">Saldo</p>
+                            <h5 class="{% if totals_previous.saldo >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                R$ {{ totals_previous.saldo|floatformat:2 }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETALHES DOS TORNEIOS -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Detalhes por Torneio ({{ tournaments_current|length }} torneios)</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data/Torneio</th>
+                        <th class="text-center">Jogadores</th>
+                        <th class="text-end">Faturamento</th>
+                        <th class="text-end">Rake</th>
+                        <th class="text-end">Premiações</th>
+                        <th class="text-end">Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tournament in tournaments_current %}
+                        {% with financeiro=tournament.financeiro %}
+                        <tr>
+                            <td>
+                                <strong>{{ tournament.data|date:"d/m/Y" }}</strong><br>
+                                <small class="text-muted">{{ tournament.nome }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ financeiro.count_players }}</span>
+                            </td>
+                            <td class="text-end text-success fw-bold">
+                                R$ {{ financeiro.faturamento_bruto_esperado|floatformat:2 }}
+                            </td>
+                            <td class="text-end text-warning">
+                                R$ {{ financeiro.rake_esperado|floatformat:2 }}
+                            </td>
+                            <td class="text-end text-danger">
+                                R$ {{ financeiro.premios_pagos|floatformat:2 }}
+                            </td>
+                            <td class="text-end">
+                                <span class="{% if financeiro.saldo >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                    R$ {{ financeiro.saldo|floatformat:2 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox"></i> Nenhum torneio neste período
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-header h5 {
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}

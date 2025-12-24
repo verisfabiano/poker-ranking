@@ -4,12 +4,12 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-0 text-dark fw-bold">💰 Caixa: {{ t.nome }}</h2>
+            <h2 class="mb-0 text-dark fw-bold">💰 Caixa: {{ tournament.nome }}</h2>
             <div class="text-muted small">
-                Buy-in: R$ {{ t.buy_in|floatformat:2 }} | Rebuy: R$ {{ t.rebuy_cost|floatformat:2 }} | Addon: R$ {{ t.addon_cost|floatformat:2 }}
+                Buy-in: R$ {{ tournament.buyin|floatformat:2 }} | Rebuy: R$ {{ tournament.rebuy_valor|floatformat:2 }} | Addon: R$ {{ tournament.addon_valor|floatformat:2 }}
             </div>
         </div>
-        <a href="{% url 'tournament_entries_manage' t.id %}" class="btn btn-outline-primary">
+        <a href="{% url 'tournament_entries_manage' tournament.id %}" class="btn btn-outline-primary">
             <i class="bi bi-people-fill"></i> Gerenciar Jogadores
         </a>
     </div>
@@ -18,45 +18,29 @@
         <div class="col-md-4">
             <div class="card bg-success text-white h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
-                    <h5 class="card-title opacity-75">Prize Pool (Premiação)</h5>
-                    <h1 class="display-5 fw-bold">R$ {{ financial.prize_pool|floatformat:2 }}</h1>
-                    <p class="mb-0 small">Valor líquido para distribuição</p>
+                    <h5 class="card-title opacity-75">Entradas</h5>
+                    <h1 class="display-5 fw-bold">R$ {{ financeiro.faturamento_bruto|floatformat:2 }}</h1>
+                    <p class="mb-0 small">Buy-in + Rebuys + Add-ons + Rake</p>
                 </div>
             </div>
         </div>
         
         <div class="col-md-4">
-            <div class="card bg-dark text-white h-100 border-secondary">
-                <div class="card-body">
-                    <h5 class="card-title text-muted">Movimentação</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li class="d-flex justify-content-between">
-                            <span>Entradas ({{ financial.count_buyins }}):</span>
-                            <strong>R$ {{ financial.gross_total|floatformat:2 }}</strong>
-                        </li>
-                        <hr class="my-2 border-secondary">
-                        <li class="d-flex justify-content-between text-warning">
-                            <span>Rake/Staff:</span>
-                            <span>- R$ {{ financial.rake_total|floatformat:2 }}</span>
-                        </li>
-                    </ul>
+            <div class="card bg-danger text-white h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title opacity-75">Saídas</h5>
+                    <h1 class="display-5 fw-bold">R$ {{ financeiro.premios_pagos|floatformat:2 }}</h1>
+                    <p class="mb-0 small">Premiação Paga</p>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card bg-secondary text-white h-100 border-0">
-                <div class="card-body">
-                    <h5 class="card-title">Estatísticas</h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Rebuys:</span> <span class="badge bg-light text-dark">{{ financial.count_rebuys }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Add-ons:</span> <span class="badge bg-info text-dark">{{ financial.count_addons }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Time Chip:</span> <span class="badge bg-warning text-dark">{{ financial.count_timechip }}</span>
-                    </div>
+            <div class="card bg-info text-white h-100 border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title opacity-75">Resultado</h5>
+                    <h1 class="display-5 fw-bold">R$ {{ resultado|floatformat:2 }}</h1>
+                    <p class="mb-0 small">{% if resultado >= 0 %}✓ Lucro{% else %}⚠ Prejuízo{% endif %}</p>
                 </div>
             </div>
         </div>
@@ -64,81 +48,80 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 text-dark">Controle Individual</h5>
+            <h5 class="mb-0 text-dark">Inscritos ({{ entries.count }}) - Ordenado por Posição</h5>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Jogador</th>
-                        <th class="text-center">Time Chip</th>
-                        <th class="text-center">Rebuys</th>
+                        <th class="text-center">Buy-in</th>
+                        <th class="text-center">Rebuy</th>
                         <th class="text-center">Add-on</th>
-                        <th class="text-end">Total Pago</th>
-                        <th class="text-center">Ações</th>
+                        <th class="text-end">Total Gasto</th>
+                        <th class="text-center">Posição</th>
+                        <th class="text-end">Prêmio</th>
+                        <th class="text-end" style="background-color: #f0f9ff;">Resultado</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for entry in entries %}
-                    <tr>
-                        <td>
-                            <div class="fw-bold">{{ entry.player.nome }}</div>
-                            <small class="text-muted">{{ entry.player.apelido|default:"" }}</small>
-                        </td>
-                        
+                    {% for item in inscritos_com_resultado %}
+                    <tr class="small">
+                        <td class="fw-bold">{{ item.entry.player.nome }}</td>
                         <td class="text-center">
-                            <form method="POST" class="d-inline">
-                                {% csrf_token %}
-                                <input type="hidden" name="entry_id" value="{{ entry.id }}">
-                                <input type="hidden" name="action" value="toggle_timechip">
-                                <button type="submit" class="btn btn-sm {% if entry.usou_time_chip %}btn-warning{% else %}btn-outline-secondary{% endif %}"
-                                        title="Alternar Time Chip (R$ {{ t.time_chip_cost }})">
-                                    <i class="bi bi-stopwatch"></i>
-                                </button>
-                            </form>
-                        </td>
-
-                        <td class="text-center">
-                            <span class="badge bg-secondary rounded-pill">{{ entry.qtde_rebuys }}</span>
-                        </td>
-
-                        <td class="text-center">
-                            {% if entry.qtde_addons > 0 %}
-                                <span class="badge bg-info text-dark rounded-pill">Sim</span>
+                            {% if item.buyin_count > 0 %}
+                                <div><span class="badge bg-primary">{{ item.buyin_count }}x</span></div>
+                                <small class="text-muted">R$ {{ item.buyin_total|floatformat:2 }}</small>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-
-                        <td class="text-end fw-bold font-monospace">
-                            R$ {{ entry.valor_total_pago|floatformat:2 }}
-                        </td>
-
                         <td class="text-center">
-                            <form method="POST" class="d-inline-flex gap-2">
-                                {% csrf_token %}
-                                <input type="hidden" name="entry_id" value="{{ entry.id }}">
-                                
-                                <button type="submit" name="action" value="rebuy" 
-                                        class="btn btn-sm btn-outline-success" 
-                                        title="Adicionar Rebuy (+ R$ {{ t.rebuy_cost }})"
-                                        onclick="return confirm('Adicionar REBUY para {{ entry.player.nome }}?');">
-                                    + Rebuy
-                                </button>
-
-                                <button type="submit" name="action" value="addon" 
-                                        class="btn btn-sm btn-outline-primary"
-                                        title="Adicionar Add-on (+ R$ {{ t.addon_cost }})"
-                                        {% if entry.qtde_addons > 0 %}disabled{% endif %}
-                                        onclick="return confirm('Adicionar ADD-ON para {{ entry.player.nome }}?');">
-                                    + Add-on
-                                </button>
-                            </form>
+                            {% if item.rebuy_count > 0 %}
+                                <div><span class="badge bg-success">{{ item.rebuy_count }}x</span></div>
+                                <small class="text-muted">R$ {{ item.rebuy_total|floatformat:2 }}</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.addon_count > 0 %}
+                                <div><span class="badge bg-info">{{ item.addon_count }}x</span></div>
+                                <small class="text-muted">R$ {{ item.addon_total|floatformat:2 }}</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold">
+                            R$ {{ item.total_gasto|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            {% if item.resultado and item.resultado.posicao %}
+                                <span class="badge bg-primary">{{ item.resultado.posicao }}º</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if item.resultado and item.resultado.premiacao_recebida > 0 %}
+                                <span class="fw-bold text-success">R$ {{ item.resultado.premiacao_recebida|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold" style="background-color: #f0f9ff;">
+                            {% if item.resultado_valor > 0 %}
+                                <span class="text-success">+ R$ {{ item.resultado_valor|floatformat:2 }}</span>
+                            {% elif item.resultado_valor < 0 %}
+                                <span class="text-danger">- R$ {{ item.resultado_valor|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">R$ 0,00</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-4">Nenhum jogador inscrito.</td>
+                        <td colspan="8" class="text-center py-4 text-muted">Nenhum jogador inscrito.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

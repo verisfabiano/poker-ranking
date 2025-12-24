@@ -24,6 +24,13 @@
                 </div>
             {% endif %}
 
+            {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>{{ error }}</div>
+                </div>
+            {% endif %}
+
             <form method="POST">
                 {% csrf_token %}
                 
