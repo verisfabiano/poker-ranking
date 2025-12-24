@@ -140,6 +140,13 @@
             margin-left: var(--sidebar-width);
         }
         
+        /* Em dispositivos pequenos, sidebar é fixa, não precisa margin */
+        @media (max-width: 992px) {
+            .with-sidebar {
+                margin-left: 0 !important;
+            }
+        }
+        
         /* NAVBAR */
         .navbar {
             background-color: white;
