@@ -141,7 +141,7 @@
                                                     {% if edicao_bloqueada %}disabled{% endif %}>
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 {% with rebuy_count=entry.get_rebuy_count %}
-                                                <span class="badge bg-warning rebuy-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY" style="{% if rebuy_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-warning rebuy-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ rebuy_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -161,7 +161,7 @@
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 {% with rebuy_duplo_count=entry.get_rebuy_duplo_count %}
-                                                <span class="badge bg-warning rebuy-duplo-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY_DUPLO" style="{% if rebuy_duplo_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-warning rebuy-duplo-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_duplo_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY_DUPLO" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ rebuy_duplo_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -179,7 +179,7 @@
                                                     {% if edicao_bloqueada %}disabled{% endif %}>
                                                 <i class="bi bi-plus-lg"></i>
                                                 {% with addon_count=entry.get_addon_count %}
-                                                <span class="badge bg-info addon-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="ADDON" style="{% if addon_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-info addon-count-{{ entry.player.id }} badge-with-remove{% if not addon_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="ADDON" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ addon_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -198,7 +198,7 @@
                                                     {% if edicao_bloqueada %}disabled{% endif %}>
                                                 <i class="bi bi-clock-fill"></i>
                                                 {% with timechip_count=entry.get_timechip_count %}
-                                                <span class="badge bg-success timechip-count-{{ entry.player.id }} badge-with-remove" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="TIME_CHIP" style="{% if timechip_count %}display: inline-block;{% else %}display: none;{% endif %} cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-success timechip-count-{{ entry.player.id }} badge-with-remove{% if not timechip_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="TIME_CHIP" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ timechip_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -577,7 +577,7 @@ document.getElementById('formNovoJogador').addEventListener('submit', async func
                 Clique em "Adicionar" para adicioná-lo ao torneio.
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('form'));
+            document.body.insertBefore(successAlert, document.querySelector('script'));
             
             // Auto-remover após 5 segundos
             setTimeout(() => successAlert.remove(), 5000);

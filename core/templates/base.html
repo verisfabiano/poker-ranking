@@ -18,6 +18,9 @@
         
         body {
             background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         
         /* SIDEBAR ADMIN */
@@ -140,6 +143,11 @@
             margin-left: var(--sidebar-width);
         }
         
+        main.with-sidebar {
+            margin-top: 0;
+            padding-top: 20px;
+        }
+        
         /* Em dispositivos pequenos, sidebar é fixa, não precisa margin */
         @media (max-width: 992px) {
             .with-sidebar {
@@ -152,6 +160,17 @@
             background-color: white;
             border-bottom: 2px solid #e9ecef;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        /* MAIN CONTENT */
+        main {
+            flex: 1;
+            background-color: #f8f9fa;
+            position: relative;
+            z-index: 1;
         }
         
         .navbar-brand {
@@ -245,11 +264,12 @@
                 <div class="nav-subsection-title" style="margin-top: 8px;">
                     <i class="bi bi-gear"></i> Configuração
                 </div>
-                <a href="{% url 'blind_structures_list' %}" class="nav-link nav-sublink {% if request.resolver_match.url_name == 'blind_structures_list' %}active{% endif %}">">
+                <a href="{% url 'blind_structures_list' %}" class="nav-link nav-sublink {% if request.resolver_match.url_name == 'blind_structures_list' %}active{% endif %}">
                     <i class="bi bi-hourglass"></i> Estruturas de Blinds
                 </a>
             </div>
             {% endif %}
+        </div>
         
         <!-- GESTÃO -->
         <div class="nav-section">
