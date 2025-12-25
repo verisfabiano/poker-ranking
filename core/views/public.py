@@ -138,6 +138,9 @@ def signup_club(request):
                     # Formatar dados antes de salvar
                     if club_cnpj:
                         club_cnpj = ValidadorCNPJ.formatar(club_cnpj)
+                    else:
+                        club_cnpj = None  # Salvar como NULL, não como string vazia
+                    
                     if club_phone:
                         club_phone = ValidadorTelefone.formatar(club_phone)
                     if address_cep:
