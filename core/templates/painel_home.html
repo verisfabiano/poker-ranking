@@ -54,7 +54,7 @@
     
     .ranking-season-selector {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 12px;
     }
     
@@ -67,6 +67,10 @@
         border: 2px solid transparent;
         text-decoration: none;
         color: inherit;
+        display: flex;
+        flex-direction: column;
+        min-height: 130px;
+        justify-content: space-between;
     }
     
     .ranking-season-card:hover {
@@ -75,21 +79,35 @@
         box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
     }
     
+    .ranking-card-header {
+        margin-bottom: 8px;
+    }
+    
     .ranking-season-card h5 {
-        margin: 0 0 8px 0;
-        color: var(--primary);
-        font-weight: 600;
+        margin: 0;
+        color: #1a1a1a;
+        font-weight: 700;
+        font-size: 1rem;
+        line-height: 1.3;
+        word-wrap: break-word;
+    }
+    
+    .ranking-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
     
     .ranking-season-card p {
         margin: 0;
         font-size: 0.85rem;
-        color: #6c757d;
+        color: #495057;
+        font-weight: 500;
     }
     
     .ranking-season-card .badge {
-        margin-top: 8px;
-        display: inline-block;
+        align-self: flex-start;
+        font-size: 0.75rem;
     }
     
     .onboarding-section {
@@ -237,14 +255,18 @@
         
         <div class="ranking-season-selector">
             {% for season in seasons %}
-            <a href="{% url 'ranking_season' season.id %}" class="ranking-season-card" title="Ver ranking de {{ season.nome }}">
-                <h5>{{ season.nome }}</h5>
-                <p><i class="bi bi-calendar3"></i> {{ season.data_inicio|date:"d/m/Y" }} - {{ season.data_fim|date:"d/m/Y" }}</p>
-                {% if season.ativo %}
-                    <span class="badge bg-success">Ativa</span>
-                {% else %}
-                    <span class="badge bg-secondary">Finalizada</span>
-                {% endif %}
+            <a href="{% url 'ranking_season' season.id %}" class="ranking-season-card">
+                <div class="ranking-card-header">
+                    <h5>{{ season.nome }}</h5>
+                </div>
+                <div class="ranking-card-body">
+                    <p><i class="bi bi-calendar3"></i> {{ season.data_inicio|date:"d/m/Y" }} - {{ season.data_fim|date:"d/m/Y" }}</p>
+                    {% if season.ativo %}
+                        <span class="badge bg-success">Ativa</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Finalizada</span>
+                    {% endif %}
+                </div>
             </a>
             {% endfor %}
         </div>

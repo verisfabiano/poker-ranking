@@ -219,23 +219,187 @@
                     <div id="secao_dinamico_info" class="alert alert-info" style="display: none;">
                 {% endif %}
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Sistema Dinâmico:</strong>
-                    <small class="d-block mt-2">
-                        A pontuação varia conforme:
-                        <ul class="mb-0 mt-2">
-                            <li><strong>Quantidade de jogadores</strong> - Torneios maiores = mais pontos</li>
-                            <li><strong>Valor do buy-in</strong> - Buy-ins maiores = mais pontos</li>
-                            <li><strong>Posição final</strong> - 1º lugar vale 100x mais que consolação</li>
-                            <li><strong>Multiplicador do tipo</strong> - Ajuste por importância do torneio</li>
-                        </ul>
-                        <br>
-                        <strong>Exemplo:</strong> Torneio com 10 jogadores, R$50 de buy-in
-                        <ul class="mb-0">
-                            <li>1º lugar = 50 pontos</li>
-                            <li>2º lugar = 35 pontos</li>
-                            <li>3º lugar = 25 pontos</li>
-                        </ul>
-                    </small>
+                    <h6 class="mb-3"><strong>Como funciona o Sistema Dinâmico de Pontuação?</strong></h6>
+                    
+                    <div class="alert alert-info mb-3">
+                        <strong>📌 O que são "Pontos Base"?</strong><br>
+                        <small>Pontos base é o número mínimo de pontos que o 1º lugar recebe em um torneio muito pequeno (5 jogadores, R$20). 
+                        Todos os outros torneios ganham mais pontos porque são maiores ou mais caros. É como um "padrão mínimo" para comparar.</small>
+                    </div>
+
+                    <p class="text-muted small mb-3">
+                        <strong>Fórmula simples:</strong> Os pontos que você ganha dependem de 4 fatores:
+                    </p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="card border-light bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-people me-2"></i><strong>1. Quantidade de Jogadores</strong>
+                                    </h6>
+                                    <p class="small mb-2"><strong>Quanto mais jogadores = mais desafio = mais pontos</strong></p>
+                                    <ul class="small mb-0">
+                                        <li><strong>5 jogadores:</strong> 1x o base</li>
+                                        <li><strong>10 jogadores:</strong> 2x o base</li>
+                                        <li><strong>20 jogadores:</strong> 4x o base</li>
+                                        <li><strong>30 jogadores:</strong> 6x o base</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-light bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-cash-coin me-2"></i><strong>2. Valor do Buy-in</strong>
+                                    </h6>
+                                    <p class="small mb-2"><strong>Quanto mais caro = maior prêmio = mais pontos</strong></p>
+                                    <ul class="small mb-0">
+                                        <li><strong>R$20:</strong> 1x o base</li>
+                                        <li><strong>R$50:</strong> 1,5x o base</li>
+                                        <li><strong>R$100:</strong> 2x o base</li>
+                                        <li><strong>R$200+:</strong> até 3x o base</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="card border-light bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-trophy me-2"></i><strong>3. Posição Final (sua colocação)</strong>
+                                    </h6>
+                                    <p class="small mb-2"><strong>Quanto melhor sua posição = mais pontos</strong></p>
+                                    <ul class="small mb-0">
+                                        <li><strong>1º lugar:</strong> 100% dos pontos calculados</li>
+                                        <li><strong>2º lugar:</strong> 70% dos pontos</li>
+                                        <li><strong>3º lugar:</strong> 50% dos pontos</li>
+                                        <li><strong>4º-5º:</strong> 30-35% dos pontos</li>
+                                        <li><strong>6º+:</strong> consolação mínima</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-light bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="bi bi-gear me-2"></i><strong>4. Multiplicador do Torneio</strong>
+                                    </h6>
+                                    <p class="small mb-2"><strong>Destaque especial para torneios importantes</strong></p>
+                                    <ul class="small mb-0">
+                                        <li><strong>1x:</strong> torneio normal</li>
+                                        <li><strong>1.5x:</strong> torneio importante (campeonato)</li>
+                                        <li><strong>2x:</strong> final de temporada (dobra tudo!)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-primary mb-3">
+                        <strong>🧮 A Fórmula (simplificada):</strong><br>
+                        <small><strong>Pontos Finais = (Pontos Base × Jogadores × Buy-in × Posição × Multiplicador)</strong><br>
+                        Por exemplo: Um 1º lugar em 15 jogadores com R$50 ganha muito mais que um 1º em 5 jogadores com R$20.
+                        </small>
+                    </div>
+
+                    <h6 class="mb-3"><strong>Exemplos Práticos:</strong></h6>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border-success bg-white">
+                                <div class="card-header bg-success text-white py-2">
+                                    <small><strong>Exemplo 1: Torneio pequeno</strong></small>
+                                </div>
+                                <div class="card-body p-3">
+                                    <small>
+                                        <strong>5 jogadores, R$20 buy-in</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>1º lugar: <strong>15 pontos</strong></li>
+                                            <li>2º lugar: <strong>10 pontos</strong></li>
+                                            <li>3º lugar: <strong>7 pontos</strong></li>
+                                            <li>4º lugar: <strong>4 pontos</strong></li>
+                                            <li>5º lugar: <strong>1 ponto</strong></li>
+                                        </ul>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-warning bg-white">
+                                <div class="card-header bg-warning text-dark py-2">
+                                    <small><strong>Exemplo 2: Torneio médio</strong></small>
+                                </div>
+                                <div class="card-body p-3">
+                                    <small>
+                                        <strong>15 jogadores, R$50 buy-in</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>1º lugar: <strong>80 pontos</strong> <span class="text-success">(+5x)</span></li>
+                                            <li>2º lugar: <strong>55 pontos</strong> <span class="text-success">(+5x)</span></li>
+                                            <li>3º lugar: <strong>40 pontos</strong> <span class="text-success">(+5x)</span></li>
+                                            <li>4º lugar: <strong>25 pontos</strong> <span class="text-success">(+6x)</span></li>
+                                            <li>5º lugar: <strong>8 pontos</strong> <span class="text-success">(+8x)</span></li>
+                                        </ul>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <div class="card border-danger bg-white">
+                                <div class="card-header bg-danger text-white py-2">
+                                    <small><strong>Exemplo 3: Torneio GRANDE</strong></small>
+                                </div>
+                                <div class="card-body p-3">
+                                    <small>
+                                        <strong>30 jogadores, R$100 buy-in</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>1º lugar: <strong>300 pontos</strong> <span class="text-success">(+20x!)</span></li>
+                                            <li>2º lugar: <strong>210 pontos</strong> <span class="text-success">(+21x)</span></li>
+                                            <li>3º lugar: <strong>150 pontos</strong> <span class="text-success">(+21x)</span></li>
+                                            <li>4º lugar: <strong>100 pontos</strong> <span class="text-success">(+25x)</span></li>
+                                            <li>5º lugar: <strong>30 pontos</strong> <span class="text-success">(+30x)</span></li>
+                                        </ul>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card border-info bg-white">
+                                <div class="card-header bg-info text-white py-2">
+                                    <small><strong>Exemplo 4: Grande com multiplicador</strong></small>
+                                </div>
+                                <div class="card-body p-3">
+                                    <small>
+                                        <strong>30 jogadores, R$100, Multiplicador 2x (Final de temporada)</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <li>1º lugar: <strong>600 pontos</strong> <span class="text-success">(2x!!)</span></li>
+                                            <li>2º lugar: <strong>420 pontos</strong> <span class="text-success">(2x)</span></li>
+                                            <li>3º lugar: <strong>300 pontos</strong> <span class="text-success">(2x)</span></li>
+                                            <li>4º lugar: <strong>200 pontos</strong> <span class="text-success">(2x)</span></li>
+                                            <li>5º lugar: <strong>60 pontos</strong> <span class="text-success">(2x)</span></li>
+                                        </ul>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="bi bi-star-fill me-2"></i>
+                        <strong>Resultado:</strong> <small>Vence quem faz bons resultados em torneios maiores! Não apenas em torneios pequenos.</small>
+                    </div>
                 </div>
 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">

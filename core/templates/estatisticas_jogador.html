@@ -157,7 +157,7 @@
 
 <!-- HEADER DO JOGADOR -->
 <div class="player-header">
-    <div class="player-avatar-large">{{ player.apelido|first|upper }}</div>
+    <div class="player-avatar-large">{{ player.apelido|default:player.nome|first|upper }}</div>
     <div>
         <h1>{{ player.apelido|default:player.nome }}</h1>
         <p style="margin: 0; opacity: 0.9;">{{ season.nome }}</p>
@@ -201,6 +201,37 @@
     <div class="stat-box">
         <div class="value">R$ {{ stats.total_premio|floatformat:2 }}</div>
         <div class="label">Prêmios</div>
+    </div>
+</div>
+
+<!-- DECOMPOSIÇÃO DOS PONTOS -->
+<div class="comparison-section">
+    <h4 class="mb-3"><i class="bi bi-pie-chart"></i> Decomposição dos Pontos</h4>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #2196F3;">{{ pontos_iniciais }}</div>
+                <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">Pontos Iniciais</div>
+                <small style="color: #6c757d;">Distribuídos no início da temporada</small>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #9c27b0;">{{ pontos_torneios }}</div>
+                <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">Pontos de Torneios</div>
+                <small style="color: #6c757d;">Conquistados nas disputas</small>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                <div style="font-size: 1.8rem; font-weight: bold; color: #4caf50;">{{ pontos_bonus }}</div>
+                <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">Bônus e Prêmios</div>
+                <small style="color: #6c757d;">Pontos extras conquistados</small>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -265,19 +296,25 @@
                     <td>{{ resultado.tournament.data|date:"d/m/Y H:i" }}</td>
                     <td>
                         {% if resultado.posicao == 1 %}
-                            <span class="badge bg-warning text-dark">🥇 {{ resultado.posicao }}º</span>
+                            <span class="badge bg-warning text-dark">🥇 1º</span>
                         {% elif resultado.posicao == 2 %}
-                            <span class="badge bg-secondary">🥈 {{ resultado.posicao }}º</span>
+                            <span class="badge bg-secondary">🥈 2º</span>
                         {% elif resultado.posicao == 3 %}
-                            <span class="badge bg-danger">🥉 {{ resultado.posicao }}º</span>
+                            <span class="badge bg-danger">🥉 3º</span>
                         {% elif resultado.posicao <= 5 %}
                             <span class="badge bg-info">{{ resultado.posicao }}º</span>
                         {% else %}
-                            <span class="text-muted">{{ resultado.posicao }}º</span>
+                            <span class="badge bg-light text-dark">{{ resultado.posicao }}º</span>
                         {% endif %}
                     </td>
                     <td>
-                        <strong style="color: #667eea;">{{ resultado.pontos_finais }}</strong>
+                        <strong style="color: #667eea;">
+                            {% if resultado.pontos_finais > 0 %}
+                                {{ resultado.pontos_finais }}
+                            {% else %}
+                                {{ resultado.pontos_base }}
+                            {% endif %}
+                        </strong>
                     </td>
                     <td>
                         {% if resultado.premiacao_recebida > 0 %}

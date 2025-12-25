@@ -188,7 +188,8 @@ def _calcular_e_atualizar_stats(season, player, tenant):
 
 def ranking_avancado(request, season_id):
     """
-    Dashboard de Ranking Avançado - Multi-tenant.
+    Dashboard de Ranking Unificado - Multi-tenant.
+    Mescla as funcionalidades de ranking simples e avançado em uma única visualização.
     """
     season = get_object_or_404(Season, pk=season_id, tenant=request.tenant)
     
@@ -201,10 +202,11 @@ def ranking_avancado(request, season_id):
     for player in players_season:
         _calcular_e_atualizar_stats(season, player, request.tenant)
     
-    # Ranking ordenado por pontos
+    # Ranking ordenado por pontos - EXCLUINDO JOGADORES SEM PONTUAÇÃO
     ranking = PlayerStatistics.objects.filter(
         season=season,
-        tenant=request.tenant
+        tenant=request.tenant,
+        pontos_totais__gt=0  # 👈 Filtro: apenas jogadores com pontos > 0
     ).select_related('player').order_by('-pontos_totais', '-vitórias', '-top_3')
     
     # Adiciona posição
@@ -220,9 +222,6 @@ def ranking_avancado(request, season_id):
             jogador_logado = Player.objects.get(user=request.user, tenant=request.tenant)
         except Player.DoesNotExist:
             pass
-    
-    # Top 10
-    top_10 = ranking_with_position[:10]
     
     # Estatísticas gerais
     total_jogadores = ranking.count()
@@ -243,16 +242,14 @@ def ranking_avancado(request, season_id):
     context = {
         'season': season,
         'ranking': ranking_with_position,
-        'top_10': top_10,
         'total_jogadores': total_jogadores,
         'total_torneios': total_torneios,
         'jogador_logado': jogador_logado,
         'melhor_roi': melhor_roi,
-        'maior_taxa_itm': maior_taxa_itm,
         'maior_vencedor': maior_vencedor,
     }
     
-    return render(request, 'ranking_avancado.html', context)
+    return render(request, 'ranking_unified.html', context)
 
 
 def estatisticas_jogador(request, season_id, player_id):
@@ -265,11 +262,10 @@ def estatisticas_jogador(request, season_id, player_id):
     # Atualiza stats
     stats = _calcular_e_atualizar_stats(season, player, request.tenant)
     
-    # Histórico de torneios
+    # Histórico de torneios - filtra por season (que já tem tenant) e player
     resultados = TournamentResult.objects.filter(
         player=player,
-        tournament__season=season,
-        tenant=request.tenant
+        tournament__season=season
     ).select_related('tournament').order_by('-tournament__data')
     
     # Achievements
@@ -287,14 +283,37 @@ def estatisticas_jogador(request, season_id, player_id):
     
     variacao = stats.pontos_totais - int(media_pontos_season)
     
+    # DECOMPOSIÇÃO DOS PONTOS
+    from core.models import SeasonInitialPoints
+    
+    # Pontos iniciais
+    try:
+        pontos_iniciais = SeasonInitialPoints.objects.get(
+            season=season, 
+            player=player, 
+            tenant=request.tenant
+        ).pontos_iniciais
+    except SeasonInitialPoints.DoesNotExist:
+        pontos_iniciais = 0
+    
+    # Pontos de torneios - Tudo que não é inicial vem de torneios/bônus
+    # Mas como temos o histórico de torneios na lista, é de torneios mesmo
+    pontos_torneios = stats.pontos_totais - pontos_iniciais
+    
+    # Pontos de bônus - qualquer ajuste extra
+    pontos_bonus = 0
+    
     # Gráfico de evolução (por torneio)
     historico = []
-    pontos_acumulado = stats.pontos_totais - sum([
-        _calcular_pontos_resultado(r.tournament, r.posicao) for r in resultados
-    ])
+    pontos_acumulado = pontos_iniciais
     
     for resultado in reversed(resultados):
-        pontos = _calcular_pontos_resultado(resultado.tournament, resultado.posicao)
+        # Usa pontos_finais se > 0, senão usa pontos_base
+        if resultado.pontos_finais > 0:
+            pontos = resultado.pontos_finais
+        else:
+            pontos = resultado.pontos_base
+        
         pontos_acumulado += pontos
         historico.append({
             'tournament_nome': resultado.tournament.nome,
@@ -313,6 +332,9 @@ def estatisticas_jogador(request, season_id, player_id):
         'media_pontos_season': int(media_pontos_season),
         'variacao': variacao,
         'historico_json': json.dumps(historico),
+        'pontos_iniciais': pontos_iniciais,
+        'pontos_torneios': pontos_torneios,
+        'pontos_bonus': pontos_bonus,
     }
     
     return render(request, 'estatisticas_jogador.html', context)

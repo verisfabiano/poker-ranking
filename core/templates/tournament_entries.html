@@ -57,7 +57,7 @@
     {% endif %}
     {% if edicao_bloqueada %}
         <div class="alert alert-warning d-flex align-items-center" role="alert">
-            <i class="bi bi-lock-fill me-2"></i> Torneio finalizado ou em andamento. Edição bloqueada.
+            <i class="bi bi-lock-fill me-2"></i> Torneio finalizado ou cancelado. Edição bloqueada.
         </div>
     {% endif %}
 
@@ -141,7 +141,7 @@
                                                     {% if edicao_bloqueada %}disabled{% endif %}>
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 {% with rebuy_count=entry.get_rebuy_count %}
-                                                <span class="badge bg-warning rebuy-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY" style="cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-danger rebuy-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ rebuy_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -161,7 +161,7 @@
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 <i class="bi bi-arrow-clockwise"></i>
                                                 {% with rebuy_duplo_count=entry.get_rebuy_duplo_count %}
-                                                <span class="badge bg-warning rebuy-duplo-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_duplo_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY_DUPLO" style="cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-dark rebuy-duplo-count-{{ entry.player.id }} badge-with-remove{% if not rebuy_duplo_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="REBUY_DUPLO" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ rebuy_duplo_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>
@@ -179,7 +179,7 @@
                                                     {% if edicao_bloqueada %}disabled{% endif %}>
                                                 <i class="bi bi-plus-lg"></i>
                                                 {% with addon_count=entry.get_addon_count %}
-                                                <span class="badge bg-info addon-count-{{ entry.player.id }} badge-with-remove{% if not addon_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="ADDON" style="cursor: pointer; position: relative; padding-right: 18px;">
+                                                <span class="badge bg-success addon-count-{{ entry.player.id }} badge-with-remove{% if not addon_count %} d-none{% endif %}" data-player-id="{{ entry.player.id }}" data-tournament-id="{{ tournament.id }}" data-tipo="ADDON" style="cursor: pointer; position: relative; padding-right: 18px;">
                                                     <span class="badge-text">{{ addon_count }}</span>
                                                     <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
                                                 </span>

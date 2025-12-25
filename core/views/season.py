@@ -193,59 +193,66 @@ def _build_ranking_for_season(season, tenant=None):
 @login_required
 def ranking_season(request, season_id):
     """
-    Renderiza o ranking da temporada.
-    Se jogador logado: mostra view simplificada (ranking_jogador.html)
-    Se admin: mostra view completa (ranking.html)
+    Renderiza o ranking unificado da temporada com todas as funcionalidades.
+    Aplica filtro para mostrar apenas jogadores com pontos > 0.
     """
     season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
     
-    # Se for jogador logado, renderiza view simplificada
-    if request.user.is_authenticated and not request.user.is_staff:
-        from .ranking import _calcular_e_atualizar_stats
-        from core.models import PlayerStatistics
-        
-        # Atualiza stats de todos os jogadores
-        players_season = Player.objects.filter(
-            tournamententry__tournament__season=season,
-            tenant=request.tenant
-        ).distinct()
-        
-        for player in players_season:
-            _calcular_e_atualizar_stats(season, player, request.tenant)
-        
-        # Ranking ordenado por pontos
-        ranking = PlayerStatistics.objects.filter(
-            season=season,
-            tenant=request.tenant
-        ).select_related('player').order_by('-pontos_totais', '-vitórias', '-top_3')
-        
-        ranking_with_position = []
-        minha_posicao = None
-        minha_stats = None
-        
-        for idx, stat in enumerate(ranking, 1):
-            stat.posicao = idx
-            ranking_with_position.append(stat)
-            
-            # Se é o jogador logado
-            if request.user == stat.player.user:
-                minha_posicao = idx
-                minha_stats = stat
-        
-        context = {
-            'season': season,
-            'ranking': ranking_with_position,
-            'total_jogadores': ranking.count(),
-            'total_torneios': Tournament.objects.filter(season=season, tenant=request.tenant).count(),
-            'jogador_logado': request.user,
-            'minha_posicao': minha_posicao,
-            'minha_stats': minha_stats,
-        }
-        
-        return render(request, 'ranking_jogador.html', context)
+    from .ranking import _calcular_e_atualizar_stats
+    from core.models import PlayerStatistics
     
-    # Admin vê ranking tradicional
-    return render(request, "ranking.html", {"season": season, "ranking": _build_ranking_for_season(season, request.tenant)})
+    # Atualiza stats de todos os jogadores
+    players_season = Player.objects.filter(
+        tournamententry__tournament__season=season,
+        tenant=request.tenant
+    ).distinct()
+    
+    for player in players_season:
+        _calcular_e_atualizar_stats(season, player, request.tenant)
+    
+    # Ranking ordenado por pontos - EXCLUINDO JOGADORES SEM PONTUAÇÃO
+    ranking = PlayerStatistics.objects.filter(
+        season=season,
+        tenant=request.tenant,
+        pontos_totais__gt=0  # 👈 Filtro: apenas jogadores com pontos > 0
+    ).select_related('player').order_by('-pontos_totais', '-vitórias', '-top_3')
+    
+    ranking_with_position = []
+    minha_posicao = None
+    minha_stats = None
+    
+    for idx, stat in enumerate(ranking, 1):
+        stat.posicao = idx
+        ranking_with_position.append(stat)
+        
+        # Se é o jogador logado
+        if request.user.is_authenticated and request.user == stat.player.user:
+            minha_posicao = idx
+            minha_stats = stat
+    
+    # Estatísticas gerais
+    total_jogadores = ranking.count()
+    total_torneios = Tournament.objects.filter(season=season, tenant=request.tenant).count()
+    
+    # Melhor ROI
+    melhor_roi = ranking.filter(roi__gt=0).order_by('-roi').first()
+    
+    # Maior vencedor
+    maior_vencedor = ranking.filter(vitórias__gt=0).order_by('-vitórias').first()
+    
+    context = {
+        'season': season,
+        'ranking': ranking_with_position,
+        'total_jogadores': total_jogadores,
+        'total_torneios': total_torneios,
+        'jogador_logado': request.user if request.user.is_authenticated else None,
+        'minha_posicao': minha_posicao,
+        'minha_stats': minha_stats,
+        'melhor_roi': melhor_roi,
+        'maior_vencedor': maior_vencedor,
+    }
+    
+    return render(request, 'ranking_unified.html', context)
 
 
 @login_required

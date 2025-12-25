@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+
+{% block title %}Ranking - {{ season.nome }}{% endblock %}
+
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'painel_home' %}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Ranking - {{ season.nome }}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ranking-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        margin-bottom: 30px;
+    }
+    
+    .ranking-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .ranking-season-info {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        margin-bottom: 20px;
+    }
+    
+    .ranking-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    /* CARDS DE ESTATÍSTICAS */
+    .stat-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .stat-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 8px;
+    }
+    
+    .stat-card-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    /* INFO BOX */
+    .info-box {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .info-box strong {
+        color: var(--primary);
+    }
+    
+    /* TABELA */
+    .ranking-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .ranking-table table {
+        margin-bottom: 0;
+    }
+    
+    .ranking-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .ranking-table th {
+        padding: 20px 16px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        border: none;
+    }
+    
+    .ranking-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+    
+    .ranking-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .ranking-table tbody tr.top-3-highlight:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+    }
+    
+    .ranking-table td {
+        padding: 18px 16px;
+        vertical-align: middle;
+    }
+    
+    /* POSIÇÃO */
+    .ranking-position {
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+        min-width: 70px;
+    }
+    
+    .posicao-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        margin-right: 8px;
+    }
+    
+    .posicao-badge.pos-1 {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        font-size: 1.2rem;
+    }
+    
+    .posicao-badge.pos-2 {
+        background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+    }
+    
+    .posicao-badge.pos-3 {
+        background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    }
+    
+    /* JOGADOR */
+    .player-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .player-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .player-name {
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .player-tournaments {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    /* PONTOS */
+    .points-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50px;
+        padding: 8px 18px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: inline-block;
+    }
+    
+    .highlight-stat {
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .roi-positive {
+        color: #28a745;
+        font-weight: 700;
+    }
+    
+    .roi-negative {
+        color: #dc3545;
+        font-weight: 700;
+    }
+    
+    .badge-itm-alto {
+        background-color: #28a745 !important;
+    }
+    
+    .badge-itm-medio {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+    
+    .badge-itm-baixo {
+        background-color: #dc3545 !important;
+    }
+    
+    /* EMPTY STATE */
+    .empty-state {
+        text-align: center;
+        padding: 60px 30px;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .top-3-highlight {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+    }
+
+    .ranking-complete-section {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-top: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .ranking-complete-section h4 {
+        margin-bottom: 25px;
+        font-weight: 700;
+        color: #212529;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="ranking-header">
+    <h1>
+        <i class="bi bi-trophy-fill me-3"></i>Ranking da Temporada
+    </h1>
+    <p class="ranking-season-info mb-2">{{ season.nome }}</p>
+    <p class="mb-3" style="font-size: 0.95rem; opacity: 0.9;">
+        <i class="bi bi-calendar3 me-2"></i>
+        {{ season.data_inicio|date:"d \d\e F" }} — {{ season.data_fim|date:"d \d\e F \d\e Y" }}
+    </p>
+    
+    <div class="ranking-actions">
+        <a href="{% url 'painel_home' %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-2"></i> Voltar ao Painel
+        </a>
+        <a href="{% url 'tv_ranking_season' season.id %}" target="_blank" class="btn btn-light">
+            <i class="bi bi-display me-2"></i> Abrir Telão
+        </a>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'documentacao_ranking' %}" class="btn btn-light" title="Como funciona o ranking?">
+            <i class="bi bi-book me-2"></i> Documentação
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- INFO BOX -->
+<div class="info-box">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    <strong>Como funciona a pontuação?</strong><br>
+    <small>Total = <strong>Pontos Iniciais</strong> + <strong>Torneios</strong> + <strong>Bônus</strong> (Participação, Time Chip, etc). Critério de desempate: Pontos Totais → Pontos de Torneio → Pontos Iniciais → Ordem Alfabética.</small>
+</div>
+
+<!-- CARDS DE ESTATÍSTICAS -->
+{% if ranking %}
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-card-value">{{ total_jogadores }}</div>
+            <div class="stat-card-label">Jogadores</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card">
+            <div class="stat-card-value">{{ total_torneios }}</div>
+            <div class="stat-card-label">Torneios</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card">
+            {% if maior_vencedor %}
+                <div class="stat-card-value">{{ maior_vencedor.vitórias }}</div>
+                <div class="stat-card-label">
+                    <strong>{{ maior_vencedor.player.apelido|default:maior_vencedor.player.nome|truncatechars:12 }}</strong> - Vitórias
+                </div>
+            {% else %}
+                <div class="stat-card-value">0</div>
+                <div class="stat-card-label">Vitórias</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="stat-card">
+            {% if melhor_roi %}
+                <div class="stat-card-value">{{ melhor_roi.roi|floatformat:0 }}%</div>
+                <div class="stat-card-label">
+                    <strong>{{ melhor_roi.player.apelido|default:melhor_roi.player.nome|truncatechars:12 }}</strong> - Melhor ROI
+                </div>
+            {% else %}
+                <div class="stat-card-value">0%</div>
+                <div class="stat-card-label">Melhor ROI</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- CALL TO ACTION - REGISTER -->
+{% if not request.user.is_authenticated %}
+<div class="alert alert-primary alert-dismissible fade show mb-4" role="alert">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <strong><i class="bi bi-star-fill me-2"></i>Quer participar dos torneios?</strong><br>
+            <small>Faça login ou registre-se no clube para acompanhar os rankings em tempo real!</small>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'player_login' %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Faça Login
+            </a>
+            <a href="{% url 'player_register' %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil-square me-1"></i> Registre-se
+            </a>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- RANKING TABLE -->
+{% if ranking %}
+<div class="ranking-table">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center" style="width: 80px;">Pos</th>
+                <th style="width: 35%;">Jogador</th>
+                <th class="text-center" style="width: 100px;">Pontos</th>
+                <th class="text-center" style="width: 60px;">Vit.</th>
+                <th class="text-center" style="width: 60px;">Top 3</th>
+                <th class="text-center" style="width: 70px;">ROI</th>
+                <th class="text-center" style="width: 80px;">Taxa ITM</th>
+                <th class="text-center" style="width: 70px;">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in ranking %}
+            <tr class="{% if stat.posicao <= 3 %}top-3-highlight{% endif %}">
+                <!-- POSIÇÃO -->
+                <td class="text-center">
+                    <span class="posicao-badge {% if stat.posicao == 1 %}pos-1{% elif stat.posicao == 2 %}pos-2{% elif stat.posicao == 3 %}pos-3{% endif %}">
+                        {{ stat.posicao }}
+                    </span>
+                </td>
+
+                <!-- JOGADOR -->
+                <td>
+                    <div class="player-row">
+                        <div class="player-avatar">
+                            {{ stat.player.apelido|default:stat.player.nome|first|upper }}
+                        </div>
+                        <div>
+                            <div class="player-name">{{ stat.player.apelido|default:stat.player.nome }}</div>
+                            <div class="player-tournaments">{{ stat.total_torneios }} torneios</div>
+                        </div>
+                    </div>
+                </td>
+
+                <!-- PONTOS -->
+                <td class="text-center">
+                    <span class="points-badge">{{ stat.pontos_totais }}</span>
+                </td>
+
+                <!-- VITÓRIAS -->
+                <td class="text-center">
+                    {% if stat.vitórias > 0 %}
+                        <span class="badge bg-success">{{ stat.vitórias }}</span>
+                    {% else %}
+                        <span class="text-muted">0</span>
+                    {% endif %}
+                </td>
+
+                <!-- TOP 3 -->
+                <td class="text-center">
+                    {% if stat.top_3 > 0 %}
+                        <span class="badge bg-info">{{ stat.top_3 }}</span>
+                    {% else %}
+                        <span class="text-muted">0</span>
+                    {% endif %}
+                </td>
+
+                <!-- ROI -->
+                <td class="text-center">
+                    {% if stat.roi > 0 %}
+                        <span class="roi-positive">↑ {{ stat.roi|floatformat:0 }}%</span>
+                    {% elif stat.roi < 0 %}
+                        <span class="roi-negative">↓ {{ stat.roi|floatformat:0 }}%</span>
+                    {% else %}
+                        <span class="text-muted">0%</span>
+                    {% endif %}
+                </td>
+
+                <!-- TAXA ITM -->
+                <td class="text-center">
+                    <span class="badge {% if stat.taxa_itm > 60 %}badge-itm-alto{% elif stat.taxa_itm > 30 %}badge-itm-medio{% else %}badge-itm-baixo{% endif %}">
+                        {{ stat.taxa_itm|floatformat:0 }}%
+                    </span>
+                </td>
+
+                <!-- AÇÃO -->
+                <td class="text-center">
+                    <a href="{% url 'estatisticas_jogador' season.id stat.player.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+
+<!-- EMPTY STATE -->
+<div class="ranking-table">
+    <div class="empty-state">
+        <i class="bi bi-trophy"></i>
+        <h3>Nenhum jogador pontuou ainda</h3>
+        <p class="text-muted mb-0">
+            Crie torneios e lance os resultados para que o ranking seja atualizado automaticamente.
+        </p>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Espaço para futuros gráficos e interações
+    });
+</script>
+{% endblock %}
