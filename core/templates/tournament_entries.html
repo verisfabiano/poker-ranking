@@ -472,22 +472,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // Modal de Criar Novo Jogador
-const toggleCriarUsuario = document.getElementById('inputCriarUsuario');
-const camposUsuario = document.getElementById('camposUsuario');
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleCriarUsuario = document.getElementById('inputCriarUsuario');
+    const camposUsuario = document.getElementById('camposUsuario');
 
-// Mostrar/esconder campos de usuário quando checkbox muda
-toggleCriarUsuario.addEventListener('change', function() {
-    if (this.checked) {
-        camposUsuario.style.display = 'block';
-        document.getElementById('inputUsernameJogador').focus();
-    } else {
-        camposUsuario.style.display = 'none';
-        document.getElementById('inputUsernameJogador').value = '';
-        document.getElementById('inputEmailJogador').value = '';
+    // Mostrar/esconder campos de usuário quando checkbox muda
+    if (toggleCriarUsuario) {
+        toggleCriarUsuario.addEventListener('change', function() {
+            if (this.checked) {
+                camposUsuario.style.display = 'block';
+                document.getElementById('inputUsernameJogador').focus();
+            } else {
+                camposUsuario.style.display = 'none';
+                document.getElementById('inputUsernameJogador').value = '';
+                document.getElementById('inputEmailJogador').value = '';
+            }
+        });
     }
-});
 
-document.getElementById('formNovoJogador').addEventListener('submit', async function(e) {
+    const formNovoJogador = document.getElementById('formNovoJogador');
+    if (!formNovoJogador) return;
+    
+    formNovoJogador.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const nome = document.getElementById('inputNomeJogador').value.trim();
@@ -593,7 +599,8 @@ document.getElementById('formNovoJogador').addEventListener('submit', async func
         btnCriar.disabled = false;
         btnCriar.innerHTML = 'SALVAR';
     }
-});
+    });
+}); // Fecha DOMContentLoaded para form novo jogador
 
 // ============================================================
 // REBUY E ADD-ON BUTTONS - COM DELEGAÇÃO DE EVENTO
