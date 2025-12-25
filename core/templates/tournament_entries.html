@@ -566,8 +566,14 @@ document.addEventListener('DOMContentLoaded', function() {
             select.value = data.player_id;
             
             // Fechar modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNovoJogador'));
-            modal.hide();
+            const modalElement = document.getElementById('modalNovoJogador');
+            if (modalElement) {
+                let modal = bootstrap.Modal.getInstance(modalElement);
+                if (!modal) {
+                    modal = new bootstrap.Modal(modalElement);
+                }
+                modal.hide();
+            }
             
             // Resetar formulário
             document.getElementById('formNovoJogador').reset();
