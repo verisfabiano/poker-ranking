@@ -1,0 +1,286 @@
+[
+  {
+    "model": "core.blindstructure",
+    "pk": 5,
+    "fields": {
+      "nome": "Turbo 15 min",
+      "descricao": "Estrutura turbo com aumentos a cada 15 minutos - comum em torneios ao vivo",
+      "tenant": 6
+    }
+  },
+  {
+    "model": "core.blindstructure",
+    "pk": 6,
+    "fields": {
+      "nome": "Regular 20 min",
+      "descricao": "Estrutura padr\u00e3o com aumentos a cada 20 minutos - equilibrada para torneios convencionais",
+      "tenant": 6
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 40,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 1,
+      "small_blind": 10,
+      "big_blind": 25,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 50,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 1,
+      "small_blind": 10,
+      "big_blind": 25,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 41,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 2,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 51,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 2,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 42,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 3,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 52,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 3,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 43,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 4,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 53,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 4,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 44,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 5,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 10,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 54,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 5,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 30,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 45,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 6,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 40,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 55,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 6,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 46,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 7,
+      "small_blind": 250,
+      "big_blind": 500,
+      "ante": 60,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 56,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 7,
+      "small_blind": 250,
+      "big_blind": 500,
+      "ante": 50,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 47,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 8,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 100,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 57,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 8,
+      "small_blind": 500,
+      "big_blind": 1000,
+      "ante": 100,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 48,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 9,
+      "small_blind": 750,
+      "big_blind": 1500,
+      "ante": 150,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 58,
+    "fields": {
+      "structure": 6,
+      "tenant": 6,
+      "ordem": 9,
+      "small_blind": 1000,
+      "big_blind": 2000,
+      "ante": 200,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 49,
+    "fields": {
+      "structure": 5,
+      "tenant": 6,
+      "ordem": 10,
+      "small_blind": 1000,
+      "big_blind": 2000,
+      "ante": 200,
+      "tempo_minutos": 15,
+      "is_break": false
+    }
+  }
+]

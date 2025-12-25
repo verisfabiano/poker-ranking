@@ -1,0 +1,123 @@
+[
+  {
+    "model": "core.blindstructure",
+    "pk": 7,
+    "fields": {
+      "nome": "Turbo 20 minutos",
+      "descricao": "Estrutura turbo com n\u00edveis de 20 minutos",
+      "tenant": 7
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 59,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 1,
+      "small_blind": 5,
+      "big_blind": 10,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 60,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 2,
+      "small_blind": 10,
+      "big_blind": 20,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 61,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 3,
+      "small_blind": 15,
+      "big_blind": 30,
+      "ante": 0,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 62,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 4,
+      "small_blind": 25,
+      "big_blind": 50,
+      "ante": 5,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 63,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 5,
+      "small_blind": 0,
+      "big_blind": 0,
+      "ante": 0,
+      "tempo_minutos": 15,
+      "is_break": true
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 64,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 6,
+      "small_blind": 50,
+      "big_blind": 100,
+      "ante": 10,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 65,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 7,
+      "small_blind": 100,
+      "big_blind": 200,
+      "ante": 20,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  },
+  {
+    "model": "core.blindlevel",
+    "pk": 66,
+    "fields": {
+      "structure": 7,
+      "tenant": 7,
+      "ordem": 8,
+      "small_blind": 150,
+      "big_blind": 300,
+      "ante": 30,
+      "tempo_minutos": 20,
+      "is_break": false
+    }
+  }
+]
