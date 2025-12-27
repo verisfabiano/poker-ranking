@@ -22,9 +22,12 @@ def prize_distribution_view(request, tournament_id):
     
     # Verificar se o torneio está em andamento, encerrado ou cancelado (não pode ser agendado)
     if tournament.status == 'AGENDADO':
-        return HttpResponseRedirect(
-            reverse('tournament_dashboard') + '?error=tournament_not_started'
+        from django.contrib import messages
+        messages.warning(
+            request,
+            f'O torneio "{tournament.nome}" ainda está agendado. A distribuição de prêmios só pode ser configurada após o torneio iniciar.'
         )
+        return HttpResponseRedirect(reverse('tournament_entries_manage', kwargs={'tournament_id': tournament.id}))
     
     # Verificar ou criar PrizeStructure
     prize_structure, created = PrizeStructure.objects.get_or_create(
