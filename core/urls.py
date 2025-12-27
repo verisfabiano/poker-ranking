@@ -3,6 +3,7 @@ from django.views.generic import RedirectView
 from django.shortcuts import render
 
 from .views.public import landing_page, signup_club, login_view
+from .views.superadmin import clientes_list, cliente_detail, cliente_slug_update, cliente_toggle_status
 from .views.player_public import player_register_public, player_login_club
 from .views.documentacao import documentacao_ranking
 from .views.financial_enhanced import (
@@ -108,6 +109,14 @@ urlpatterns = [
 
     # Raiz do site -> decide pra onde mandar (admin x jogador)
     path("redirect/", home_redirect, name="home_redirect"),
+
+    # ============================================================
+    #  SUPERADMIN - GERENCIAMENTO DE CLIENTES
+    # ============================================================
+    path("superadmin/clientes/", clientes_list, name="clientes_list"),
+    path("superadmin/clientes/<int:cliente_id>/", cliente_detail, name="cliente_detail"),
+    path("superadmin/clientes/<int:cliente_id>/slug/", cliente_slug_update, name="cliente_slug_update"),
+    path("superadmin/clientes/<int:cliente_id>/status/", cliente_toggle_status, name="cliente_toggle_status"),
 
     # ============================================================
     #  ADMIN - PAINEL

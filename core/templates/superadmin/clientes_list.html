@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Clientes - Superadmin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cliente-card {
+        border-left: 4px solid #007bff;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cliente-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .cliente-card.inativo {
+        border-left-color: #dc3545;
+        opacity: 0.8;
+    }
+    .slug-badge {
+        font-family: monospace;
+        background-color: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+    .status-badge {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-building"></i> Gerenciar Clientes</h1>
+            <p class="text-muted">Total de {{ total_clientes }} cliente(s) cadastrado(s)</p>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Buscar por Nome, Slug ou CNPJ</label>
+                    <input type="text" name="search" class="form-control" placeholder="Digite para filtrar..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Ativo</option>
+                        <option value="inativo" {% if status == 'inativo' %}selected{% endif %}>Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Clientes -->
+    {% if cliente_data %}
+        <div class="row">
+            {% for item in cliente_data %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card cliente-card {% if not item.tenant.status %}inativo{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1">{{ item.tenant.nome }}</h5>
+                                    <div class="slug-badge mb-2">{{ item.tenant.slug }}</div>
+                                </div>
+                                <span class="status-badge {% if item.tenant.status %}badge bg-success{% else %}badge bg-danger{% endif %}">
+                                    {% if item.tenant.status %}Ativo{% else %}Inativo{% endif %}
+                                </span>
+                            </div>
+
+                            <div class="small mb-3">
+                                {% if item.tenant.cnpj %}
+                                    <div class="mb-1"><strong>CNPJ:</strong> {{ item.tenant.cnpj }}</div>
+                                {% endif %}
+                                {% if item.tenant.telefone %}
+                                    <div class="mb-1"><strong>Telefone:</strong> {{ item.tenant.telefone }}</div>
+                                {% endif %}
+                                <div class="mb-1"><strong>Usuários:</strong> {{ item.total_usuarios }}</div>
+                                <div class="text-muted"><strong>Criado:</strong> {{ item.tenant.criado_em|date:"d/m/Y" }}</div>
+                            </div>
+
+                            <a href="{% url 'cliente_detail' item.tenant.id %}" class="btn btn-sm btn-primary w-100">
+                                <i class="bi bi-eye"></i> Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> 
+            {% if search or status %}
+                Nenhum cliente encontrado com os filtros selecionados.
+            {% else %}
+                Nenhum cliente cadastrado ainda.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

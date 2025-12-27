@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ cliente.nome }} - Detalhes do Cliente{% endblock %}
+
+{% block extra_css %}
+<style>
+    .slug-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    .slug-display {
+        font-family: monospace;
+        font-size: 1.2rem;
+        font-weight: 600;
+        word-break: break-all;
+    }
+    .usuario-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .usuario-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-building"></i> {{ cliente.nome }}</h1>
+            <p class="text-muted">Detalhes e gerenciamento do cliente</p>
+        </div>
+        <div>
+            <a href="{% url 'clientes_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações Principais -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações do Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nome do Clube</label>
+                        <p class="form-control-plaintext">{{ cliente.nome }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Slug (URL amigável)</label>
+                        <div class="slug-section">
+                            <div class="slug-display mb-3">{{ cliente.slug }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editSlugModal">
+                                <i class="bi bi-pencil"></i> Editar Slug
+                            </button>
+                        </div>
+                        <small class="d-block mt-2 text-muted">
+                            <strong>URL de Registro de Jogadores:</strong><br>
+                            <code>https://web-production-09041.up.railway.app/clube/{{ cliente.slug }}/registro/</code>
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Status</label>
+                        <div>
+                            <span class="badge {% if cliente.status %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                {% if cliente.status %}Ativo{% else %}Inativo{% endif %}
+                            </span>
+                            <form method="POST" action="{% url 'cliente_toggle_status' cliente.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="{% if cliente.status %}false{% else %}true{% endif %}">
+                                <button type="submit" class="btn btn-sm btn-warning">
+                                    {% if cliente.status %}<i class="bi bi-lock"></i> Desativar{% else %}<i class="bi bi-unlock"></i> Ativar{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if cliente.cnpj %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">CNPJ</label>
+                        <p class="form-control-plaintext">{{ cliente.cnpj }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if cliente.telefone %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Telefone</label>
+                        <p class="form-control-plaintext">{{ cliente.telefone }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Data de Criação</label>
+                        <p class="form-control-plaintext">{{ cliente.criado_em|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuários do Cliente -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Usuários ({{ total_usuarios }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if usuarios %}
+                        {% for tu in usuarios %}
+                            <div class="usuario-item">
+                                <div>
+                                    <strong>{{ tu.user.get_full_name|default:tu.user.username }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ tu.user.email }}</small>
+                                    {% if tu.is_admin %}
+                                        <br>
+                                        <span class="badge bg-danger">Admin</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted text-end">
+                                    Desde<br>
+                                    {{ tu.criado_em|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-3 text-center text-muted">
+                            <i class="bi bi-inbox"></i> Nenhum usuário cadastrado
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Slug -->
+<div class="modal fade" id="editSlugModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Slug do Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'cliente_slug_update' cliente.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Novo Slug</label>
+                        <input type="text" name="slug" class="form-control" value="{{ cliente.slug }}" required>
+                        <small class="form-text text-muted mt-2">
+                            Apenas letras, números e hífens. Será usado na URL de registro dos jogadores.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Atualizar Slug</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
