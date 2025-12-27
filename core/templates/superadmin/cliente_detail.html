@@ -16,6 +16,24 @@
         font-weight: 600;
         word-break: break-all;
     }
+    .registration-url-section {
+        background-color: #e7f3ff;
+        padding: 15px;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+        margin-top: 15px;
+    }
+    .registration-url-display {
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        word-break: break-all;
+        padding: 12px;
+        background-color: white;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        margin: 10px 0;
+        user-select: all;
+    }
     .usuario-item {
         display: flex;
         justify-content: space-between;
@@ -98,10 +116,23 @@
                                 <i class="bi bi-pencil"></i> Editar Slug
                             </button>
                         </div>
-                        <small class="d-block mt-2 text-muted">
-                            <strong>URL de Registro de Jogadores:</strong><br>
-                            <code>https://web-production-09041.up.railway.app/clube/{{ cliente.slug }}/registro/</code>
-                        </small>
+                        <div class="registration-url-section mt-4">
+                            <h6 class="mb-3">
+                                <i class="bi bi-link-45deg"></i> URL de Registro de Jogadores
+                            </h6>
+                            <p class="mb-2 text-muted small">
+                                Compartilhe esta URL com seus jogadores para que façam o cadastro:
+                            </p>
+                            <div class="input-group">
+                                <input type="text" class="form-control registration-url-display" id="registrationUrlInput" value="{{ registration_url }}" readonly>
+                                <button class="btn btn-primary" type="button" id="btnCopyUrl" title="Copiar URL">
+                                    <i class="bi bi-clipboard"></i> Copiar
+                                </button>
+                            </div>
+                            <small class="d-block mt-2 text-muted">
+                                <i class="bi bi-info-circle"></i> Esta URL é dinâmica e funciona em qualquer domínio.
+                            </small>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -205,4 +236,36 @@
         </div>
     </div>
 </div>
+
+<script>
+// Função para copiar URL
+document.getElementById('btnCopyUrl').addEventListener('click', function() {
+    const urlInput = document.getElementById('registrationUrlInput');
+    
+    // Selecionar o texto
+    urlInput.select();
+    urlInput.setSelectionRange(0, 99999); // Para mobile
+    
+    // Copiar
+    try {
+        document.execCommand('copy');
+        
+        // Feedback visual
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-primary');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }, 2000);
+    } catch (err) {
+        alert('Erro ao copiar. Por favor, copie manualmente.');
+    }
+});
+</script>
+
 {% endblock %}

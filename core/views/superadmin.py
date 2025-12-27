@@ -71,10 +71,14 @@ def cliente_detail(request, cliente_id):
     cliente = get_object_or_404(Tenant, id=cliente_id)
     usuarios = TenantUser.objects.filter(tenant=cliente).select_related('user')
     
+    # Construir URL de registro dinâmica baseada no domínio atual
+    registration_url = request.build_absolute_uri(f'/clube/{cliente.slug}/registro/')
+    
     context = {
         'cliente': cliente,
         'usuarios': usuarios,
         'total_usuarios': usuarios.count(),
+        'registration_url': registration_url,
     }
     
     return render(request, 'superadmin/cliente_detail.html', context)
