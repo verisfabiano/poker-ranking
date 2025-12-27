@@ -17,6 +17,17 @@
         font-size: 0.75rem;
         padding: 2px 6px;
     }
+    
+    /* Esconder tags de produtos que são REBUY, ADDON, STAFF, REBUY_DUPLO */
+    .product-badge:has-text("REBUY"),
+    .product-badge:has-text("ADDON"),
+    .product-badge:has-text("STAFF"),
+    .product-badge:contains("REBUY"),
+    .product-badge:contains("ADDON"),
+    .product-badge:contains("STAFF") {
+        display: none !important;
+    }
+    
     .products-popover {
         max-width: 300px;
     }
@@ -162,9 +173,11 @@
                                                 {% if entry.product_purchases %}
                                                     {% for product in products %}
                                                         {% if product.id in entry.product_purchases %}
+                                                            {% if product.nome not in "REBUY,REBUY_DUPLO,ADDON,STAFF,TIME_CHIP" %}
                                                             <span class="badge bg-success product-badge">
                                                                 <i class="bi bi-check-lg"></i> {{ product.nome }}
                                                             </span>
+                                                            {% endif %}
                                                         {% endif %}
                                                     {% endfor %}
                                                 {% endif %}
@@ -689,11 +702,7 @@ async function handleRemoveBadgeClick(e) {
     e.preventDefault();
     e.stopPropagation();
     
-    // Se clicou no X, remover
-    if (!e.target.closest('.badge-remove')) {
-        return;
-    }
-    
+    // Sempre remover quando clicar no badge (com a classe badge-with-remove)
     const badge = this;
     const playerId = badge.dataset.playerId;
     const tournamentId = badge.dataset.tournamentId;
@@ -806,6 +815,10 @@ async function handleRebuyAddonClick(e) {
             let counter = document.querySelector(`.${counterClass}`);
             
             if (counter) {
+                // Remover classe d-none se tiver (para badges que começam invisíveis)
+                counter.classList.remove('d-none');
+                counter.style.display = 'inline-block';
+                
                 // Atualizar apenas o texto dentro do badge, não o badge inteiro
                 const badgeText = counter.querySelector('.badge-text');
                 if (badgeText) {
@@ -813,7 +826,6 @@ async function handleRebuyAddonClick(e) {
                 } else {
                     counter.textContent = data.quantidade;
                 }
-                counter.style.display = 'inline-block';
             } else {
                 // Criar badge se não existir
                 const buttonSelector = tipo === 'REBUY' ? '.rebuy-btn' : 
@@ -829,31 +841,38 @@ async function handleRebuyAddonClick(e) {
                     
                     if (!counter) {
                         counter = document.createElement('span');
-                        const isAddon = tipo === 'ADDON';
-                        const bgClass = isAddon ? 'bg-info' : 'bg-warning';
-                        const bgColor = isAddon ? '#0dcaf0' : '#ffc107';
                         
-                        counter.className = `badge ${bgClass} ${counterClass}`;
-                        counter.textContent = data.quantidade;
-                        counter.setAttribute('data-debug', 'novo-badge');
+                        // Determinar cores e classes baseado no tipo
+                        let bgClass, bgColor;
+                        if (tipo === 'REBUY') {
+                            bgClass = 'bg-danger';
+                            bgColor = '#dc3545';
+                        } else if (tipo === 'REBUY_DUPLO') {
+                            bgClass = 'bg-dark';
+                            bgColor = '#212529';
+                        } else if (tipo === 'ADDON') {
+                            bgClass = 'bg-success';
+                            bgColor = '#198754';
+                        } else if (tipo === 'TIME_CHIP') {
+                            bgClass = 'bg-success';
+                            bgColor = '#198754';
+                        }
                         
-                        // Aplicar estilos
-                        Object.assign(counter.style, {
-                            display: 'inline-block',
-                            marginLeft: '4px',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            padding: '2px 6px',
-                            borderRadius: '10px',
-                            minWidth: '20px',
-                            textAlign: 'center',
-                            color: '#fff',
-                            backgroundColor: bgColor,
-                            border: 'none',
-                            whiteSpace: 'nowrap',
-                            visibility: 'visible',
-                            opacity: '1'
-                        });
+                        // Criar estrutura com badge-text e badge-remove
+                        counter.className = `badge ${bgClass} ${counterClass} badge-with-remove`;
+                        counter.setAttribute('data-player-id', playerId);
+                        counter.setAttribute('data-tournament-id', tournamentId);
+                        counter.setAttribute('data-tipo', tipo);
+                        counter.setAttribute('style', 'cursor: pointer; position: relative; padding-right: 18px; display: inline-block; margin-left: 4px;');
+                        
+                        // HTML interno
+                        counter.innerHTML = `
+                            <span class="badge-text">${data.quantidade}</span>
+                            <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
+                        `;
+                        
+                        // Adicionar listener de click para remover
+                        counter.addEventListener('click', handleRemoveBadgeClick);
                         
                         button.appendChild(counter);
                     } else {

@@ -706,37 +706,37 @@ class TournamentEntry(models.Model):
     
     def get_rebuy_count(self):
         """Retorna quantidade de rebuys simples"""
-        purchase = TournamentPlayerPurchase.objects.filter(
+        purchase = PlayerProductPurchase.objects.filter(
             tournament=self.tournament,
             player=self.player,
-            tipo='REBUY'
+            product__nome='REBUY'
         ).first()
         return purchase.quantidade if purchase else 0
     
     def get_rebuy_duplo_count(self):
         """Retorna quantidade de rebuys duplos"""
-        purchase = TournamentPlayerPurchase.objects.filter(
+        purchase = PlayerProductPurchase.objects.filter(
             tournament=self.tournament,
             player=self.player,
-            tipo='REBUY_DUPLO'
+            product__nome='REBUY_DUPLO'
         ).first()
         return purchase.quantidade if purchase else 0
     
     def get_addon_count(self):
         """Retorna quantidade de add-ons (máximo 1)"""
-        purchase = TournamentPlayerPurchase.objects.filter(
+        purchase = PlayerProductPurchase.objects.filter(
             tournament=self.tournament,
             player=self.player,
-            tipo='ADDON'
+            product__nome='ADDON'
         ).first()
         return purchase.quantidade if purchase else 0
     
     def get_timechip_count(self):
         """Retorna se jogador tem time chip confirmado (máximo 1)"""
-        purchase = TournamentPlayerPurchase.objects.filter(
+        purchase = PlayerProductPurchase.objects.filter(
             tournament=self.tournament,
             player=self.player,
-            tipo='TIME_CHIP'
+            product__nome='TIME_CHIP'
         ).first()
         return purchase.quantidade if purchase else 0
 
