@@ -99,9 +99,19 @@
                 {% endif %}
             </div>
         </div>
-        <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
+        <div class="d-flex gap-2">
+            {% if tournament.status != "AGENDADO" %}
+            <a href="{% url 'prize_distribution' tournament.id %}" class="btn btn-primary" title="Configurar distribuição de prêmios">
+                <i class="bi bi-trophy-fill"></i> Prêmios
+            </a>
+            {% endif %}
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalMudarStatus" title="Alterar status do torneio">
+                <i class="bi bi-pencil-square"></i> Mudar Status
+            </button>
+            <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
 
     {% if mensagem %}
@@ -928,6 +938,101 @@ function showNotification(message, type) {
         }
     }, 4000);
 }
+</script>
+
+<!-- Modal: Mudar Status do Torneio -->
+<div class="modal fade" id="modalMudarStatus" tabindex="-1" aria-labelledby="modalMudarStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="modalMudarStatusLabel">
+                    <i class="bi bi-pencil-square me-2"></i> Alterar Status do Torneio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formMudarStatus" method="POST" action="{% url 'tournament_update_status' tournament.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="selectStatus" class="form-label">Selecione o novo status:</label>
+                        <select class="form-select form-select-lg" id="selectStatus" name="status" required>
+                            <option value="">-- Escolha uma opção --</option>
+                            {% if tournament.status != "EM_ANDAMENTO" %}
+                            <option value="EM_ANDAMENTO">
+                                <i class="bi bi-play-circle"></i> Iniciar Torneio
+                            </option>
+                            {% endif %}
+                            {% if tournament.status != "FINALIZADO" %}
+                            <option value="FINALIZADO">
+                                <i class="bi bi-stop-circle"></i> Finalizar Torneio
+                            </option>
+                            {% endif %}
+                            {% if tournament.status != "CANCELADO" %}
+                            <option value="CANCELADO">
+                                <i class="bi bi-x-circle"></i> Cancelar Torneio
+                            </option>
+                            {% endif %}
+                        </select>
+                        <small class="form-text text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> 
+                            Status atual: <strong>{{ tournament.get_status_display }}</strong>
+                        </small>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Nota:</strong> Mudanças de status afetarão a disponibilidade de funcionalidades do torneio.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmarMudarStatus">
+                    <i class="bi bi-check-lg me-1"></i> Confirmar Mudança
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Confirmar mudança de status com AJAX
+document.getElementById('btnConfirmarMudarStatus').addEventListener('click', async function() {
+    const selectStatus = document.getElementById('selectStatus');
+    const novoStatus = selectStatus.value;
+    
+    if (!novoStatus) {
+        alert('Por favor, selecione um status.');
+        return;
+    }
+    
+    const form = document.getElementById('formMudarStatus');
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ status: novoStatus })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Status alterado com sucesso!', 'success');
+            // Atualizar a página após 1 segundo
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showNotification(data.error || 'Erro ao alterar status.', 'danger');
+        }
+    } catch (error) {
+        showNotification('Erro: ' + error.message, 'danger');
+    }
+});
 </script>
 
 {% endblock %}

@@ -87,6 +87,7 @@ from .views import (
     director_toggle_timer,
     director_change_level,
     api_tournament_status,
+    tournament_update_status,
 
     # Financeiro
     tournament_financial,
@@ -225,6 +226,7 @@ urlpatterns = [
     path("torneio/<int:tournament_id>/timer/toggle/", director_toggle_timer, name="director_toggle_timer"),
     path("torneio/<int:tournament_id>/nivel/<str:direction>/", director_change_level, name="director_change_level"),
     path("api/torneio/<int:tournament_id>/status/", api_tournament_status, name="api_tournament_status"),
+    path("api/torneio/<int:tournament_id>/status/update/", tournament_update_status, name="tournament_update_status"),
     path("torneio/<int:tournament_id>/telao/", tv_dashboard, name="tv_dashboard"),
 
     # ============================================================

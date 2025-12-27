@@ -209,5 +209,56 @@ def tournament_status_api(request, tournament_id):
     })
 
 
+def tournament_update_status(request, tournament_id):
+    """API para atualizar o status do torneio (AGENDADO, EM_ANDAMENTO, FINALIZADO, CANCELADO)"""
+    import json
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        novo_status = data.get('status')
+        
+        # Validar status
+        status_validos = ['AGENDADO', 'EM_ANDAMENTO', 'FINALIZADO', 'CANCELADO']
+        if novo_status not in status_validos:
+            return JsonResponse({'success': False, 'error': 'Status inválido'}, status=400)
+        
+        # Validar transições de status
+        status_atual = tournament.status
+        
+        # Permitir transições lógicas
+        transicoes_permitidas = {
+            'AGENDADO': ['EM_ANDAMENTO', 'CANCELADO'],
+            'EM_ANDAMENTO': ['FINALIZADO', 'CANCELADO'],
+            'FINALIZADO': ['CANCELADO'],
+            'CANCELADO': []
+        }
+        
+        if novo_status not in transicoes_permitidas.get(status_atual, []):
+            return JsonResponse({
+                'success': False, 
+                'error': f'Não é possível mudar de {status_atual} para {novo_status}'
+            }, status=400)
+        
+        # Atualizar status
+        tournament.status = novo_status
+        tournament.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Status alterado para {novo_status.replace("_", " ").title()}',
+            'novo_status': novo_status
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 # Alias para compatibilidade com urls.py
 api_tournament_status = tournament_status_api
