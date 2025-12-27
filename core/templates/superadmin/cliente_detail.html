@@ -26,6 +26,40 @@
     .usuario-item:last-child {
         border-bottom: none;
     }
+    
+    /* Modal de editar slug - mesma solução */
+    #editSlugModal {
+        z-index: 9999 !important;
+        pointer-events: auto !important;
+    }
+    #editSlugModal .modal-dialog {
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+        margin-top: 50px !important;
+    }
+    #editSlugModal .modal-content {
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+    }
+    
+    .modal-backdrop {
+        display: none !important;
+    }
+    
+    #editSlugModal * {
+        pointer-events: auto !important;
+    }
+    
+    #editSlugModal input,
+    #editSlugModal textarea,
+    #editSlugModal select,
+    #editSlugModal button,
+    #editSlugModal label,
+    #editSlugModal .form-control,
+    #editSlugModal .form-check-input {
+        pointer-events: auto !important;
+        user-select: text !important;
+    }
 </style>
 {% endblock %}
 

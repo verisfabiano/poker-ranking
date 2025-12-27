@@ -65,6 +65,29 @@
         border-color: #dee2e6;
     }
     
+    /* Garantir que inputs do form são clicáveis */
+    .form-control,
+    input[type="number"],
+    input[type="text"],
+    input[type="email"],
+    input[type="datetime-local"],
+    input[type="checkbox"],
+    input[type="radio"],
+    select,
+    textarea {
+        pointer-events: auto !important;
+        user-select: text !important;
+        z-index: auto !important;
+    }
+    
+    /* Específico para o campo staff_valor */
+    #staff_valor {
+        pointer-events: auto !important;
+        user-select: text !important;
+        z-index: auto !important;
+        position: relative !important;
+    }
+    
     .btn-action {
         padding: 10px 24px;
         border-radius: 6px;
@@ -493,6 +516,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Fechar qualquer popover aberto quando o usuário tentar clicar em um input
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.addEventListener('focus', function() {
+                    // Fechar todos os popovers abertos
+                    document.querySelectorAll('.popover').forEach(pop => {
+                        pop.remove();
+                    });
+                });
+            });
+            
             // Validação: tipo_id é obrigatório apenas em modo FIXO
             const tipoField = document.getElementById('tipo_id');
             const form = document.querySelector('form');

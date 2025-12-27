@@ -806,8 +806,13 @@ async function handleRebuyAddonClick(e) {
             let counter = document.querySelector(`.${counterClass}`);
             
             if (counter) {
-                // Atualizar badge existente
-                counter.textContent = data.quantidade;
+                // Atualizar apenas o texto dentro do badge, não o badge inteiro
+                const badgeText = counter.querySelector('.badge-text');
+                if (badgeText) {
+                    badgeText.textContent = data.quantidade;
+                } else {
+                    counter.textContent = data.quantidade;
+                }
                 counter.style.display = 'inline-block';
             } else {
                 // Criar badge se não existir
@@ -852,7 +857,13 @@ async function handleRebuyAddonClick(e) {
                         
                         button.appendChild(counter);
                     } else {
-                        counter.textContent = data.quantidade;
+                        // Atualizar apenas o texto dentro do badge
+                        const badgeText = counter.querySelector('.badge-text');
+                        if (badgeText) {
+                            badgeText.textContent = data.quantidade;
+                        } else {
+                            counter.textContent = data.quantidade;
+                        }
                         counter.style.display = 'inline-block';
                     }
                 } else {
