@@ -20,6 +20,54 @@
     .products-popover {
         max-width: 300px;
     }
+    
+    /* Modais com z-index altíssimo */
+    #modalNovoJogador {
+        z-index: 9999 !important;
+        pointer-events: auto !important;
+    }
+    #modalNovoJogador.modal {
+        pointer-events: auto !important;
+    }
+    #modalNovoJogador .modal-dialog {
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+        max-height: calc(100vh - 40px) !important;
+        margin-top: 50px !important;
+    }
+    #modalNovoJogador .modal-content {
+        pointer-events: auto !important;
+        z-index: 9999 !important;
+        max-height: calc(100vh - 40px) !important;
+    }
+    
+    /* Modal body scrollável */
+    #modalNovoJogador .modal-body {
+        max-height: calc(100vh - 200px) !important;
+        overflow-y: auto !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Remover backdrop que bloqueia */
+    .modal-backdrop {
+        display: none !important;
+    }
+    
+    /* Garantir todos os elementos dentro do modal */
+    #modalNovoJogador * {
+        pointer-events: auto !important;
+    }
+    
+    #modalNovoJogador input,
+    #modalNovoJogador textarea,
+    #modalNovoJogador select,
+    #modalNovoJogador button,
+    #modalNovoJogador label,
+    #modalNovoJogador .form-control,
+    #modalNovoJogador .form-check-input {
+        pointer-events: auto !important;
+        user-select: text !important;
+    }
 </style>
 {% endblock %}
 
@@ -471,30 +519,38 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-// Modal de Criar Novo Jogador
+// ============================================================
+// MODAL: Criar Novo Jogador
+// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+    const formNovoJogador = document.getElementById('formNovoJogador');
+    if (!formNovoJogador) {
+        console.log('Form não encontrado - pulando inicialização');
+        return;
+    }
+
     const toggleCriarUsuario = document.getElementById('inputCriarUsuario');
     const camposUsuario = document.getElementById('camposUsuario');
 
     // Mostrar/esconder campos de usuário quando checkbox muda
-    if (toggleCriarUsuario) {
+    if (toggleCriarUsuario && camposUsuario) {
         toggleCriarUsuario.addEventListener('change', function() {
             if (this.checked) {
                 camposUsuario.style.display = 'block';
-                document.getElementById('inputUsernameJogador').focus();
+                const usernameField = document.getElementById('inputUsernameJogador');
+                if (usernameField) usernameField.focus();
             } else {
                 camposUsuario.style.display = 'none';
-                document.getElementById('inputUsernameJogador').value = '';
-                document.getElementById('inputEmailJogador').value = '';
+                const usernameField = document.getElementById('inputUsernameJogador');
+                const emailField = document.getElementById('inputEmailJogador');
+                if (usernameField) usernameField.value = '';
+                if (emailField) emailField.value = '';
             }
         });
     }
-
-    const formNovoJogador = document.getElementById('formNovoJogador');
-    if (!formNovoJogador) return;
     
     formNovoJogador.addEventListener('submit', async function(e) {
-    e.preventDefault();
+        e.preventDefault();
     
     const nome = document.getElementById('inputNomeJogador').value.trim();
     const apelido = document.getElementById('inputApelidoJogador').value.trim();
@@ -605,8 +661,8 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCriar.disabled = false;
         btnCriar.innerHTML = 'SALVAR';
     }
-    });
-}); // Fecha DOMContentLoaded para form novo jogador
+    }); // Fecha addEventListener do form
+}); // Fecha DOMContentLoaded
 
 // ============================================================
 // REBUY E ADD-ON BUTTONS - COM DELEGAÇÃO DE EVENTO
