@@ -723,4 +723,7 @@ def club_edit(request):
         
         return redirect("club_edit")
     
-    return render(request, "club_edit.html", {"tenant": tenant})
+    return render(request, "club_edit.html", {
+        "tenant": tenant,
+        "registration_url": request.build_absolute_uri(f'/clube/{tenant.slug}/registro/')
+    })
