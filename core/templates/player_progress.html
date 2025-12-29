@@ -2,6 +2,21 @@
 
 {% block title %}Evolução - {{ player.apelido|default:player.nome }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        h2 { font-size: 1.25rem; margin-bottom: 1rem !important; }
+        .btn-outline-secondary { padding: 0.4rem 0.75rem; font-size: 0.85rem; }
+        .card-body { padding: 1rem !important; }
+        .col-md-6 { margin-bottom: 0.75rem; }
+        .table { font-size: 0.8rem; }
+        table thead th { padding: 0.5rem 0.25rem; }
+        table tbody td { padding: 0.5rem 0.25rem; }
+        .text-md-end { text-align: left !important; margin-top: 0.5rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     

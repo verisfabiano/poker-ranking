@@ -2,6 +2,21 @@
 
 {% block title %}Meu Perfil - {{ player.apelido|default:player.nome }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .card { margin-top: 1rem !important; }
+        .card-header { padding: 1rem !important; }
+        .card-header h4 { font-size: 1.1rem; }
+        .card-body { padding: 1rem !important; }
+        #preview { width: 120px !important; height: 120px !important; }
+        .row.g-3 { --bs-gutter-x: 0.5rem; }
+        .form-label { font-size: 0.9rem; }
+        input.form-control, textarea.form-control { font-size: 1rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container" style="max-width: 600px;">
     <div class="card shadow-sm mt-4 border-0">

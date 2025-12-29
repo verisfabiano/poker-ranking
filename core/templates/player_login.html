@@ -2,6 +2,20 @@
 
 {% block title %}Login - Clube de Poker{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .card { max-width: 100% !important; margin: 0 0.75rem; }
+        .card-body { padding: 1.5rem !important; }
+        .display-1 { font-size: 2.5rem; margin-bottom: 0.5rem !important; }
+        h3 { font-size: 1.25rem; }
+        .form-label { font-size: 0.9rem; }
+        .btn-lg { padding: 0.5rem 0.75rem; font-size: 0.95rem; }
+        .input-group-text { font-size: 0.9rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
     <div class="card shadow-lg border-0" style="width: 100%; max-width: 400px;">

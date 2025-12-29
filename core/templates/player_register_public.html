@@ -2,6 +2,20 @@
 
 {% block title %}Registre-se no Clube - Poker Ranking{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .col-md-6 { max-width: 100%; }
+        .card { margin: 1rem 0.75rem; }
+        .card-header { padding: 1rem; }
+        .card-header h3 { font-size: 1.1rem; }
+        .card-body { padding: 1rem; }
+        .form-label { font-size: 0.9rem; }
+        .form-control, .form-select { font-size: 1rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
