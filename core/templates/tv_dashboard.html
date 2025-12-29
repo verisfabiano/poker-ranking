@@ -30,6 +30,16 @@
             display: flex;
             flex-direction: column;
         }
+        
+        @media (max-width: 768px) {
+            /* Em telas pequenas (monitor/tablet), ajusta layout para coluna única */
+            .main-content { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2vh; }
+            .clock-realtime { font-size: 2vh; }
+            .level-label { font-size: 3vh; }
+            .blinds-display { font-size: 10vh; }
+            .timer-display { font-size: 15vh; }
+        }
 
         /* --- CABEÇALHO --- */
         .header {

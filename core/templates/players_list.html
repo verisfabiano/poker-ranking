@@ -2,6 +2,18 @@
 
 {% block title %}Gerenciar Jogadores{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        h2 { font-size: 1.25rem; }
+        .btn-group { flex-wrap: wrap; }
+        .table { font-size: 0.75rem; }
+        .table th, .table td { padding: 0.4rem; }
+        .badge { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     
