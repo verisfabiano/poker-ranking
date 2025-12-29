@@ -2,83 +2,94 @@
 
 {% block title %}Financeiro - Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .btn-group {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .btn-group .btn {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .table {
+            font-size: 0.75rem;
+        }
+        
+        .hide-mobile {
+            display: none;
+        }
+        
+        .card-body {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h2 class="mb-0">💰 Painel Financeiro</h2>
             <small class="text-muted">Últimos {{ days }} dias</small>
         </div>
         <div class="btn-group" role="group">
-            <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 dias</a>
-            <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30 dias</a>
-            <a href="?days=90" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90 dias</a>
+            <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7d</a>
+            <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30d</a>
+            <a href="?days=90" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90d</a>
             <a href="{% url 'financial_by_period' %}" class="btn btn-sm btn-outline-secondary">Custom</a>
         </div>
     </div>
 
     <!-- CARDS DE RESUMO -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 g-md-3 mb-4">
         <!-- TORNEIOS -->
-        <div class="col-lg-3">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="card border-0 shadow-sm bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-title opacity-75 small">Torneios</h6>
-                            <h2 class="fw-bold mb-0">{{ total_tournaments }}</h2>
-                        </div>
-                        <i class="bi bi-trophy" style="font-size: 1.5rem; opacity: 0.5;"></i>
-                    </div>
+                <div class="card-body p-2 p-md-3">
+                    <h6 class="card-title opacity-75 small">Torneios</h6>
+                    <h3 class="display-6 fw-bold mb-0">{{ total_tournaments }}</h3>
                 </div>
             </div>
         </div>
         
         <!-- ENTRADAS -->
-        <div class="col-lg-3">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="card border-0 shadow-sm bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-title opacity-75 small">Entradas</h6>
-                            <h3 class="fw-bold mb-0">R$ {{ grand_total_entradas|floatformat:2 }}</h3>
-                            <small class="opacity-75 d-block mt-2">Buy-in + Rebuys + Add-ons + Rake</small>
-                        </div>
-                        <i class="bi bi-arrow-down-circle" style="font-size: 1.5rem; opacity: 0.5;"></i>
-                    </div>
+                <div class="card-body p-2 p-md-3">
+                    <h6 class="card-title opacity-75 small">Entradas</h6>
+                    <h3 class="display-6 fw-bold mb-0">R$ {{ grand_total_entradas|floatformat:2 }}</h3>
+                    <small class="opacity-75 d-block mt-2">Buy-in + Rebuys</small>
                 </div>
             </div>
         </div>
         
         <!-- SAÍDAS -->
-        <div class="col-lg-3">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="card border-0 shadow-sm bg-danger text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-title opacity-75 small">Saídas</h6>
-                            <h3 class="fw-bold mb-0">R$ {{ grand_total_saidas|floatformat:2 }}</h3>
-                            <small class="opacity-75 d-block mt-2">Premiação Paga</small>
-                        </div>
-                        <i class="bi bi-arrow-up-circle" style="font-size: 1.5rem; opacity: 0.5;"></i>
-                    </div>
+                <div class="card-body p-2 p-md-3">
+                    <h6 class="card-title opacity-75 small">Saídas</h6>
+                    <h3 class="display-6 fw-bold mb-0">R$ {{ grand_total_saidas|floatformat:2 }}</h3>
+                    <small class="opacity-75 d-block mt-2">Premiação</small>
                 </div>
             </div>
         </div>
         
         <!-- RESULTADO -->
-        <div class="col-lg-3">
+        <div class="col-6 col-md-6 col-lg-3">
             <div class="card border-0 shadow-sm {% if grand_total_resultado >= 0 %}bg-success{% else %}bg-warning{% endif %} text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-title opacity-75 small">Resultado</h6>
-                            <h3 class="fw-bold mb-0">R$ {{ grand_total_resultado|floatformat:2 }}</h3>
-                            <small class="opacity-75 d-block mt-2">{% if grand_total_resultado >= 0 %}✓ Lucro{% else %}⚠ Prejuízo{% endif %}</small>
-                        </div>
-                        <i class="bi {% if grand_total_resultado >= 0 %}bi-check-circle{% else %}bi-exclamation-circle{% endif %}" style="font-size: 1.5rem; opacity: 0.5;"></i>
-                    </div>
+                <div class="card-body p-2 p-md-3">
+                    <h6 class="card-title opacity-75 small">Resultado</h6>
+                    <h3 class="display-6 fw-bold mb-0">R$ {{ grand_total_resultado|floatformat:2 }}</h3>
+                    <small class="opacity-75 d-block mt-2">{% if grand_total_resultado >= 0 %}✓ Lucro{% else %}⚠ Prejuízo{% endif %}</small>
                 </div>
             </div>
         </div>
@@ -86,91 +97,81 @@
 
     <!-- TABELA DE TORNEIOS -->
     <div class="card shadow-sm">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header bg-white py-3">
             <h5 class="mb-0">Detalhes por Torneio</h5>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Data</th>
-                        <th>Torneio</th>
-                        <th class="text-center">Jog.</th>
-                        <th class="text-center">Buy-in</th>
-                        <th class="text-center">Rebuys</th>
-                        <th class="text-center">Add-ons</th>
-                        <th class="text-center">Staff</th>
-                        <th class="text-end">Rake</th>
-                        <th class="text-end" style="background-color: #e8f4f8;">Entradas</th>
-                        <th class="text-end">Saídas</th>
-                        <th class="text-end" style="background-color: #e8f4f8;">Resultado</th>
-                        <th class="text-center">Ver</th>
+                        <th class="small">Data</th>
+                        <th class="small">Torneio</th>
+                        <th class="text-center small">Jog.</th>
+                        <th class="text-center small hide-mobile">Buy-in</th>
+                        <th class="text-center small hide-mobile">Rebuys</th>
+                        <th class="text-center small hide-mobile">Add-ons</th>
+                        <th class="text-center small hide-mobile">Staff</th>
+                        <th class="text-end small">Rake</th>
+                        <th class="text-end small hide-mobile">Entradas</th>
+                        <th class="text-end small">Saídas</th>
+                        <th class="text-end small">Resultado</th>
+                        <th class="text-center small">Ver</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in financial_data %}
                     <tr class="fs-small">
                         <td>
-                            <div class="fw-500">{{ item.tournament.data|date:"d/m/Y" }}</div>
+                            <div class="small fw-500">{{ item.tournament.data|date:"d/m" }}</div>
                             <small class="text-muted">{{ item.tournament.data|time:"H:i" }}</small>
                         </td>
-                        <td class="fw-500">
-                            <div>{{ item.tournament.nome }}</div>
-                            <small class="text-muted d-block">{{ item.tournament.season.nome }}</small>
+                        <td class="small fw-500">
+                            <div>{{ item.tournament.nome|truncatewords:3 }}</div>
+                            <small class="text-muted d-block">{{ item.tournament.season.nome|truncatewords:2 }}</small>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center small">
                             <span class="badge bg-light text-dark">{{ item.count_players }}</span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center small hide-mobile">
                             {% if item.buyin_value > 0 %}
-                                <div><small class="text-muted">{{ item.count_players }}x</small></div>
                                 <div class="fw-500">R$ {{ item.buyin_value|floatformat:2 }}</div>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center small hide-mobile">
                             {% if item.rebuys_count > 0 %}
-                                <div><small class="text-muted">{{ item.rebuys_count }}x</small></div>
                                 <div class="fw-500">R$ {{ item.rebuys_value|floatformat:2 }}</div>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center small hide-mobile">
                             {% if item.addons_count > 0 %}
-                                <div><small class="text-muted">{{ item.addons_count }}x</small></div>
                                 <div class="fw-500">R$ {{ item.addons_value|floatformat:2 }}</div>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center small hide-mobile">
                             {% if item.staff_value > 0 %}
-                                <div><small class="text-muted">{{ item.count_players }}x</small></div>
                                 <div class="fw-500">R$ {{ item.staff_value|floatformat:2 }}</div>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
-                            <div class="fw-500">R$ {{ item.rake_total|floatformat:2 }}</div>
-                        </td>
-                        <td class="text-end fw-bold" style="background-color: #e8f4f8;">
-                            <div>R$ {{ item.gross_total|floatformat:2 }}</div>
-                        </td>
-                        <td class="text-end">
-                            <div class="fw-500">R$ {{ item.prize_paid|floatformat:2 }}</div>
-                        </td>
-                        <td class="text-end fw-bold" style="background-color: #e8f4f8;">
+                        <td class="text-end small fw-500">R$ {{ item.rake_total|floatformat:2 }}</td>
+                        <td class="text-end small fw-bold hide-mobile">R$ {{ item.gross_total|floatformat:2 }}</td>
+                        <td class="text-end small">R$ {{ item.prize_paid|floatformat:2 }}</td>
+                        <td class="text-end small fw-bold">
                             {% if item.resultado >= 0 %}
-                                <div class="text-success">R$ {{ item.resultado|floatformat:2 }}</div>
+                                <span class="text-success">R$ {{ item.resultado|floatformat:2 }}</span>
                             {% else %}
-                                <div class="text-danger">R$ {{ item.resultado|floatformat:2 }}</div>
+                                <span class="text-danger">R$ {{ item.resultado|floatformat:2 }}</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <a href="{% url 'tournament_financial' item.tournament.id %}" class="btn btn-sm btn-outline-secondary" title="Ver detalhes do torneio">
+                            <a href="{% url 'tournament_financial' item.tournament.id %}" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

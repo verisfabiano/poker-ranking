@@ -24,6 +24,67 @@
         opacity: 0.9;
     }
     
+    /* RESPONSIVIDADE MOBILE */
+    @media (max-width: 576px) {
+        .ranking-header {
+            padding: 20px 15px;
+            margin-bottom: 20px;
+        }
+        
+        .ranking-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .ranking-header p {
+            font-size: 0.9rem;
+        }
+        
+        .stat-card {
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card-value {
+            font-size: 1.5rem;
+        }
+        
+        .stat-card-label {
+            font-size: 0.8rem;
+        }
+        
+        .table {
+            font-size: 0.8rem;
+        }
+        
+        .hide-mobile {
+            display: none;
+        }
+        
+        .player-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+    
+    /* TABLETS */
+    @media (min-width: 577px) and (max-width: 992px) {
+        .ranking-header h1 {
+            font-size: 2rem;
+        }
+        
+        .table {
+            font-size: 0.9rem;
+        }
+    }
+    
     .stat-card {
         background: white;
         border: 1px solid #e0e0e0;
