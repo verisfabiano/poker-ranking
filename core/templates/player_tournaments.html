@@ -2,6 +2,22 @@
 
 {% block title %}Próximos Torneios{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        h2 { font-size: 1.25rem; }
+        .table { font-size: 0.8rem; }
+        .small { font-size: 0.7rem !important; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+        .badge { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+    }
+    
+    @media (max-width: 992px) {
+        .table { font-size: 0.9rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     
