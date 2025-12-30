@@ -379,6 +379,9 @@
             <a href="{% url 'relatorio_financeiro_completo' %}" class="nav-link {% if request.resolver_match.url_name == 'relatorio_financeiro_completo' %}active{% endif %}">
                 <i class="bi bi-file-earmark-pdf"></i> Relatório Completo
             </a>
+            <a href="{% url 'relatorios_home' %}" class="nav-link {% if 'relatorios' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Relatórios Avançados
+            </a>
             <a href="#" class="nav-link" onclick="selecionarTemporada(); return false;">
                 <i class="bi bi-trophy"></i> Por Temporada
             </a>
