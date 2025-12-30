@@ -6,6 +6,10 @@
 
 {% block extra_css %}
 <style>
+    /* Campos de usuário (mostrados/escondidos via classe) */
+    #camposUsuario.hidden { display: none; }
+    #camposUsuario:not(.hidden) { display: block; }
+    
     @media (max-width: 576px) {
         .card { margin-top: 0.5rem; }
         .card-header { padding: 0.75rem !important; }
@@ -89,8 +93,7 @@
                     </div>
 
                     <!-- Campos de Usuário (aparecem apenas se o toggle estiver marcado) -->
-                    <div id="camposUsuario" class="mt-3" style="display: {% if player and player.user %}block{% else %}none{% endif %};">
-                        <div class="mb-3">
+                    <div id="camposUsuario" class="mt-3{% if not player.user %} hidden{% endif %}">                        <div class="mb-3">
                             <label for="id_username" class="form-label">Username</label>
                             <input type="text" class="form-control" id="id_username" name="username" 
                                    value="{% if player.user %}{{ player.user.username }}{% endif %}" 
@@ -141,9 +144,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Quando o toggle mudar
     toggleCriarUsuario.addEventListener('change', function() {
         if (this.checked) {
-            camposUsuario.style.display = 'block';
+            camposUsuario.classList.remove('hidden');
         } else {
-            camposUsuario.style.display = 'none';
+            camposUsuario.classList.add('hidden');
             // Limpar os campos quando desmarcar
             inputUsername.value = '';
             inputEmail.value = '';
