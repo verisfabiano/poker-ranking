@@ -2,17 +2,17 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.shortcuts import render
 
-from .views.public import landing_page, signup_club, login_view
-from .views.superadmin import clientes_list, cliente_detail, cliente_slug_update, cliente_toggle_status
-from .views.player_public import player_register_public, player_login_club
-from .views.documentacao import documentacao_ranking
-from .views.financial_enhanced import (
+from core.views.public import landing_page, signup_club, login_view
+from core.views.superadmin import clientes_list, cliente_detail, cliente_slug_update, cliente_toggle_status
+from core.views.player_public import player_register_public, player_login_club
+from core.views.documentacao import documentacao_ranking
+from core.views.financial_enhanced import (
     reconciliar_torneio,
     saldo_caixa_diario,
     relatorio_financeiro_completo,
     api_financial_reconciliation,
 )
-from .views.prize import (
+from core.views.prize import (
     prize_distribution_view,
     update_prize_config,
     apply_prize_template,
@@ -21,7 +21,7 @@ from .views.prize import (
     finalize_prize_distribution,
     view_prize_summary,
 )
-from .views import (
+from core.views import (
     home_redirect,
     ranking_season,
     tv_ranking_season,

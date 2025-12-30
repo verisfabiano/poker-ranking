@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ report.titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        h2 { font-size: 1.25rem; }
+        .card { margin-bottom: 0.75rem; }
+        .card-body { padding: 0.75rem !important; }
+        .stat-item { padding: 1rem 0; }
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    .stat-value.positivo {
+        color: #28a745;
+    }
+    
+    .stat-value.negativo {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-1">{{ report.titulo }}</h2>
+            <p class="text-muted small mb-0">
+                <i class="bi bi-calendar3 me-2"></i>
+                {{ report.data_inicio|date:"d/m/Y" }} a {{ report.data_fim|date:"d/m/Y" }}
+            </p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="{% url 'exportar_relatorio_csv' report.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-download me-1"></i> CSV
+            </a>
+            <a href="{% url 'relatorios_home' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    {% if dados_especificos %}
+    
+        {% if report.tipo == 'FINANCEIRO' %}
+        <!-- RELATÓRIO FINANCEIRO -->
+        <div class="row g-3 mb-4">
+            <!-- RESUMO GERAL -->
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">💰 Resumo Financeiro</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Buy-in</span>
+                            <span class="stat-value">R$ {{ dados_especificos.total_buy_in|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Rebuys</span>
+                            <span class="stat-value">R$ {{ dados_especificos.total_rebuy|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Add-ons</span>
+                            <span class="stat-value">R$ {{ dados_especificos.total_addon|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item" style="border-top: 2px solid #0d6efd; border-bottom: 2px solid #0d6efd; background-color: #f0f8ff;">
+                            <span class="stat-label" style="font-weight: 600;">Total Faturamento</span>
+                            <span class="stat-value" style="color: #0d6efd;">R$ {{ dados_especificos.total_faturamento|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Premiação</span>
+                            <span class="stat-value">R$ {{ dados_especificos.total_premiacao|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Rake (Lucro Bruto)</span>
+                            <span class="stat-value positivo">R$ {{ dados_especificos.total_rake|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item" style="border-top: 2px solid #28a745; background-color: #f0fff4;">
+                            <span class="stat-label" style="font-weight: 600; color: #28a745;">Lucro Líquido</span>
+                            <span class="stat-value positivo" style="font-size: 1.5rem;">R$ {{ dados_especificos.lucro_liquido|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Margem Bruta</span>
+                            <span class="stat-value positivo">{{ dados_especificos.margem_bruta|floatformat:2 }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESTATÍSTICAS -->
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">📊 Estatísticas</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row text-center">
+                            <div class="col-md-3 col-sm-6 p-3 border-end">
+                                <h4 class="text-primary">{{ dados_especificos.numero_torneios }}</h4>
+                                <small class="text-muted">Torneios</small>
+                            </div>
+                            <div class="col-md-3 col-sm-6 p-3 border-end">
+                                <h4 class="text-primary">{{ dados_especificos.numero_jogadores_unicos }}</h4>
+                                <small class="text-muted">Jogadores</small>
+                            </div>
+                            <div class="col-md-3 col-sm-6 p-3 border-end">
+                                <h4 class="text-primary">R$ {{ dados_especificos.ticket_medio|floatformat:2 }}</h4>
+                                <small class="text-muted">Ticket Médio</small>
+                            </div>
+                            <div class="col-md-3 col-sm-6 p-3">
+                                <h4 class="text-primary">{{ dados_especificos.margem_bruta|floatformat:1 }}%</h4>
+                                <small class="text-muted">Margem</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETALHES POR TIPO (se houver) -->
+            {% if dados_especificos.detalhes_por_tipo %}
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">🎰 Desempenho por Tipo de Torneio</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tipo de Torneio</th>
+                                    <th class="text-end">Buy-in</th>
+                                    <th class="text-end">Rebuy</th>
+                                    <th class="text-end">Add-on</th>
+                                    <th class="text-end">Faturamento</th>
+                                    <th class="text-end">Premiação</th>
+                                    <th class="text-end">Rake</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tipo, detalhes in dados_especificos.detalhes_por_tipo.items %}
+                                <tr>
+                                    <td class="fw-bold">{{ tipo }}</td>
+                                    <td class="text-end">R$ {{ detalhes.buy_in|floatformat:2 }}</td>
+                                    <td class="text-end">R$ {{ detalhes.rebuy|floatformat:2 }}</td>
+                                    <td class="text-end">R$ {{ detalhes.addon|floatformat:2 }}</td>
+                                    <td class="text-end fw-bold">R$ {{ detalhes.faturamento|floatformat:2 }}</td>
+                                    <td class="text-end">R$ {{ detalhes.premiacao|floatformat:2 }}</td>
+                                    <td class="text-end text-success">R$ {{ detalhes.rake|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {% elif report.tipo == 'DESEMPENHO_JOGADOR' %}
+        <!-- RELATÓRIO DE DESEMPENHO -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-12">
+                <div class="alert alert-info">
+                    <strong>Jogador:</strong> {{ dados_especificos.player.nome }}
+                    ({{ dados_especificos.player.apelido }})
+                    <br>
+                    <strong>Temporada:</strong> {{ dados_especificos.season.nome }}
+                </div>
+            </div>
+
+            <!-- CARDS DE RESUMO -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card shadow-sm text-center border-0">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ dados_especificos.total_participacoes }}</h3>
+                        <p class="text-muted mb-0">Participações</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card shadow-sm text-center border-0">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ dados_especificos.total_vitórias }}</h3>
+                        <p class="text-muted mb-0">Vitórias</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card shadow-sm text-center border-0">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ dados_especificos.total_top3 }}</h3>
+                        <p class="text-muted mb-0">Top 3</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card shadow-sm text-center border-0">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ dados_especificos.roi|floatformat:2 }}%</h3>
+                        <p class="text-muted mb-0">ROI</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETALHES FINANCEIROS -->
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">💰 Análise Financeira</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Investido</span>
+                            <span class="stat-value">R$ {{ dados_especificos.total_investido|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Ganho</span>
+                            <span class="stat-value positivo">R$ {{ dados_especificos.total_ganho|floatformat:2 }}</span>
+                        </div>
+                        <div class="stat-item" style="border-top: 2px solid #0d6efd;">
+                            <span class="stat-label" style="font-weight: 600;">ROI</span>
+                            <span class="stat-value{% if dados_especificos.roi > 0 %} positivo{% else %} negativo{% endif %}">
+                                {{ dados_especificos.roi|floatformat:2 }}%
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Melhor Posição</span>
+                            <span class="stat-value">🥇 {{ dados_especificos.melhor_posicao|default:"—" }}º</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Pior Posição</span>
+                            <span class="stat-value">{{ dados_especificos.pior_posicao|default:"—" }}º</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Posição Média</span>
+                            <span class="stat-value">{{ dados_especificos.posicao_media|floatformat:1|default:"—" }}º</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EVOLUÇÃO -->
+            {% if dados_especificos.evolucao_pontos %}
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">📈 Últimas Participações</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Torneio</th>
+                                    <th class="text-end">Posição</th>
+                                    <th class="text-end">Pontos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in dados_especificos.evolucao_pontos|dictsort:"data"|last:10 %}
+                                <tr>
+                                    <td>
+                                        <small>{{ item.torneio }}</small><br>
+                                        <small class="text-muted">{{ item.data }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if item.posicao == 1 %}
+                                            <span class="badge bg-success">1º</span>
+                                        {% elif item.posicao <= 3 %}
+                                            <span class="badge bg-info">{{ item.posicao }}º</span>
+                                        {% else %}
+                                            {{ item.posicao }}º
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">{{ item.pontos }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {% elif report.tipo == 'RANKING' %}
+        <!-- RELATÓRIO DE RANKING -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">🏆 Top 10 da Temporada</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Jogador</th>
+                                    <th class="text-end">Pontos</th>
+                                    <th class="text-end">Vitórias</th>
+                                    <th class="text-end">Participações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in dados_especificos.top_10 %}
+                                <tr{% if item.posicao == 1 %} style="background-color: #fff3cd;"{% endif %}>
+                                    <td class="fw-bold">
+                                        {% if item.posicao == 1 %}🥇{% elif item.posicao == 2 %}🥈{% elif item.posicao == 3 %}🥉{% else %}{{ item.posicao }}{% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ item.nome }}</strong><br>
+                                        <small class="text-muted">{{ item.apelido }}</small>
+                                    </td>
+                                    <td class="text-end fw-bold">{{ item.pontos }}</td>
+                                    <td class="text-end">{{ item.vitórias }}</td>
+                                    <td class="text-end">{{ item.participacoes }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESTATÍSTICAS GERAIS -->
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">📊 Estatísticas Gerais</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="stat-item">
+                            <span class="stat-label">Total de Jogadores</span>
+                            <span class="stat-value">{{ dados_especificos.total_jogadores }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total de Pontos Distribuídos</span>
+                            <span class="stat-value">{{ dados_especificos.total_pontos_distribuidos }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Pontos Médio por Jogador</span>
+                            <span class="stat-value">{{ dados_especificos.pontos_medio_por_jogador|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+
+    {% endif %}
+
+    <!-- METADADOS -->
+    <div class="mt-4 text-muted small">
+        <hr>
+        <p>
+            <i class="bi bi-info-circle me-1"></i>
+            Relatório gerado em {{ report.criado_em|date:"d/m/Y H:i" }}
+            {% if report.gerado_por %}
+            por <strong>{{ report.gerado_por.get_full_name|default:report.gerado_por.username }}</strong>
+            {% endif %}
+        </p>
+    </div>
+
+</div>
+{% endblock %}

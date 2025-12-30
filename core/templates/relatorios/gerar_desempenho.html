@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerar Relatório de Desempenho{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .form-group { margin-bottom: 1.25rem; }
+        .card { margin-bottom: 0.75rem; }
+    }
+    
+    .form-section {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #495057;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .info-box strong {
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            
+            <div class="d-flex align-items-center mb-4 mt-2">
+                <a href="{% url 'relatorios_home' %}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="mb-0">📊 Relatório de Desempenho</h2>
+                    <p class="text-muted small mb-0">Analise o desempenho individual de um jogador</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>ℹ️ O que está incluído:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Estatísticas gerais (participações, vitórias, top 3)</li>
+                    <li>Análise financeira (investido, ganho, ROI)</li>
+                    <li>Posições (melhor, pior, média)</li>
+                    <li>Evolução de pontos na temporada</li>
+                    <li>Comparação com média de jogadores</li>
+                </ul>
+            </div>
+
+            <form method="POST" class="needs-validation">
+                {% csrf_token %}
+
+                <!-- SELEÇÃO DE JOGADOR -->
+                <div class="form-section">
+                    <h5>👤 Selecione o Jogador</h5>
+                    <div class="form-group">
+                        <label for="player" class="form-label">Jogador *</label>
+                        <select name="player_id" id="player" class="form-select {% if form.player.errors %}is-invalid{% endif %}" required>
+                            <option value="">-- Escolha um jogador --</option>
+                            {% for player in players %}
+                                <option value="{{ player.id }}">
+                                    {{ player.nome }} ({{ player.apelido }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.player.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.player.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- PERÍODO -->
+                <div class="form-section">
+                    <h5>📅 Período</h5>
+                    
+                    <div class="form-group">
+                        <label for="season" class="form-label">Temporada *</label>
+                        <select name="season_id" id="season" class="form-select {% if form.season.errors %}is-invalid{% endif %}" required>
+                            <option value="">-- Escolha uma temporada --</option>
+                            {% for season in seasons %}
+                                <option value="{{ season.id }}">
+                                    {{ season.nome }} ({{ season.data_inicio|date:"Y" }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.season.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.season.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="data_inicio" class="form-label">Data Inicial</label>
+                                <input type="date" name="data_inicio" id="data_inicio" class="form-control" 
+                                    value="{{ data_inicio|date:'Y-m-d' }}">
+                                <small class="text-muted">Deixe em branco para usar data de início da temporada</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="data_fim" class="form-label">Data Final</label>
+                                <input type="date" name="data_fim" id="data_fim" class="form-control"
+                                    value="{{ data_fim|date:'Y-m-d' }}">
+                                <small class="text-muted">Deixe em branco para usar data de fim da temporada</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TÍTULO PERSONALIZADO -->
+                <div class="form-section">
+                    <h5>✏️ Título (Opcional)</h5>
+                    <div class="form-group">
+                        <label for="titulo" class="form-label">Título do Relatório</label>
+                        <input type="text" name="titulo" id="titulo" class="form-control" 
+                            placeholder="Ex: Desempenho João Silva - Janeiro 2025"
+                            value="{{ titulo|default:'' }}">
+                        <small class="text-muted">Se deixar em branco, será gerado automaticamente</small>
+                    </div>
+                </div>
+
+                <!-- BOTÕES -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-gear-fill me-2"></i>Gerar Relatório
+                    </button>
+                </div>
+
+                {% if messages %}
+                <div class="alert alert-info">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

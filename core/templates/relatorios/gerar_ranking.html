@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerar Relatório de Ranking{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .form-group { margin-bottom: 1.25rem; }
+        .card { margin-bottom: 0.75rem; }
+    }
+    
+    .form-section {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #495057;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .info-box {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .info-box strong {
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            
+            <div class="d-flex align-items-center mb-4 mt-2">
+                <a href="{% url 'relatorios_home' %}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="mb-0">🏆 Relatório de Ranking</h2>
+                    <p class="text-muted small mb-0">Visualize o ranking de uma temporada específica</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🏅 O que está incluído:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Top 10 jogadores da temporada com pontuação</li>
+                    <li>Estatísticas gerais (total de jogadores, pontos distribuídos)</li>
+                    <li>Análise de tendências e movimentação</li>
+                    <li>Comparação entre períodos</li>
+                    <li>Snapshot da posição em data específica</li>
+                </ul>
+            </div>
+
+            <form method="POST" class="needs-validation">
+                {% csrf_token %}
+
+                <!-- SELEÇÃO DE TEMPORADA -->
+                <div class="form-section">
+                    <h5>📅 Temporada</h5>
+                    <div class="form-group">
+                        <label for="season" class="form-label">Temporada *</label>
+                        <select name="season_id" id="season" class="form-select {% if form.season.errors %}is-invalid{% endif %}" required>
+                            <option value="">-- Escolha uma temporada --</option>
+                            {% for season in seasons %}
+                                <option value="{{ season.id }}" {% if season.id == selected_season_id %}selected{% endif %}>
+                                    {{ season.nome }}
+                                    <small>({{ season.data_inicio|date:"d/m/Y" }} - {{ season.data_fim|date:"d/m/Y" }})</small>
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.season.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.season.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- PERÍODO DE FILTRO (Opcional) -->
+                <div class="form-section">
+                    <h5>📆 Período de Filtro (Opcional)</h5>
+                    <p class="text-muted small mb-3">Use para criar um snapshot do ranking em um período específico da temporada</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="data_inicio" class="form-label">Data Inicial</label>
+                                <input type="date" name="data_inicio" id="data_inicio" class="form-control" 
+                                    value="{{ data_inicio|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="data_fim" class="form-label">Data Final</label>
+                                <input type="date" name="data_fim" id="data_fim" class="form-control"
+                                    value="{{ data_fim|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TÍTULO PERSONALIZADO -->
+                <div class="form-section">
+                    <h5>✏️ Título (Opcional)</h5>
+                    <div class="form-group">
+                        <label for="titulo" class="form-label">Título do Relatório</label>
+                        <input type="text" name="titulo" id="titulo" class="form-control" 
+                            placeholder="Ex: Ranking Temporada 2025 - Posição Atualizada"
+                            value="{{ titulo|default:'' }}">
+                        <small class="text-muted">Se deixar em branco, será gerado automaticamente</small>
+                    </div>
+                </div>
+
+                <!-- OPÇÕES AVANÇADAS -->
+                <div class="form-section">
+                    <h5>⚙️ Opções</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="incluir_tendencias" 
+                            id="incluir_tendencias" value="true" checked>
+                        <label class="form-check-label" for="incluir_tendencias">
+                            Incluir análise de tendências
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="incluir_comparison" 
+                            id="incluir_comparison" value="true">
+                        <label class="form-check-label" for="incluir_comparison">
+                            Comparar com período anterior
+                        </label>
+                    </div>
+                </div>
+
+                <!-- BOTÕES -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-bar-chart me-2"></i>Gerar Relatório
+                    </button>
+                </div>
+
+                {% if messages %}
+                <div class="alert alert-info">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

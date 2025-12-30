@@ -1254,3 +1254,171 @@ class PrizeTemplate(models.Model):
     
     def __str__(self):
         return f"{self.nome} ({self.itm_count} premiados)"
+
+
+# ============================================================
+#  MODELOS DE RELATÓRIOS
+# ============================================================
+
+class Report(models.Model):
+    """
+    Modelo genérico para armazenar relatórios gerados.
+    """
+    TIPO_CHOICES = [
+        ('FINANCEIRO', 'Financeiro'),
+        ('DESEMPENHO_JOGADOR', 'Desempenho do Jogador'),
+        ('RANKING', 'Ranking'),
+        ('TORNEIOS', 'Torneios'),
+        ('ADMIN_GERAL', 'Administrativo Geral'),
+    ]
+    
+    PERIODO_CHOICES = [
+        ('SEMANAL', 'Semanal'),
+        ('MENSAL', 'Mensal'),
+        ('TRIMESTRAL', 'Trimestral'),
+        ('ANUAL', 'Anual'),
+        ('CUSTOMIZADO', 'Customizado'),
+    ]
+    
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=50, choices=TIPO_CHOICES)
+    periodo = models.CharField(max_length=20, choices=PERIODO_CHOICES)
+    
+    # Datas
+    data_inicio = models.DateField()
+    data_fim = models.DateField()
+    
+    # Dados
+    titulo = models.CharField(max_length=255)
+    descricao = models.TextField(blank=True)
+    dados = models.JSONField(default=dict)  # Dados brutos do relatório
+    
+    # Metadados
+    gerado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    # Filtros aplicados (para regeração)
+    filtros = models.JSONField(default=dict)
+    
+    class Meta:
+        ordering = ['-criado_em']
+        indexes = [
+            models.Index(fields=['tenant', 'tipo', '-criado_em']),
+            models.Index(fields=['tenant', 'data_inicio', 'data_fim']),
+        ]
+    
+    def __str__(self):
+        return f"{self.titulo} ({self.data_inicio} a {self.data_fim})"
+    
+    @property
+    def tempo_desde_geracao(self):
+        """Retorna quanto tempo faz que foi gerado"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        delta = timezone.now() - self.criado_em
+        
+        if delta.days > 0:
+            return f"{delta.days}d atrás"
+        elif delta.seconds > 3600:
+            return f"{delta.seconds // 3600}h atrás"
+        elif delta.seconds > 60:
+            return f"{delta.seconds // 60}m atrás"
+        else:
+            return "Agora"
+
+
+class ReportFinanceiro(models.Model):
+    """
+    Relatório financeiro detalhado de um período.
+    """
+    report = models.OneToOneField(Report, on_delete=models.CASCADE, related_name='financeiro')
+    
+    # Resumo
+    total_buy_in = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_rebuy = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_addon = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_faturamento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_premiacao = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_rake = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    lucro_liquido = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
+    # Estatísticas
+    numero_torneios = models.IntegerField(default=0)
+    numero_jogadores_unicos = models.IntegerField(default=0)
+    ticket_medio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    # Detalhes por tipo de torneio
+    detalhes_por_tipo = models.JSONField(default=dict)
+    
+    # Rentabilidade
+    margem_bruta = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # %
+    
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Relatório Financeiro {self.report.data_inicio} a {self.report.data_fim}"
+
+
+class ReportDesempenho(models.Model):
+    """
+    Relatório de desempenho individual do jogador.
+    """
+    report = models.OneToOneField(Report, on_delete=models.CASCADE, related_name='desempenho')
+    
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.SET_NULL, null=True)
+    
+    # Estatísticas
+    total_participacoes = models.IntegerField(default=0)
+    total_vitórias = models.IntegerField(default=0)
+    total_top3 = models.IntegerField(default=0)
+    total_pontos = models.IntegerField(default=0)
+    
+    # Financeiro
+    total_investido = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_ganho = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    roi = models.DecimalField(max_digits=6, decimal_places=2, default=0)  # %
+    
+    # Análise
+    melhor_posicao = models.IntegerField(null=True)
+    pior_posicao = models.IntegerField(null=True)
+    posicao_media = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    
+    # Tendências
+    evolucao_pontos = models.JSONField(default=list)  # [{'data': '2025-01-01', 'pontos': 100}]
+    lucro_por_dia = models.JSONField(default=dict)
+    
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('report', 'player', 'season')
+    
+    def __str__(self):
+        return f"Desempenho {self.player.nome} {self.report.data_inicio} a {self.report.data_fim}"
+
+
+class ReportRanking(models.Model):
+    """
+    Snapshot de um ranking em determinado período.
+    """
+    report = models.OneToOneField(Report, on_delete=models.CASCADE, related_name='ranking')
+    
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    
+    # Top 10 no período
+    top_10 = models.JSONField(default=list)  # [{'posicao': 1, 'nome': '', 'pontos': 0, ...}]
+    
+    # Estatísticas gerais
+    total_jogadores = models.IntegerField(default=0)
+    total_pontos_distribuidos = models.IntegerField(default=0)
+    pontos_medio_por_jogador = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    
+    # Movimentação
+    maiores_subidas = models.JSONField(default=list)  # Jogadores que mais subiram
+    maiores_quedas = models.JSONField(default=list)
+    
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Ranking {self.season.nome} {self.report.data_inicio} a {self.report.data_fim}"

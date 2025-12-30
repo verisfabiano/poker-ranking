@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Relatórios{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        .table { font-size: 0.85rem; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    }
+    
+    .filter-section {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .badge-tipo {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.65rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-1">📂 Meus Relatórios</h2>
+            <p class="text-muted small mb-0">Gerencie e visualize seus relatórios</p>
+        </div>
+        <a href="{% url 'relatorios_home' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Novo Relatório
+        </a>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filter-section">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-3 col-sm-6">
+                <label for="tipo" class="form-label small mb-1">Tipo</label>
+                <select name="tipo" id="tipo" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option value="FINANCEIRO" {% if request.GET.tipo == 'FINANCEIRO' %}selected{% endif %}>Financeiro</option>
+                    <option value="DESEMPENHO_JOGADOR" {% if request.GET.tipo == 'DESEMPENHO_JOGADOR' %}selected{% endif %}>Desempenho</option>
+                    <option value="RANKING" {% if request.GET.tipo == 'RANKING' %}selected{% endif %}>Ranking</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <label for="ordenar" class="form-label small mb-1">Ordenar por</label>
+                <select name="ordenar" id="ordenar" class="form-select form-select-sm">
+                    <option value="-criado_em" selected>Mais Recentes</option>
+                    <option value="criado_em">Mais Antigos</option>
+                    <option value="titulo">Título (A-Z)</option>
+                </select>
+            </div>
+            <div class="col-md-6 col-sm-12">
+                <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-funnel me-1"></i>Aplicar Filtros
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if relatorios %}
+        <!-- TABELA DE RELATÓRIOS -->
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th>Título</th>
+                            <th style="width: 10%">Tipo</th>
+                            <th style="width: 15%">Período</th>
+                            <th style="width: 15%">Gerado em</th>
+                            <th style="width: 10%">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for relatorio in relatorios %}
+                        <tr>
+                            <td class="text-muted small">{{ forloop.counter }}</td>
+                            <td>
+                                <strong>{{ relatorio.titulo|truncatewords:8 }}</strong><br>
+                                <small class="text-muted">ID: {{ relatorio.id|truncatechars:12 }}</small>
+                            </td>
+                            <td>
+                                {% if relatorio.tipo == 'FINANCEIRO' %}
+                                    <span class="badge badge-tipo bg-success">💰 Financeiro</span>
+                                {% elif relatorio.tipo == 'DESEMPENHO_JOGADOR' %}
+                                    <span class="badge badge-tipo bg-info">📊 Desempenho</span>
+                                {% elif relatorio.tipo == 'RANKING' %}
+                                    <span class="badge badge-tipo bg-warning text-dark">🏆 Ranking</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>
+                                    {{ relatorio.data_inicio|date:"d/m" }} a {{ relatorio.data_fim|date:"d/m/Y" }}
+                                </small>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ relatorio.criado_em|timesince }} atrás
+                                </small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'relatorio_detalhe' relatorio.id %}" 
+                                        class="btn btn-outline-primary" title="Visualizar">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'exportar_relatorio_csv' relatorio.id %}" 
+                                        class="btn btn-outline-secondary" title="Exportar CSV">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ relatorio.id }}"
+                                        title="Deletar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- MODAL DE CONFIRMAÇÃO -->
+                                <div class="modal fade" id="deleteModal{{ relatorio.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja deletar o relatório <strong>{{ relatorio.titulo }}</strong>?</p>
+                                                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <a href="{% url 'deletar_relatorio' relatorio.id %}" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-1"></i>Deletar
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGINAÇÃO -->
+        {% if is_paginated %}
+        <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">Primeira</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Primeira</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próxima</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Última</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- ESTADO VAZIO -->
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h4>Nenhum relatório encontrado</h4>
+            <p class="text-muted mb-3">
+                Você ainda não gerou nenhum relatório. 
+                <a href="{% url 'relatorios_home' %}">Crie seu primeiro relatório agora</a>
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

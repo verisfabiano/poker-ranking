@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 576px) {
+        h2 { font-size: 1.25rem; }
+        .card { margin-bottom: 0.75rem; }
+        .card-body { padding: 0.75rem !important; }
+        .btn-group { flex-wrap: wrap; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h2 class="mb-0">📊 Relatórios</h2>
+            <p class="text-muted small mb-0">Gere e analise dados detalhados do seu clube</p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="{% url 'gerar_relatorio_financeiro' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg me-1"></i> Financeiro
+            </a>
+            <a href="{% url 'gerar_relatorio_desempenho' %}" class="btn btn-info">
+                <i class="bi bi-plus-lg me-1"></i> Desempenho
+            </a>
+            <a href="{% url 'gerar_relatorio_ranking' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Ranking
+            </a>
+        </div>
+    </div>
+
+    <!-- CARD DE ESTATÍSTICAS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_relatorios }}</h3>
+                    <p class="text-muted small mb-0">Relatórios Gerados</p>
+                </div>
+            </div>
+        </div>
+        {% for tipo, qtd in stats_tipos.items %}
+        <div class="col-md-3 col-sm-6">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3>{{ qtd }}</h3>
+                    <p class="text-muted small mb-0">{{ tipo }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ÚLTIMOS RELATÓRIOS -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history me-2"></i> Últimos Relatórios
+            </h5>
+        </div>
+        
+        {% if relatorios %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Período</th>
+                        <th class="text-end">Gerado</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rel in relatorios %}
+                    <tr>
+                        <td class="fw-bold">{{ rel.titulo }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ rel.get_tipo_display }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ rel.data_inicio|date:"d/m/Y" }} a {{ rel.data_fim|date:"d/m/Y" }}
+                            </small>
+                        </td>
+                        <td class="text-end text-muted small">{{ rel.tempo_desde_geracao }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'relatorio_detalhe' rel.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'exportar_relatorio_csv' rel.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+            <p class="text-muted mt-3">Nenhum relatório gerado ainda</p>
+            <a href="{% url 'gerar_relatorio_financeiro' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> Gerar Primeiro Relatório
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- INFORMAÇÕES ÚTEIS -->
+    <div class="row g-3 mt-4">
+        <div class="col-md-6">
+            <div class="alert alert-info" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle me-2"></i> Relatórios Financeiros
+                </h6>
+                <small>Analise buy-ins, rebuys, add-ons, rake e lucro bruto em um período específico. Inclui descomposição por tipo de torneio.</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-info" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle me-2"></i> Relatórios de Desempenho
+                </h6>
+                <small>Acompanhe o desempenho individual de jogadores com estatísticas detalhadas, ROI e evolução de pontos.</small>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
