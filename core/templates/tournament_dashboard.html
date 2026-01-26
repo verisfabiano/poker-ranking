@@ -279,6 +279,9 @@
                                         <a href="{% url 'director_panel' tournament.id %}" class="btn btn-sm btn-outline-info">
                                             <i class="bi bi-clock-history"></i> Painel
                                         </a>
+                                        <a href="{% url 'tournament_results' tournament.id %}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-clipboard2-data"></i> Resultados
+                                        </a>
                                         <a href="{% url 'tournament_edit' tournament.id %}" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-stop-circle"></i> Finalizar
                                         </a>
