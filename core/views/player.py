@@ -379,20 +379,19 @@ def player_register(request):
         try:
             from django.contrib.auth import login
             from django.db import transaction
-            from ..services.email_service import EmailService
             from ..utils.username_generator import generate_unique_username
             
             with transaction.atomic():
                 # Gerar username único automaticamente
                 username = generate_unique_username()
                 
-                # 1. Criar usuário Django (inativo até email ser verificado)
+                # 1. Criar usuário Django (ativo imediatamente - email verification desabilitado)
                 user = User.objects.create_user(
                     username=username,
                     email=email,
                     password=senha,
                     first_name=nome,
-                    is_active=False  # Desativado até email ser verificado
+                    is_active=True  # Ativo imediatamente
                 )
                 
                 # 2. Criar Player vinculado ao usuário
@@ -407,19 +406,14 @@ def player_register(request):
                 # 3. Criar TenantUser para vincular usuário ao tenant
                 from ..models import TenantUser
                 TenantUser.objects.create(user=user, tenant=tenant)
-                
-                # 4. Enviar email de verificação
-                EmailService.send_verification_email(user, request)
             
             # Limpa a sessão
             if 'selected_tenant_id' in request.session:
                 del request.session['selected_tenant_id']
             
-            # Mostrar página de confirmação de email
-            return render(request, "auth/email_verification_pending.html", {
-                "email": email,
-                "message": f"Um email de verificação foi enviado para {email}. Clique no link para ativar sua conta."
-            })
+            # Fazer login automático e redirecionar para painel
+            login(request, user)
+            return redirect('painel_home')
         
         except Exception as e:
             return render(request, "player_register.html", {

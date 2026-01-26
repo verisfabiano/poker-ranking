@@ -139,7 +139,6 @@ def player_register_public(request, slug):
         
         if form.is_valid():
             try:
-                from ..services.email_service import EmailService
                 from ..utils.username_generator import generate_unique_username
                 
                 with transaction.atomic():
@@ -151,13 +150,13 @@ def player_register_public(request, slug):
                     # Gerar username único automaticamente
                     username = generate_unique_username()
                     
-                    # 1. Criar usuário (inativo até email ser verificado)
+                    # 1. Criar usuário (ativo imediatamente - email verification desabilitada)
                     user = User.objects.create_user(
                         username=username,
                         email=email,
                         password=password,
                         first_name=nome,
-                        is_active=False  # Desativado até email ser verificado
+                        is_active=True  # Ativo imediatamente
                     )
                     
                     # 2. Vincular usuário ao tenant como jogador
@@ -177,14 +176,9 @@ def player_register_public(request, slug):
                         ativo=True
                     )
                     
-                    # 4. Enviar email de verificação
-                    EmailService.send_verification_email(user, request)
-                    
-                    # Retornar para página de confirmação de email
-                    return render(request, 'auth/email_verification_pending.html', {
-                        'email': email,
-                        'message': f'Um email de verificação foi enviado para {email}. Clique no link para ativar sua conta.'
-                    })
+                    # Fazer login automático
+                    login(request, user)
+                    return redirect('player_home')
                     
             except Exception as e:
                 form.add_error(None, f'Erro ao registrar: {str(e)}')
