@@ -70,6 +70,18 @@ def player_login(request):
 
         if user is not None and user.is_active:
             login(request, user)
+            
+            # Registrar login bem-sucedido
+            from ..models import TenantAuditLog
+            if hasattr(request, 'tenant') and request.tenant:
+                TenantAuditLog.log_action(
+                    request,
+                    request.tenant,
+                    'LOGIN',
+                    success=True,
+                    description=f"Login bem-sucedido para {user.email}"
+                )
+            
             if is_admin(user):
                 return HttpResponseRedirect(reverse("painel_home"))
             else:
@@ -83,6 +95,17 @@ def player_login(request):
             })
         else:
             mensagem = "E-mail ou senha inválidos."
+            
+            # Registrar tentativa de login falhada
+            from ..models import TenantAuditLog
+            if hasattr(request, 'tenant') and request.tenant:
+                TenantAuditLog.log_action(
+                    request,
+                    request.tenant,
+                    'LOGIN_FAILED',
+                    success=False,
+                    description=f"Tentativa de login falhada com email: {login_input}"
+                )
 
     return render(request, "player_login.html", {"mensagem": mensagem})
 

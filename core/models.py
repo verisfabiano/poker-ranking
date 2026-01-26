@@ -1582,3 +1582,108 @@ class PasswordResetToken(models.Model):
         self.used_at = timezone.now()
         self.save()
         return True
+
+
+# ============================================================
+#  AUDITORIA DE MULTI-TENANT
+# ============================================================
+
+class TenantAuditLog(models.Model):
+    """
+    Registra todas as ações importantes dentro de um tenant.
+    Permite rastreamento de segurança e conformidade.
+    """
+    ACTION_CHOICES = (
+        ('LOGIN', 'Login'),
+        ('LOGIN_FAILED', 'Login Falhou'),
+        ('LOGOUT', 'Logout'),
+        ('CREATE', 'Criar'),
+        ('UPDATE', 'Atualizar'),
+        ('DELETE', 'Deletar'),
+        ('VIEW', 'Visualizar'),
+        ('EXPORT', 'Exportar'),
+        ('PERMISSION_CHANGE', 'Mudança de Permissão'),
+        ('TENANT_CHANGE', 'Mudança de Tenant'),
+        ('SECURITY_ALERT', 'Alerta de Segurança'),
+    )
+    
+    tenant = models.ForeignKey(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name='audit_logs'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs'
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    
+    # O que foi afetado
+    model_name = models.CharField(max_length=100, blank=True)  # 'Tournament', 'Player', etc
+    object_id = models.IntegerField(null=True, blank=True)
+    object_description = models.CharField(max_length=255, blank=True)
+    
+    # Detalhes
+    description = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    # Status
+    success = models.BooleanField(default=True)
+    error_message = models.TextField(blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['tenant', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['action', '-created_at']),
+            models.Index(fields=['ip_address', '-created_at']),
+        ]
+        verbose_name = "Auditoria de Tenant"
+        verbose_name_plural = "Auditorias de Tenant"
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else "Sistema"
+        return f"{self.tenant.nome} - {user_str} - {self.get_action_display()}"
+    
+    @classmethod
+    def log_action(cls, request, tenant, action, **kwargs):
+        """
+        Registra uma ação de usuário.
+        
+        Args:
+            request: HttpRequest object
+            tenant: Tenant object
+            action: Ação a registrar (ex: 'LOGIN', 'CREATE')
+            **kwargs: Campos adicionais (description, model_name, object_id, etc)
+        """
+        ip_address = get_client_ip_from_request(request) if request else None
+        user_agent = request.META.get('HTTP_USER_AGENT', '') if request else ''
+        
+        cls.objects.create(
+            tenant=tenant,
+            user=request.user if request and request.user.is_authenticated else None,
+            action=action,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            **kwargs
+        )
+
+
+def get_client_ip_from_request(request):
+    """
+    Extrai IP do cliente da request, considerando proxies.
+    """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
