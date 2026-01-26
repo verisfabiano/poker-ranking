@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Erro na Verificação - Poker Ranking{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white text-center">
+                    <h4>✗ Erro na Verificação de Email</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle" style="font-size: 60px; color: #dc3545;"></i>
+                    </div>
+                    
+                    <h5 class="card-title">Não foi possível verificar seu email</h5>
+                    
+                    <p class="card-text text-danger">
+                        {% if error %}
+                            <strong>{{ error }}</strong>
+                        {% else %}
+                            Um erro inesperado ocorreu ao tentar verificar seu email.
+                        {% endif %}
+                    </p>
+                    
+                    <div class="mt-4">
+                        {% if error_code == "token_expired" %}
+                            <p class="text-muted mb-3">
+                                O link de verificação expirou após 24 horas. Você pode solicitar um novo link na página de login.
+                            </p>
+                            <a href="{% url 'player_login' %}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> Ir para Login
+                            </a>
+                        {% elif error_code == "already_verified" %}
+                            <p class="text-muted mb-3">
+                                Seu email já foi verificado anteriormente. Você já pode fazer login!
+                            </p>
+                            <a href="{% url 'player_login' %}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> Fazer Login
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-3">
+                                Se o problema persistir, entre em contato com o suporte.
+                            </p>
+                            <a href="{% url 'player_login' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Voltar ao Login
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4" role="alert">
+                <h5>💡 Próximos Passos:</h5>
+                <ul class="mb-0">
+                    <li>Verifique se você clicou no link correto</li>
+                    <li>Certifique-se de usar a mesma aba/navegador</li>
+                    <li>Se necessário, solicite um novo link de verificação</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

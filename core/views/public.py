@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from ..models import Tenant, TenantUser, Player
 from ..validators import ValidadorCNPJ, ValidadorCEP, ValidadorCPF, ValidadorTelefone, ValidadorEndereço
+from ..decorators.rate_limit import rate_limit
 
 
 def landing_page(request):
@@ -248,6 +249,7 @@ def signup_club(request):
     return render(request, 'signup_club.html')
 
 
+@rate_limit(max_attempts=5, window_minutes=1)
 def login_view(request):
     """Página de login"""
     if request.user.is_authenticated:

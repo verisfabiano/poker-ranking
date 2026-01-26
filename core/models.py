@@ -1461,3 +1461,124 @@ class ReportRanking(models.Model):
     
     def __str__(self):
         return f"Ranking {self.season.nome} {self.report.data_inicio} a {self.report.data_fim}"
+
+
+# ============================================================
+#  SISTEMA DE AUTENTICAÇÃO (Email Verification & Password Reset)
+# ============================================================
+
+class EmailVerificationToken(models.Model):
+    """
+    Tokens temporários para verificação de email.
+    Cada novo usuário precisa verificar seu email antes de fazer login completo.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='email_verification_tokens'
+    )
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="Token único e seguro (urlsafe)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(
+        help_text="Quando o token expira (24 horas após criação)"
+    )
+    verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Quando o email foi verificado (null = não verificado)"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['expires_at']),
+        ]
+    
+    def __str__(self):
+        verified = "✓" if self.verified_at else "✗"
+        return f"Email Token {self.user.username} {verified}"
+    
+    def is_valid(self):
+        """Verifica se o token ainda é válido (não expirou e não foi usado)"""
+        from django.utils import timezone
+        return self.verified_at is None and timezone.now() <= self.expires_at
+    
+    def is_expired(self):
+        """Verifica se o token expirou"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def verify(self):
+        """Marca o email como verificado"""
+        from django.utils import timezone
+        if not self.is_valid():
+            return False
+        
+        self.verified_at = timezone.now()
+        self.user.is_active = True
+        self.user.save()
+        self.save()
+        return True
+
+
+class PasswordResetToken(models.Model):
+    """
+    Tokens temporários para reset de senha.
+    Válido por 2 horas (mais curto que email verification).
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens'
+    )
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="Token único e seguro (urlsafe)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(
+        help_text="Quando o token expira (2 horas após criação)"
+    )
+    used_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Quando foi utilizado para resetar senha (null = não usado)"
+    )
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['expires_at']),
+        ]
+    
+    def __str__(self):
+        used = "✓" if self.used_at else "✗"
+        return f"Password Reset Token {self.user.username} {used}"
+    
+    def is_valid(self):
+        """Verifica se o token ainda é válido (não expirou e não foi usado)"""
+        from django.utils import timezone
+        return self.used_at is None and timezone.now() <= self.expires_at
+    
+    def is_expired(self):
+        """Verifica se o token expirou"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def mark_as_used(self):
+        """Marca o token como já utilizado para prevenir reutilização"""
+        from django.utils import timezone
+        self.used_at = timezone.now()
+        self.save()
+        return True

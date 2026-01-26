@@ -1,9 +1,14 @@
 from django.shortcuts import redirect, render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from ..models import Player
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.db import transaction
+from ..models import Player, EmailVerificationToken, PasswordResetToken
+from ..decorators.rate_limit import rate_limit
+from ..services.email_service import EmailService
 
 User = get_user_model()
 
@@ -26,6 +31,7 @@ def home_redirect(request):
 
 # --- AUTH JOGADOR ---
 
+@rate_limit(max_attempts=5, window_minutes=1)
 def player_login(request):
     mensagem = None
     if request.method == "POST":
@@ -64,3 +70,175 @@ def player_login(request):
 def player_logout(request):
     logout(request)
     return redirect("player_login")
+
+
+# ============================================================
+#  EMAIL VERIFICATION & PASSWORD RESET
+# ============================================================
+
+@require_http_methods(["GET"])
+def verify_email(request, token):
+    """
+    Verifica o email do usuário usando um token.
+    GET /auth/verify-email/<token>/
+    """
+    try:
+        email_token = EmailVerificationToken.objects.get(token=token)
+    except EmailVerificationToken.DoesNotExist:
+        return render(request, "auth/verify_email_error.html", {
+            "error": "Token inválido ou expirado.",
+            "error_code": "invalid_token"
+        }, status=400)
+    
+    # Verificar se o token já foi usado
+    if email_token.verified_at:
+        return render(request, "auth/verify_email_error.html", {
+            "error": "Este email já foi verificado anteriormente.",
+            "error_code": "already_verified"
+        })
+    
+    # Verificar se expirou
+    if email_token.is_expired():
+        return render(request, "auth/verify_email_error.html", {
+            "error": "O token expirou. Por favor, solicite um novo link de verificação.",
+            "error_code": "token_expired"
+        }, status=400)
+    
+    # Marcar como verificado
+    with transaction.atomic():
+        if email_token.verify():
+            return render(request, "auth/verify_email_success.html", {
+                "user": email_token.user,
+                "message": "Seu email foi verificado com sucesso! Você já pode fazer login."
+            })
+    
+    # Erro inesperado
+    return render(request, "auth/verify_email_error.html", {
+        "error": "Erro ao verificar email. Tente novamente mais tarde.",
+        "error_code": "verification_failed"
+    }, status=500)
+
+
+@require_http_methods(["GET", "POST"])
+@rate_limit(max_attempts=5, window_minutes=1, key_prefix="forgot_password")
+def forgot_password(request):
+    """
+    Página para solicitar reset de senha.
+    GET: Exibe formulário
+    POST: Envia email com link de reset
+    """
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+        
+        if not email:
+            return render(request, "auth/forgot_password.html", {
+                "error": "Por favor, informe seu email."
+            })
+        
+        try:
+            user = User.objects.get(email__iexact=email)
+            
+            # Invalidar tokens anteriores
+            PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(
+                used_at=timezone.now()
+            )
+            
+            # Enviar email com novo token
+            EmailService.send_password_reset_email(user, request)
+            
+            # Mostrar mensagem de sucesso (sem revelar se email existe ou não - segurança)
+            return render(request, "auth/forgot_password_success.html", {
+                "email": email,
+                "message": "Se este email está registrado em nossa sistema, você receberá um link para redefinir sua senha."
+            })
+        
+        except User.DoesNotExist:
+            # Não revelar se email existe ou não (melhor prática de segurança)
+            return render(request, "auth/forgot_password_success.html", {
+                "email": email,
+                "message": "Se este email está registrado em nossa sistema, você receberá um link para redefinir sua senha."
+            })
+        
+        except Exception as e:
+            return render(request, "auth/forgot_password.html", {
+                "error": f"Erro ao enviar email: {str(e)}",
+                "email": email
+            })
+    
+    return render(request, "auth/forgot_password.html")
+
+
+@require_http_methods(["GET", "POST"])
+def reset_password(request, token):
+    """
+    Página para redefinir a senha usando um token.
+    GET: Exibe formulário
+    POST: Processa a nova senha
+    """
+    try:
+        password_token = PasswordResetToken.objects.get(token=token)
+    except PasswordResetToken.DoesNotExist:
+        return render(request, "auth/reset_password_error.html", {
+            "error": "Token inválido ou expirado.",
+            "error_code": "invalid_token"
+        }, status=400)
+    
+    # Verificar se o token já foi usado
+    if password_token.used_at:
+        return render(request, "auth/reset_password_error.html", {
+            "error": "Este link de reset já foi utilizado. Solicite um novo link.",
+            "error_code": "token_already_used"
+        })
+    
+    # Verificar se expirou
+    if password_token.is_expired():
+        return render(request, "auth/reset_password_error.html", {
+            "error": "O token expirou. Por favor, solicite um novo link de reset.",
+            "error_code": "token_expired"
+        }, status=400)
+    
+    if request.method == "POST":
+        password = request.POST.get("password", "").strip()
+        password_confirm = request.POST.get("password_confirm", "").strip()
+        
+        # Validações
+        if not password or not password_confirm:
+            return render(request, "auth/reset_password.html", {
+                "token": token,
+                "error": "Ambos os campos de senha são obrigatórios."
+            })
+        
+        if password != password_confirm:
+            return render(request, "auth/reset_password.html", {
+                "token": token,
+                "error": "As senhas não correspondem."
+            })
+        
+        if len(password) < 8:
+            return render(request, "auth/reset_password.html", {
+                "token": token,
+                "error": "A senha deve ter no mínimo 8 caracteres."
+            })
+        
+        try:
+            # Redefinir senha e marcar token como usado
+            with transaction.atomic():
+                user = password_token.user
+                user.set_password(password)
+                user.save()
+                password_token.mark_as_used()
+            
+            return render(request, "auth/reset_password_success.html", {
+                "message": "Sua senha foi redefinida com sucesso! Você já pode fazer login."
+            })
+        
+        except Exception as e:
+            return render(request, "auth/reset_password.html", {
+                "token": token,
+                "error": f"Erro ao redefinir senha: {str(e)}"
+            })
+    
+    return render(request, "auth/reset_password.html", {
+        "token": token,
+        "user_email": password_token.user.email
+    })

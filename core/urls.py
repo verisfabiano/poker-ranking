@@ -21,6 +21,11 @@ from .views.prize import (
     finalize_prize_distribution,
     view_prize_summary,
 )
+from .views.auth import (
+    verify_email,
+    forgot_password,
+    reset_password,
+)
 from .views import (
     home_redirect,
     ranking_season,
@@ -189,6 +194,9 @@ urlpatterns = [
     path("jogador/home/", player_home, name="player_home"),
     path("jogador/login/", player_login, name="player_login"),
     path("jogador/logout/", player_logout, name="player_logout"),
+    path("auth/verify-email/<str:token>/", verify_email, name="verify_email"),
+    path("auth/forgot-password/", forgot_password, name="forgot_password"),
+    path("auth/reset-password/<str:token>/", reset_password, name="reset_password"),
     path("jogador/selecionar-clube/", select_tenant_register, name="select_tenant_register"),
     path("jogador/cadastro/", player_register, name="player_register"),
     path("jogador/torneios/", player_tournaments, name="player_tournaments"),

@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 from django import forms
 from ..models import Tenant, TenantUser, Player
+from ..decorators.rate_limit import rate_limit
 
 
 class PlayerPublicRegistrationForm(forms.Form):
@@ -74,6 +75,7 @@ class PlayerPublicRegistrationForm(forms.Form):
 
 
 @require_http_methods(["GET", "POST"])
+@rate_limit(max_attempts=5, window_minutes=1)
 def player_login_club(request, slug):
     """
     Login de jogador para um clube específico.
