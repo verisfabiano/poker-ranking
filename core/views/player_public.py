@@ -140,6 +140,7 @@ def player_register_public(request, slug):
         if form.is_valid():
             try:
                 from ..services.email_service import EmailService
+                from ..utils.username_generator import generate_unique_username
                 
                 with transaction.atomic():
                     # Dados do formulário
@@ -147,9 +148,12 @@ def player_register_public(request, slug):
                     password = form.cleaned_data['password']
                     nome = form.cleaned_data['nome']
                     
+                    # Gerar username único automaticamente
+                    username = generate_unique_username()
+                    
                     # 1. Criar usuário (inativo até email ser verificado)
                     user = User.objects.create_user(
-                        username=email,
+                        username=username,
                         email=email,
                         password=password,
                         first_name=nome,

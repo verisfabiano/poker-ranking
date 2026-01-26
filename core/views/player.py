@@ -380,11 +380,15 @@ def player_register(request):
             from django.contrib.auth import login
             from django.db import transaction
             from ..services.email_service import EmailService
+            from ..utils.username_generator import generate_unique_username
             
             with transaction.atomic():
+                # Gerar username único automaticamente
+                username = generate_unique_username()
+                
                 # 1. Criar usuário Django (inativo até email ser verificado)
                 user = User.objects.create_user(
-                    username=email,
+                    username=username,
                     email=email,
                     password=senha,
                     first_name=nome,
