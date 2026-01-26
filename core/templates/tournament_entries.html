@@ -83,6 +83,24 @@
 {% endblock %}
 
 {% block content %}
+<script type="text/javascript">
+    // Dados do torneio - renderizados como objeto JavaScript
+    (function() {
+        'use strict';
+        window.tournamentData = {
+            id: {{ tournament.id }},
+            nome: "{{ tournament.nome|escapejs }}",
+            rebuy_valor: {{ tournament.rebuy_valor|default:0|floatformat:2 }},
+            rebuy_duplo_valor: {{ tournament.rebuy_duplo_valor|default:0|floatformat:2 }},
+            addon_valor: {{ tournament.addon_valor|default:0|floatformat:2 }},
+            permite_rebuy: {{ tournament.permite_rebuy|lower }},
+            permite_rebuy_duplo: {{ tournament.permite_rebuy_duplo|lower }},
+            permite_addon: {{ tournament.permite_addon|lower }},
+            timechip_chips: {{ tournament.timechip_chips|default:0 }}
+        };
+    }());
+</script>
+
 <div class="container-fluid">
     
     <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
@@ -156,6 +174,7 @@
                                     {% if tournament.permite_addon %}<th class="text-center">Add-on</th>{% endif %}
                                     {% if tournament.timechip_chips %}<th class="text-center">Time Chip</th>{% endif %}
                                     <th class="text-center">Confirmado?</th>
+                                    <th class="text-center" style="width: 60px;" title="Ver detalhes de compras"><i class="bi bi-receipt"></i></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -283,6 +302,15 @@
                                                        {% if entry.confirmado_pelo_admin %}checked{% endif %}
                                                        {% if edicao_bloqueada %}disabled{% endif %}>
                                             </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-info btn-rebuy-details" 
+                                                    title="Ver histórico de rebuys e add-ons"
+                                                    data-tournament-id="{{ tournament.id }}"
+                                                    data-player-id="{{ entry.player.id }}"
+                                                    data-player-name="{{ entry.player.nome }}">
+                                                <i class="bi bi-receipt"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 {% empty %}
@@ -712,209 +740,22 @@ async function handleRemoveBadgeClick(e) {
     e.preventDefault();
     e.stopPropagation();
     
-    // Sempre remover quando clicar no badge (com a classe badge-with-remove)
+    // Abrir modal de confirmação ao invés de remover direto
     const badge = this;
-    const playerId = badge.dataset.playerId;
-    const tournamentId = badge.dataset.tournamentId;
-    const tipo = badge.dataset.tipo;
     
-    try {
-        const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/remove/`;
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        const payload = {
-            player_id: parseInt(playerId),
-            tipo: tipo
-        };
-        
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Atualizar badge com nova quantidade
-            const badgeTextEl = badge.querySelector('.badge-text');
-            if (badgeTextEl) {
-                if (data.quantidade > 0) {
-                    badgeTextEl.textContent = data.quantidade;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
-            
-            showNotification(data.message, 'success');
-        } else {
-            showNotification(data.error || 'Erro ao remover', 'danger');
-        }
-    } catch (error) {
-        showNotification('Erro: ' + error.message, 'danger');
+    // Adicionar dados do jogador ao badge para usar no modal
+    // Tentar obter do botão pai
+    const button = badge.closest('button');
+    if (button) {
+        badge.dataset.playerName = button.dataset.playerName || 'Jogador';
     }
+    
+    showRemovalConfirmationModal.call(badge, e);
 }
 
 async function handleRebuyAddonClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const btn = this;
-    const tournamentId = btn.dataset.tournamentId;
-    const playerId = btn.dataset.playerId;
-    const playerName = btn.dataset.playerName;
-    const tipo = btn.dataset.tipo;
-    
-    if (!tournamentId || !playerId || !tipo) {
-        alert('Erro: Dados incompletos');
-        return;
-    }
-    
-    // Salvar todos os ícones originais (pode haver múltiplos para rebuy duplo)
-    const originalIcons = btn.querySelectorAll('i');
-    const originalIconsHTML = Array.from(originalIcons).map(i => i.outerHTML).join('');
-    
-    // Desabilitar botão e mostrar spinner
-    btn.disabled = true;
-    const spinner = '<span class="spinner-border spinner-border-sm"></span>';
-    
-    // Manter os badges existentes
-    const badgesHTML = Array.from(btn.querySelectorAll('.badge'))
-        .map(badge => badge.outerHTML)
-        .join('');
-    
-    btn.innerHTML = spinner + badgesHTML;
-    
-    try {
-        const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/`;
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        const payload = {
-            player_id: parseInt(playerId),
-            tipo: tipo
-        };
-        
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Atualizar contador
-            let counterClass;
-            if (tipo === 'REBUY') {
-                counterClass = `rebuy-count-${playerId}`;
-            } else if (tipo === 'REBUY_DUPLO') {
-                counterClass = `rebuy-duplo-count-${playerId}`;
-            } else if (tipo === 'ADDON') {
-                counterClass = `addon-count-${playerId}`;
-            } else if (tipo === 'TIME_CHIP') {
-                counterClass = `timechip-count-${playerId}`;
-            }
-            
-            let counter = document.querySelector(`.${counterClass}`);
-            
-            if (counter) {
-                // Remover classe d-none se tiver (para badges que começam invisíveis)
-                counter.classList.remove('d-none');
-                counter.style.display = 'inline-block';
-                
-                // Atualizar apenas o texto dentro do badge, não o badge inteiro
-                const badgeText = counter.querySelector('.badge-text');
-                if (badgeText) {
-                    badgeText.textContent = data.quantidade;
-                } else {
-                    counter.textContent = data.quantidade;
-                }
-            } else {
-                // Criar badge se não existir
-                const buttonSelector = tipo === 'REBUY' ? '.rebuy-btn' : 
-                                       tipo === 'REBUY_DUPLO' ? '.rebuy-duplo-btn' : 
-                                       tipo === 'ADDON' ? '.addon-btn' :
-                                       '.timechip-btn';
-                
-                const buttons = document.querySelectorAll(`button${buttonSelector}[data-player-id="${playerId}"]`);
-                
-                if (buttons.length > 0) {
-                    const button = buttons[0];
-                    counter = button.querySelector(`.${counterClass}`);
-                    
-                    if (!counter) {
-                        counter = document.createElement('span');
-                        
-                        // Determinar cores e classes baseado no tipo
-                        let bgClass, bgColor;
-                        if (tipo === 'REBUY') {
-                            bgClass = 'bg-danger';
-                            bgColor = '#dc3545';
-                        } else if (tipo === 'REBUY_DUPLO') {
-                            bgClass = 'bg-dark';
-                            bgColor = '#212529';
-                        } else if (tipo === 'ADDON') {
-                            bgClass = 'bg-success';
-                            bgColor = '#198754';
-                        } else if (tipo === 'TIME_CHIP') {
-                            bgClass = 'bg-success';
-                            bgColor = '#198754';
-                        }
-                        
-                        // Criar estrutura com badge-text e badge-remove
-                        counter.className = `badge ${bgClass} ${counterClass} badge-with-remove`;
-                        counter.setAttribute('data-player-id', playerId);
-                        counter.setAttribute('data-tournament-id', tournamentId);
-                        counter.setAttribute('data-tipo', tipo);
-                        counter.setAttribute('style', 'cursor: pointer; position: relative; padding-right: 18px; display: inline-block; margin-left: 4px;');
-                        
-                        // HTML interno
-                        counter.innerHTML = `
-                            <span class="badge-text">${data.quantidade}</span>
-                            <span class="badge-remove" style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 12px; font-weight: bold;">✕</span>
-                        `;
-                        
-                        // Adicionar listener de click para remover
-                        counter.addEventListener('click', handleRemoveBadgeClick);
-                        
-                        button.appendChild(counter);
-                    } else {
-                        // Atualizar apenas o texto dentro do badge
-                        const badgeText = counter.querySelector('.badge-text');
-                        if (badgeText) {
-                            badgeText.textContent = data.quantidade;
-                        } else {
-                            counter.textContent = data.quantidade;
-                        }
-                        counter.style.display = 'inline-block';
-                    }
-                } else {
-                    console.warn(`Nenhum botão encontrado para player ${playerId} com tipo ${tipo}`);
-                }
-            }
-            
-            showNotification(data.message, 'success');
-        } else {
-            showNotification(data.error || 'Erro ao adicionar', 'danger');
-        }
-    } catch (error) {
-        showNotification('Erro: ' + error.message, 'danger');
-    } finally {
-        // Restaurar botão com ícones + badges mantidos
-        const badgesHTML = Array.from(btn.querySelectorAll('.badge'))
-            .map(badge => badge.outerHTML)
-            .join('');
-        
-        btn.disabled = false;
-        btn.innerHTML = originalIconsHTML + badgesHTML;
-    }
+    // Abrir modal de confirmação ao invés de fazer direto
+    showRebuyConfirmationModal.call(this, e);
 }
 
 function showNotification(message, type) {
@@ -938,7 +779,160 @@ function showNotification(message, type) {
         }
     }, 4000);
 }
+
+// ============================================================
+// MODAL DE DETALHES: Histórico de Rebuys
+// ============================================================
+function openRebuyDetailsModal(tournamentId, playerId, playerName) {
+    // Abrir modal
+    const modal = new bootstrap.Modal(document.getElementById('modalRebuyDetails'));
+    modal.show();
+    
+    // Carregar dados
+    loadRebuyHistory(tournamentId, playerId, playerName);
+}
+
+async function loadRebuyHistory(tournamentId, playerId, playerName) {
+    const contentDiv = document.getElementById('rebuyDetailsContent');
+    contentDiv.innerHTML = '<div class="text-center"><span class="spinner-border spinner-border-sm"></span> Carregando...</div>';
+    
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const response = await fetch(`/api/torneio/${tournamentId}/jogador/${playerId}/rebuy-history/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        if (!response.ok) {
+            contentDiv.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-circle"></i> Erro ao carregar (Status ${response.status})
+                </div>
+            `;
+            return;
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            contentDiv.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-circle"></i> ${result.error || 'Erro desconhecido'}
+                </div>
+            `;
+            return;
+        }
+        
+        if (!result.data || !result.data.compras || result.data.compras.length === 0) {
+            contentDiv.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> Nenhuma compra de rebuy/addon registrada para este jogador.
+                </div>
+            `;
+            return;
+        }
+        
+        // Escapar HTML
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
+        let html = '<div class="card">';
+        html += '<div class="card-header bg-light">';
+        html += '<h6 class="mb-0"><i class="bi bi-person"></i> ' + escapeHtml(result.data.jogador) + '</h6>';
+        html += '<small class="text-muted">' + escapeHtml(result.data.torneio) + '</small>';
+        html += '</div>';
+        html += '<div class="card-body p-0">';
+        html += '<div class="table-responsive" style="font-size: 0.85rem;">';
+        html += '<table class="table table-sm mb-0">';
+        html += '<thead class="table-light"><tr>';
+        html += '<th>Tipo</th>';
+        html += '<th class="text-end">Valor Unit.</th>';
+        html += '<th class="text-end">Total</th>';
+        html += '<th>Horário</th>';
+        html += '<th>Lançado por</th>';
+        html += '<th>Observação</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+        
+        // Desagrupar compras: se quantidade > 1, mostrar como múltiplas linhas
+        result.data.compras.forEach(compra => {
+            // Criar uma linha para cada unidade comprada
+            for (let i = 0; i < compra.quantidade; i++) {
+                html += '<tr>';
+                html += '<td><span class="badge bg-primary">' + escapeHtml(compra.tipo_display) + '</span></td>';
+                html += '<td class="text-end">R$ ' + parseFloat(compra.valor_unitario).toFixed(2) + '</td>';
+                html += '<td class="text-end"><strong>R$ ' + parseFloat(compra.valor_unitario).toFixed(2) + '</strong></td>';
+                html += '<td><small>' + escapeHtml(compra.data_lancamento) + '</small></td>';
+                html += '<td><small>' + escapeHtml(compra.lancado_por) + '</small></td>';
+                html += '<td><small class="text-muted">' + escapeHtml(compra.observacao) + '</small></td>';
+                html += '</tr>';
+            }
+        });
+        
+        html += '</tbody></table></div></div>';
+        html += '<div class="card-footer bg-light">';
+        html += '<div class="row text-center">';
+        html += '<div class="col-md-6"><strong>Total de Compras:</strong> ' + result.data.total_quantidade + 'x</div>';
+        html += '<div class="col-md-6"><strong>Valor Total:</strong> R$ ' + parseFloat(result.data.total_valor).toFixed(2) + '</div>';
+        html += '</div></div></div>';
+        
+        contentDiv.innerHTML = html;
+        
+    } catch (error) {
+        contentDiv.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="bi bi-exclamation-circle"></i> Erro: ${escapeHtml(error.message)}
+            </div>
+        `;
+        console.error('Erro ao carregar histórico de rebuys:', error);
+    }
+}
 </script>
+
+<script>
+// Adicionar listeners aos botões de "Ver Detalhes"
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-rebuy-details').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const tournamentId = this.dataset.tournamentId;
+            const playerId = this.dataset.playerId;
+            const playerName = this.dataset.playerName;
+            openRebuyDetailsModal(tournamentId, playerId, playerName);
+        });
+    });
+});
+</script>
+
+<!-- Modal: Detalhes de Rebuys, Add-ons e Compras -->
+<div class="modal fade" id="modalRebuyDetails" tabindex="-1" aria-labelledby="modalRebuyDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 80px;">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="modalRebuyDetailsLabel">
+                    <i class="bi bi-receipt"></i> Histórico de Rebuys, Add-ons e Compras
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="rebuyDetailsContent">
+                    <!-- Conteúdo dinâmico será carregado aqui -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal: Mudar Status do Torneio -->
 <div class="modal fade" id="modalMudarStatus" tabindex="-1" aria-labelledby="modalMudarStatusLabel" aria-hidden="true">
@@ -1034,5 +1028,472 @@ document.getElementById('btnConfirmarMudarStatus').addEventListener('click', asy
     }
 });
 </script>
+
+<!-- MODAL DE CONFIRMAÇÃO PARA REBUYS -->
+<div class="modal fade" id="rebuyConfirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light border-bottom">
+                <h5 class="modal-title" id="rebuyModalTitle">Confirmar Lançamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Informações do Rebuy -->
+                <div class="alert alert-info mb-3" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-info-circle me-2 mt-1"></i>
+                        <div>
+                            <strong id="rebuyInfo"></strong>
+                            <p id="rebuyDetails" class="mb-0 small text-muted mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos de Confirmação -->
+                <div class="mb-3">
+                    <label for="rebuyObservacao" class="form-label">
+                        <i class="bi bi-chat-left-text"></i> Observação (opcional)
+                    </label>
+                    <textarea 
+                        class="form-control" 
+                        id="rebuyObservacao" 
+                        rows="3" 
+                        placeholder="Ex: Rebuy confirmado em mesa, jogador estava fora, etc."
+                        style="font-size: 0.95rem;">
+                    </textarea>
+                    <small class="form-text text-muted">Deixe uma nota sobre este lançamento para referência futura</small>
+                </div>
+
+                <!-- Resumo Visual -->
+                <div class="card bg-light border-0">
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Jogador</small>
+                                <strong id="rebuyPlayerName">-</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Tipo</small>
+                                <strong id="rebuyType">-</strong>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Valor</small>
+                                <strong id="rebuyValue">R$ 0,00</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Quantidade Atual</small>
+                                <strong id="rebuyCurrentQty">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmRebuyBtn">
+                    <i class="bi bi-check-circle"></i> Confirmar Lançamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== MODAL DE REBUY =====
+let rebuyPendingData = null;
+
+async function showRebuyConfirmationModal(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const btn = this;
+    const tournamentId = btn.dataset.tournamentId;
+    const playerId = btn.dataset.playerId;
+    const playerName = btn.dataset.playerName;
+    const tipo = btn.dataset.tipo;
+    
+    // Obter dados do torneio e do jogador
+    const tipoLabel = {
+        'REBUY': 'Rebuy Simples',
+        'REBUY_DUPLO': 'Rebuy Duplo',
+        'ADDON': 'Add-on',
+        'TIME_CHIP': 'Time Chip'
+    }[tipo] || tipo;
+    
+    // Buscar informações do rebuy
+    const tournament = window.tournamentData || {};
+    let valor = 'R$ 0,00';
+    let detalhes = '';
+    
+    if (tipo === 'REBUY' && tournament.rebuy_valor) {
+        valor = `R$ ${parseFloat(tournament.rebuy_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Rebuy simples do torneio`;
+    } else if (tipo === 'REBUY_DUPLO' && tournament.rebuy_duplo_valor) {
+        valor = `R$ ${parseFloat(tournament.rebuy_duplo_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Rebuy duplo (2x ou valor diferenciado)`;
+    } else if (tipo === 'ADDON' && tournament.addon_valor) {
+        valor = `R$ ${parseFloat(tournament.addon_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Add-on (máximo 1 por jogador)`;
+    } else if (tipo === 'TIME_CHIP') {
+        valor = 'Sem valor';
+        detalhes = `Time Chip (máximo 1 por jogador)`;
+    }
+    
+    // Obter quantidade atual
+    let currentQty = 0;
+    const counterClass = {
+        'REBUY': `rebuy-count-${playerId}`,
+        'REBUY_DUPLO': `rebuy-duplo-count-${playerId}`,
+        'ADDON': `addon-count-${playerId}`,
+        'TIME_CHIP': `timechip-count-${playerId}`
+    }[tipo];
+    
+    const badge = document.querySelector(`.${counterClass} .badge-text`);
+    if (badge) {
+        currentQty = parseInt(badge.textContent) || 0;
+    }
+    
+    // Preencher modal
+    document.getElementById('rebuyModalTitle').textContent = `Confirmar ${tipoLabel}`;
+    document.getElementById('rebuyInfo').textContent = `${tipoLabel} para ${playerName}`;
+    document.getElementById('rebuyDetails').textContent = detalhes;
+    document.getElementById('rebuyPlayerName').textContent = playerName;
+    document.getElementById('rebuyType').textContent = tipoLabel;
+    document.getElementById('rebuyValue').textContent = valor;
+    document.getElementById('rebuyCurrentQty').textContent = currentQty;
+    document.getElementById('rebuyObservacao').value = '';
+    
+    // Salvar dados pendentes
+    rebuyPendingData = {
+        tournamentId,
+        playerId,
+        playerName,
+        tipo
+    };
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('rebuyConfirmationModal'));
+    modal.show();
+}
+
+// Confirmar rebuy
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmRebuyBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async function() {
+            if (!rebuyPendingData) return;
+            
+            const observacao = document.getElementById('rebuyObservacao').value.trim();
+            const { tournamentId, playerId, tipo } = rebuyPendingData;
+    
+    // Desabilitar botão
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+    
+    try {
+        const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/`;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const payload = {
+            player_id: parseInt(playerId),
+            tipo: tipo,
+            observacao: observacao
+        };
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Fechar modal
+            bootstrap.Modal.getInstance(document.getElementById('rebuyConfirmationModal')).hide();
+            
+            // Atualizar badge
+            const counterClass = {
+                'REBUY': `rebuy-count-${playerId}`,
+                'REBUY_DUPLO': `rebuy-duplo-count-${playerId}`,
+                'ADDON': `addon-count-${playerId}`,
+                'TIME_CHIP': `timechip-count-${playerId}`
+            }[tipo];
+            
+            let counter = document.querySelector(`.${counterClass}`);
+            
+            if (counter) {
+                counter.classList.remove('d-none');
+                counter.style.display = 'inline-block';
+                
+                const badgeText = counter.querySelector('.badge-text');
+                if (badgeText) {
+                    badgeText.textContent = data.quantidade;
+                }
+            }
+            
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.error || 'Erro ao processar', 'danger');
+        }
+    } catch (error) {
+        showNotification('Erro: ' + error.message, 'danger');
+    } finally {
+        // Reabilitar botão
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Lançamento';
+            }
+        });
+    }
+});
+
+// ===== MODAL DE REMOÇÃO DE REBUY =====
+let removalPendingData = null;
+
+async function showRemovalConfirmationModal(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const badge = this;
+    const tournamentId = badge.dataset.tournamentId;
+    const playerId = badge.dataset.playerId;
+    const playerName = badge.dataset.playerName;
+    const tipo = badge.dataset.tipo;
+    
+    // Obter dados
+    const tipoLabel = {
+        'REBUY': 'Rebuy Simples',
+        'REBUY_DUPLO': 'Rebuy Duplo',
+        'ADDON': 'Add-on',
+        'TIME_CHIP': 'Time Chip'
+    }[tipo] || tipo;
+    
+    // Obter quantidade atual
+    const badgeText = badge.querySelector('.badge-text');
+    const currentQty = badgeText ? parseInt(badgeText.textContent) : 0;
+    
+    // Obter valor do rebuy
+    const tournament = window.tournamentData || {};
+    let valor = 'R$ 0,00';
+    let detalhes = '';
+    
+    if (tipo === 'REBUY' && tournament.rebuy_valor) {
+        valor = `R$ ${parseFloat(tournament.rebuy_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Será removido 1 rebuy de ${currentQty} atual(is)`;
+    } else if (tipo === 'REBUY_DUPLO' && tournament.rebuy_duplo_valor) {
+        valor = `R$ ${parseFloat(tournament.rebuy_duplo_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Será removido 1 rebuy duplo de ${currentQty} atual(is)`;
+    } else if (tipo === 'ADDON') {
+        valor = `R$ ${parseFloat(tournament.addon_valor).toFixed(2).replace('.', ',')}`;
+        detalhes = `Será removido o add-on do jogador`;
+    } else if (tipo === 'TIME_CHIP') {
+        valor = 'Sem valor';
+        detalhes = `Será removido o time chip do jogador`;
+    }
+    
+    // Preencher modal
+    document.getElementById('removalModalTitle').textContent = `Remover ${tipoLabel}`;
+    document.getElementById('removalInfo').textContent = `Remover ${tipoLabel} de ${playerName}`;
+    document.getElementById('removalDetails').textContent = detalhes;
+    document.getElementById('removalPlayerName').textContent = playerName;
+    document.getElementById('removalType').textContent = tipoLabel;
+    document.getElementById('removalValue').textContent = valor;
+    document.getElementById('removalCurrentQty').textContent = currentQty;
+    document.getElementById('removalObservacao').value = '';
+    
+    // Salvar dados pendentes
+    removalPendingData = {
+        tournamentId,
+        playerId,
+        playerName,
+        tipo,
+        badge
+    };
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('removalConfirmationModal'));
+    modal.show();
+}
+
+// Confirmar remoção
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmRemovalBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async function() {
+            if (!removalPendingData) {
+                showNotification('Dados incompletos', 'danger');
+                return;
+            }
+            
+            const observacao = document.getElementById('removalObservacao').value.trim();
+            
+            // Validar se observação foi preenchida
+            if (!observacao) {
+                showNotification('⚠️ Preencha o motivo da remoção', 'warning');
+                document.getElementById('removalObservacao').focus();
+                return;
+            }
+            
+            const { tournamentId, playerId, tipo } = removalPendingData;
+            
+            // Desabilitar botão
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+            
+            try {
+                const endpoint = `/api/torneio/${tournamentId}/rebuy-addon/remove/`;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                const payload = {
+                    player_id: parseInt(playerId),
+                    tipo: tipo,
+                    observacao: observacao
+                };
+                
+                console.log('Enviando payload:', payload);
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    // Fechar modal
+                    const modalElement = document.getElementById('removalConfirmationModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                    
+                    // Atualizar badge usando o seletor CSS correto
+                    const counterClass = {
+                        'REBUY': `rebuy-count-${removalPendingData.playerId}`,
+                        'REBUY_DUPLO': `rebuy-duplo-count-${removalPendingData.playerId}`,
+                        'ADDON': `addon-count-${removalPendingData.playerId}`,
+                        'TIME_CHIP': `timechip-count-${removalPendingData.playerId}`
+                    }[removalPendingData.tipo];
+                    
+                    console.log('Procurando por classe:', counterClass);
+                    let counter = document.querySelector(`.${counterClass}`);
+                    console.log('Counter encontrado:', counter);
+                    
+                    if (counter) {
+                        const badgeText = counter.querySelector('.badge-text');
+                        
+                        if (data.quantidade > 0) {
+                            if (badgeText) {
+                                badgeText.textContent = data.quantidade;
+                            } else {
+                                counter.textContent = data.quantidade;
+                            }
+                            counter.style.display = 'inline-block';
+                        } else {
+                            counter.style.display = 'none';
+                        }
+                    }
+                    
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error || 'Erro ao remover', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('Erro: ' + error.message, 'danger');
+            } finally {
+                // Reabilitar botão
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-trash3"></i> Confirmar Remoção';
+            }
+        });
+    }
+});
+</script>
+
+<!-- MODAL DE CONFIRMAÇÃO PARA REMOVER REBUYS -->
+<div class="modal fade" id="removalConfirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger bg-opacity-10 border-danger">
+                <h5 class="modal-title text-danger" id="removalModalTitle">Confirmar Remoção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Informações da Remoção -->
+                <div class="alert alert-warning mb-3" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+                        <div>
+                            <strong id="removalInfo"></strong>
+                            <p id="removalDetails" class="mb-0 small text-muted mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivo da Remoção -->
+                <div class="mb-3">
+                    <label for="removalObservacao" class="form-label">
+                        <i class="bi bi-chat-left-text"></i> Motivo da Remoção (obrigatório)
+                    </label>
+                    <textarea 
+                        class="form-control" 
+                        id="removalObservacao" 
+                        rows="3" 
+                        placeholder="Ex: Erro de lançamento, cancelamento solicitado, duplicado, etc."
+                        style="font-size: 0.95rem;"
+                        required>
+                    </textarea>
+                    <small class="form-text text-muted">Justifique a remoção para auditoria</small>
+                </div>
+
+                <!-- Resumo Visual -->
+                <div class="card bg-light border-0">
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Jogador</small>
+                                <strong id="removalPlayerName">-</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Tipo</small>
+                                <strong id="removalType">-</strong>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Valor</small>
+                                <strong id="removalValue">R$ 0,00</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Quantidade Atual</small>
+                                <strong id="removalCurrentQty">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmRemovalBtn">
+                    <i class="bi bi-trash3"></i> Confirmar Remoção
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

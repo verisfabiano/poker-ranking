@@ -3,8 +3,9 @@
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.urls import reverse
+from io import BytesIO
 from ..models import (
     Season, Tournament, TournamentType, BlindStructure, 
     TournamentProduct, TournamentEntry, TournamentResult, PlayerProductPurchase, Player, TournamentPlayerPurchase
@@ -864,7 +865,7 @@ def tournament_product_purchase_delete(request, purchase_id):
 def tournament_add_rebuy_addon(request, tournament_id):
     """
     AJAX: Adicionar rebuy, rebuy duplo, addon ou time chip a um jogador
-    POST JSON: {"player_id": int, "tipo": "REBUY|REBUY_DUPLO|ADDON|TIME_CHIP"}
+    POST JSON: {"player_id": int, "tipo": "REBUY|REBUY_DUPLO|ADDON|TIME_CHIP", "observacao": str (opcional)}
     
     Regras:
     - REBUY: quantidade ilimitada
@@ -886,6 +887,7 @@ def tournament_add_rebuy_addon(request, tournament_id):
         data = json.loads(request.body)
         player_id = data.get('player_id')
         tipo = data.get('tipo')  # REBUY, REBUY_DUPLO, ADDON ou TIME_CHIP
+        observacao = data.get('observacao', '').strip()  # Novo campo opcional
         
         # Validações
         if not player_id or not tipo:
@@ -965,7 +967,9 @@ def tournament_add_rebuy_addon(request, tournament_id):
             defaults={
                 'tenant': request.tenant,
                 'quantidade': 1,
-                'valor_pago': valor
+                'valor_pago': valor,
+                'lancado_por': request.user if request.user.is_authenticated else None,
+                'observacao': observacao if observacao else None  # Salvar observação se fornecida
             }
         )
         
@@ -973,6 +977,12 @@ def tournament_add_rebuy_addon(request, tournament_id):
             # Se já existe, incrementar quantidade
             purchase.quantidade += 1
             purchase.valor_pago = valor * purchase.quantidade  # Atualizar valor total
+            # Atualizar usuário que lançou (última pessoa que adicionou)
+            if request.user.is_authenticated:
+                purchase.lancado_por = request.user
+            # Atualizar observação se fornecida
+            if observacao:
+                purchase.observacao = observacao
             purchase.save()
         
         return JsonResponse({
@@ -993,7 +1003,7 @@ def tournament_add_rebuy_addon(request, tournament_id):
 def tournament_remove_rebuy_addon(request, tournament_id):
     """
     AJAX: Remover 1 unidade de rebuy, rebuy duplo, addon ou time chip
-    POST JSON: {"player_id": int, "tipo": "REBUY|REBUY_DUPLO|ADDON|TIME_CHIP"}
+    POST JSON: {"player_id": int, "tipo": "REBUY|REBUY_DUPLO|ADDON|TIME_CHIP", "observacao": str (opcional)}
     
     Decrementa quantidade em 1. Se chegar a 0, deleta o registro.
     AGORA TRABALHA COM PlayerProductPurchase (não mais TournamentPlayerPurchase)
@@ -1010,6 +1020,7 @@ def tournament_remove_rebuy_addon(request, tournament_id):
         data = json.loads(request.body)
         player_id = data.get('player_id')
         tipo = data.get('tipo')
+        observacao = data.get('observacao', '').strip()  # Novo campo opcional
         
         if not player_id or not tipo:
             return JsonResponse({'success': False, 'error': 'Dados inválidos'}, status=400)
@@ -1037,6 +1048,9 @@ def tournament_remove_rebuy_addon(request, tournament_id):
         if purchase.quantidade > 1:
             purchase.quantidade -= 1
             purchase.valor_pago = purchase.product.valor * purchase.quantidade  # Atualizar valor total
+            # Atualizar observação se fornecida (motivo da remoção)
+            if observacao:
+                purchase.observacao = observacao
             purchase.save()
             
             return JsonResponse({
@@ -1047,6 +1061,7 @@ def tournament_remove_rebuy_addon(request, tournament_id):
             })
         else:
             # Deletar se quantidade era 1
+            # Antes de deletar, criar um registro de auditoria (opcional: pode salvar em log)
             purchase.delete()
             
             return JsonResponse({
@@ -1062,3 +1077,133 @@ def tournament_remove_rebuy_addon(request, tournament_id):
         return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@admin_required
+def tournament_rebuy_history(request, tournament_id, player_id):
+    """
+    AJAX: Obter histórico detalhado de rebuys, rebuys duplos, add-ons de um jogador
+    GET JSON response com lista de compras com: tipo, valor, quantidade, horário, quem lançou
+    """
+    import json
+    from datetime import datetime
+    from ..models import PlayerProductPurchase
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    player = get_object_or_404(Player, id=player_id, tenant=request.tenant)
+    
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=400)
+    
+    try:
+        # Buscar todas as compras de rebuy/addon deste jogador neste torneio
+        purchases = PlayerProductPurchase.objects.filter(
+            tournament=tournament,
+            player=player,
+            product__nome__in=['REBUY', 'REBUY_DUPLO', 'ADDON', 'TIME_CHIP']
+        ).select_related('product', 'lancado_por').order_by('data_lancamento')
+        
+        if not purchases.exists():
+            return JsonResponse({
+                'success': True,
+                'data': {
+                    'jogador': player.nome,
+                    'torneio': tournament.nome,
+                    'compras': [],
+                    'total_valor': '0.00',
+                    'total_quantidade': 0
+                }
+            })
+        
+        # Montar lista com detalhes
+        compras = []
+        total_valor = 0
+        total_quantidade = 0
+        
+        for purchase in purchases:
+            compra_data = {
+                'id': purchase.id,
+                'tipo': purchase.product.nome,
+                'tipo_display': purchase.product.nome.replace('_', ' ').title(),
+                'valor_unitario': str(float(purchase.product.valor)),
+                'quantidade': purchase.quantidade,
+                'valor_total': str(float(purchase.valor_pago)),
+                'data_lancamento': purchase.data_lancamento.strftime('%d/%m/%Y %H:%M:%S'),
+                'lancado_por': purchase.lancado_por_nome,
+                'lancado_por_id': purchase.lancado_por.id if purchase.lancado_por else None,
+                'observacao': purchase.observacao or '-',  # Adicionar observação
+            }
+            compras.append(compra_data)
+            total_valor += float(purchase.valor_pago)
+            total_quantidade += purchase.quantidade
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'jogador': player.nome,
+                'torneio': tournament.nome,
+                'compras': compras,
+                'total_valor': f'{total_valor:.2f}',
+                'total_quantidade': total_quantidade,
+                'resumo': f'{total_quantidade} compra(s) no valor de R$ {total_valor:.2f}'
+            }
+        })
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@admin_required
+def tournament_poster(request, tournament_id):
+    """
+    Gera e retorna uma imagem (poster) do torneio para divulgação
+    GET params:
+    - template: 'feed' (padrão), 'story', 'horizontal'
+    - theme: 'gold' (padrão), 'dark', 'neon'
+    - format: 'png' (padrão), 'jpg'
+    """
+    from django.http import HttpResponse
+    from core.utils.tournament_poster import TournamentPosterGenerator
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    try:
+        # Obter parâmetros da query string
+        template = request.GET.get('template', 'feed')
+        theme = request.GET.get('theme', 'gold')
+        file_format = request.GET.get('format', 'png').lower()
+        
+        # Validar parâmetros
+        if template not in ['feed', 'story', 'horizontal']:
+            template = 'feed'
+        if theme not in ['gold', 'dark', 'neon']:
+            theme = 'gold'
+        if file_format not in ['png', 'jpg']:
+            file_format = 'png'
+        
+        # Gerar poster
+        generator = TournamentPosterGenerator(tournament, template=template, theme=theme)
+        image = generator.generate()
+        
+        # Retornar como resposta HTTP
+        img_bytes = BytesIO()
+        image.save(img_bytes, format=file_format.upper(), quality=95)
+        img_bytes.seek(0)
+        
+        # Content-type apropriado
+        content_type = f'image/{file_format}'
+        filename = f'{tournament.nome.replace(" ", "_")}_{template}.{file_format}'
+        
+        response = HttpResponse(img_bytes, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        
+        return response
+    
+    except Exception as e:
+        from django.http import JsonResponse
+        import traceback
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }, status=500)

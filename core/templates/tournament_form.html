@@ -501,6 +501,96 @@
                     </div>
                 </div>
 
+                <!-- GERADOR DE POSTERS -->
+                {% if tournament.id %}
+                <div class="form-section">
+                    <h5><i class="bi bi-image"></i> Gerador de Posters para Divulgação</h5>
+                    
+                    <div class="alert alert-info mb-3" role="alert">
+                        <i class="bi bi-lightbulb"></i> Gere imagens para compartilhar nas redes sociais. Escolha o template e tema que mais combinam com o estilo do seu clube.
+                    </div>
+                    
+                    <div class="row g-3">
+                        <!-- Templates -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-600">Template</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="poster-template" id="template-feed" value="feed" checked>
+                                <label class="btn btn-outline-primary" for="template-feed">
+                                    <i class="bi bi-square"></i> Feed (1080x1440)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="poster-template" id="template-story" value="story">
+                                <label class="btn btn-outline-primary" for="template-story">
+                                    <i class="bi bi-phone"></i> Story (1080x1920)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="poster-template" id="template-horizontal" value="horizontal">
+                                <label class="btn btn-outline-primary" for="template-horizontal">
+                                    <i class="bi bi-landscape"></i> Horizontal (1920x1080)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Temas -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-600">Tema</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="poster-theme" id="theme-gold" value="gold" checked>
+                                <label class="btn btn-outline-warning" for="theme-gold">
+                                    <i class="bi bi-star-fill text-warning"></i> Gold (Premium)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="poster-theme" id="theme-dark" value="dark">
+                                <label class="btn btn-outline-secondary" for="theme-dark">
+                                    <i class="bi bi-moon-stars-fill text-dark"></i> Dark (Moderno)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="poster-theme" id="theme-neon" value="neon">
+                                <label class="btn btn-outline-info" for="theme-neon">
+                                    <i class="bi bi-lightning-fill text-info"></i> Neon (Vibrante)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Formatos -->
+                        <div class="col-12">
+                            <label class="form-label fw-600">Formato</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="poster-format" id="format-png" value="png" checked>
+                                <label class="btn btn-outline-secondary" for="format-png">
+                                    PNG (Melhor qualidade)
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="poster-format" id="format-jpg" value="jpg">
+                                <label class="btn btn-outline-secondary" for="format-jpg">
+                                    JPG (Menor tamanho)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Botões de ação -->
+                        <div class="col-12 mt-3 pt-2">
+                            <div class="d-grid gap-2 d-sm-flex">
+                                <button type="button" class="btn btn-info btn-sm" onclick="previewPoster(this)">
+                                    <i class="bi bi-eye"></i> Visualizar
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="downloadPoster(this)">
+                                    <i class="bi bi-download"></i> Baixar
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openInNewTab(this)">
+                                    <i class="bi bi-share"></i> Abrir em Nova Aba
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> <strong>Dica:</strong> Após criar o torneio, você poderá gerar posters para divulgação!
+                </div>
+                {% endif %}
+
                 <!-- BOTÕES DE AÇÃO -->
                 <div class="d-flex justify-content-between gap-2 mt-4">
                     <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary btn-action">
@@ -585,5 +675,71 @@
                 updateBlindPreview();
             }
         });
+
+        // Funções para gerar posters
+        function getPosterUrl() {
+            const tournamentId = "{{ tournament.id|default:'null' }}";
+            const template = document.querySelector('input[name="poster-template"]:checked').value;
+            const theme = document.querySelector('input[name="poster-theme"]:checked').value;
+            const format = document.querySelector('input[name="poster-format"]:checked').value;
+            
+            return `/torneio/${tournamentId}/poster/?template=${template}&theme=${theme}&format=${format}`;
+        }
+
+        function previewPoster(btn) {
+            const url = getPosterUrl();
+            const modal = new bootstrap.Modal(document.createElement('div'));
+            
+            // Criar modal customizado
+            const modalHtml = `
+                <div class="modal fade" id="posterPreviewModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-light">
+                                <h5 class="modal-title"><i class="bi bi-image"></i> Visualizar Poster</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center p-0">
+                                <img src="${url}" class="img-fluid" alt="Poster Preview" style="max-height: 80vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                <a href="${url}" download class="btn btn-success">
+                                    <i class="bi bi-download"></i> Baixar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remover modal anterior se existir
+            const oldModal = document.getElementById('posterPreviewModal');
+            if (oldModal) oldModal.remove();
+            
+            // Adicionar novo modal
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const newModal = new bootstrap.Modal(document.getElementById('posterPreviewModal'));
+            newModal.show();
+        }
+
+        function downloadPoster(btn) {
+            const url = getPosterUrl();
+            const tournamentId = "{{ tournament.id|default:'null' }}";
+            const template = document.querySelector('input[name="poster-template"]:checked').value;
+            const format = document.querySelector('input[name="poster-format"]:checked').value;
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `poster_torneio_${tournamentId}_${template}.${format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openInNewTab(btn) {
+            const url = getPosterUrl();
+            window.open(url, '_blank');
+        }
     </script>
 {% endblock %}

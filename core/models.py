@@ -779,6 +779,10 @@ class TournamentPlayerPurchase(models.Model):
 class PlayerProductPurchase(models.Model):
     """
     Rastreia compras de produtos adicionais por jogador em um torneio.
+    
+    Campos de auditoria:
+    - lancado_por: Usuário que registrou a compra
+    - data_lancamento: Quando foi registrado (com timestamp completo para rastreamento)
     """
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
@@ -788,11 +792,46 @@ class PlayerProductPurchase(models.Model):
     quantidade = models.IntegerField(default=1)
     valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
     
+    # Auditoria
+    lancado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rebuy_purchases',
+        help_text="Usuário que registrou esta compra"
+    )
+    data_lancamento = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Momento exato do registro"
+    )
+    
+    # Observação/Nota do Admin
+    observacao = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Nota ou observação do admin sobre este rebuy/addon"
+    )
+    
     class Meta:
         unique_together = ("tournament", "player", "product")
+        # Índices para melhor performance ao buscar histórico
+        indexes = [
+            models.Index(fields=['tournament', 'player']),
+            models.Index(fields=['-data_lancamento']),
+        ]
 
     def __str__(self):
         return f"{self.player} - {self.product} ({self.tournament})"
+    
+    @property
+    def lancado_por_nome(self):
+        """Retorna o nome do usuário ou 'Sistema' se não registrado"""
+        if not self.lancado_por:
+            return "Sistema"
+        full_name = self.lancado_por.get_full_name()
+        # Se full_name está vazio, usar username
+        return full_name if full_name else self.lancado_por.username
 
 
 class TournamentResult(models.Model):

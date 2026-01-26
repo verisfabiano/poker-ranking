@@ -60,6 +60,8 @@ from core.views import (
     tournament_product_purchase_delete,
     tournament_add_rebuy_addon,
     tournament_remove_rebuy_addon,
+    tournament_rebuy_history,
+    tournament_poster,
 
     # Jogadores
     player_home,
@@ -169,6 +171,8 @@ urlpatterns = [
     path("venda-produto/<int:purchase_id>/deletar/", tournament_product_purchase_delete, name="tournament_product_purchase_delete"),
     path("api/torneio/<int:tournament_id>/rebuy-addon/", tournament_add_rebuy_addon, name="tournament_add_rebuy_addon"),
     path("api/torneio/<int:tournament_id>/rebuy-addon/remove/", tournament_remove_rebuy_addon, name="tournament_remove_rebuy_addon"),
+    path("api/torneio/<int:tournament_id>/jogador/<int:player_id>/rebuy-history/", tournament_rebuy_history, name="tournament_rebuy_history"),
+    path("torneio/<int:tournament_id>/poster/", tournament_poster, name="tournament_poster"),
 
     # ============================================================
     #  PREMIAÇÃO (ADMIN)
