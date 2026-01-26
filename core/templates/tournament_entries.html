@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block title %}Inscrições - {{ tournament.nome }}{% endblock %}
 
@@ -85,14 +86,15 @@
 {% block content %}
 <script type="text/javascript">
     // Dados do torneio - renderizados como objeto JavaScript
+    // Valores numéricos convertidos corretamente para JavaScript (sem localização)
     (function() {
         'use strict';
         window.tournamentData = {
             id: {{ tournament.id }},
             nome: "{{ tournament.nome|escapejs }}",
-            rebuy_valor: {{ tournament.rebuy_valor|default:0|floatformat:2 }},
-            rebuy_duplo_valor: {{ tournament.rebuy_duplo_valor|default:0|floatformat:2 }},
-            addon_valor: {{ tournament.addon_valor|default:0|floatformat:2 }},
+            rebuy_valor: parseFloat("{{ tournament.rebuy_valor|default:0 }}".replace(',', '.')) || 0,
+            rebuy_duplo_valor: parseFloat("{{ tournament.rebuy_duplo_valor|default:0 }}".replace(',', '.')) || 0,
+            addon_valor: parseFloat("{{ tournament.addon_valor|default:0 }}".replace(',', '.')) || 0,
             permite_rebuy: {{ tournament.permite_rebuy|lower }},
             permite_rebuy_duplo: {{ tournament.permite_rebuy_duplo|lower }},
             permite_addon: {{ tournament.permite_addon|lower }},
@@ -1128,13 +1130,13 @@ async function showRebuyConfirmationModal(e) {
     let valor = 'R$ 0,00';
     let detalhes = '';
     
-    if (tipo === 'REBUY' && tournament.rebuy_valor) {
+    if (tipo === 'REBUY' && tournament.permite_rebuy && tournament.rebuy_valor > 0) {
         valor = `R$ ${parseFloat(tournament.rebuy_valor).toFixed(2).replace('.', ',')}`;
         detalhes = `Rebuy simples do torneio`;
-    } else if (tipo === 'REBUY_DUPLO' && tournament.rebuy_duplo_valor) {
+    } else if (tipo === 'REBUY_DUPLO' && tournament.permite_rebuy_duplo && tournament.rebuy_duplo_valor > 0) {
         valor = `R$ ${parseFloat(tournament.rebuy_duplo_valor).toFixed(2).replace('.', ',')}`;
         detalhes = `Rebuy duplo (2x ou valor diferenciado)`;
-    } else if (tipo === 'ADDON' && tournament.addon_valor) {
+    } else if (tipo === 'ADDON' && tournament.permite_addon && tournament.addon_valor > 0) {
         valor = `R$ ${parseFloat(tournament.addon_valor).toFixed(2).replace('.', ',')}`;
         detalhes = `Add-on (máximo 1 por jogador)`;
     } else if (tipo === 'TIME_CHIP') {

@@ -3,11 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from core.views.public import landing_page
 from core.views import home_redirect
 
 urlpatterns = [
-    # URL base -> decide admin x jogador
-    path("", home_redirect, name="home"),
+    # URL base -> Landing page (sem autenticação)
+    path("", landing_page, name="home"),
 
     # Admin padrão do Django
     path("admin/", admin.site.urls),
