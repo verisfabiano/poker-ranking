@@ -362,9 +362,9 @@ def player_register(request):
             error = "E-mail é obrigatório"
         elif not senha:
             error = "Senha é obrigatória"
-        elif len(senha) < 6:
-            error = "Senha deve ter pelo menos 6 caracteres"
-        elif User.objects.filter(username=email).exists():
+        elif len(senha) < 8:
+            error = "Senha deve ter no mínimo 8 caracteres"
+        elif User.objects.filter(email__iexact=email).exists():
             error = "Este e-mail já está registrado"
         
         if error:
@@ -377,36 +377,45 @@ def player_register(request):
             })
         
         try:
-            # 1. Criar usuário Django
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=senha,
-                first_name=nome
-            )
+            from django.contrib.auth import login
+            from django.db import transaction
+            from ..services.email_service import EmailService
             
-            # 2. Criar Player vinculado ao usuário
-            player = Player.objects.create(
-                nome=nome,
-                apelido=apelido,
-                email=email,
-                user=user,
-                tenant=tenant
-            )
-            
-            # 3. Criar TenantUser para vincular usuário ao tenant (necessário para middleware)
-            from ..models import TenantUser
-            TenantUser.objects.create(user=user, tenant=tenant)
+            with transaction.atomic():
+                # 1. Criar usuário Django (inativo até email ser verificado)
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=senha,
+                    first_name=nome,
+                    is_active=False  # Desativado até email ser verificado
+                )
+                
+                # 2. Criar Player vinculado ao usuário
+                player = Player.objects.create(
+                    nome=nome,
+                    apelido=apelido,
+                    email=email,
+                    user=user,
+                    tenant=tenant
+                )
+                
+                # 3. Criar TenantUser para vincular usuário ao tenant
+                from ..models import TenantUser
+                TenantUser.objects.create(user=user, tenant=tenant)
+                
+                # 4. Enviar email de verificação
+                EmailService.send_verification_email(user, request)
             
             # Limpa a sessão
             if 'selected_tenant_id' in request.session:
                 del request.session['selected_tenant_id']
             
-            # Login automático após cadastro
-            from django.contrib.auth import login
-            login(request, user)
-            
-            return redirect("player_home")
+            # Mostrar página de confirmação de email
+            return render(request, "auth/email_verification_pending.html", {
+                "email": email,
+                "message": f"Um email de verificação foi enviado para {email}. Clique no link para ativar sua conta."
+            })
         
         except Exception as e:
             return render(request, "player_register.html", {

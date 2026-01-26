@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Email Reenviado - Poker Ranking{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h4><i class="fas fa-check-circle"></i> Email Enviado</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-envelope-open" style="font-size: 60px; color: #28a745;"></i>
+                    </div>
+                    
+                    <h5 class="card-title">Verifique seu Email</h5>
+                    
+                    <p class="card-text">
+                        {% if email %}
+                            Um email de verificação foi enviado para <strong>{{ email }}</strong>
+                        {% endif %}
+                    </p>
+                    
+                    {% if message %}
+                        <div class="alert alert-info mt-3" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                    
+                    <p class="text-muted mb-4">
+                        Clique no link no email para ativar sua conta e fazer login.
+                    </p>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <small>
+                            <i class="fas fa-inbox"></i>
+                            Não recebeu? Verifique sua pasta de <strong>SPAM</strong>
+                        </small>
+                    </div>
+                    
+                    <a href="{% url 'player_login' %}" class="btn btn-primary mt-4">
+                        <i class="fas fa-sign-in-alt"></i> Ir para Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

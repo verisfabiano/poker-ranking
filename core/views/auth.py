@@ -34,6 +34,8 @@ def home_redirect(request):
 @rate_limit(max_attempts=5, window_minutes=1)
 def player_login(request):
     mensagem = None
+    email_para_verificar = None
+    
     if request.method == "POST":
         login_input = request.POST.get("email", "").strip()
         senha = request.POST.get("senha", "").strip()
@@ -42,6 +44,16 @@ def player_login(request):
         if login_input:
             user_obj = User.objects.filter(email__iexact=login_input).first()
             if user_obj:
+                # Verificar se email não foi verificado
+                if not user_obj.is_active:
+                    email_para_verificar = user_obj.email
+                    mensagem = "⚠️ Sua conta precisa ser ativada. Verifique seu email para continuar."
+                    return render(request, "player_login.html", {
+                        "mensagem": mensagem,
+                        "email_para_verificar": email_para_verificar,
+                        "email": login_input
+                    })
+                
                 user = authenticate(
                     request,
                     username=user_obj.username,
@@ -56,12 +68,19 @@ def player_login(request):
                     backend='django.contrib.auth.backends.ModelBackend'
                 )
 
-        if user is not None:
+        if user is not None and user.is_active:
             login(request, user)
             if is_admin(user):
                 return HttpResponseRedirect(reverse("painel_home"))
             else:
                 return HttpResponseRedirect(reverse("player_home"))
+        elif user is not None and not user.is_active:
+            mensagem = "⚠️ Sua conta não foi ativada. Verifique seu email."
+            return render(request, "player_login.html", {
+                "mensagem": mensagem,
+                "email_para_verificar": user.email,
+                "email": login_input
+            })
         else:
             mensagem = "E-mail ou senha inválidos."
 
@@ -242,3 +261,52 @@ def reset_password(request, token):
         "token": token,
         "user_email": password_token.user.email
     })
+
+
+# ============================================================
+#  RESEND VERIFICATION EMAIL
+# ============================================================
+
+@require_http_methods(["POST"])
+@rate_limit(max_attempts=3, window_minutes=5, key_prefix="resend_verification")
+def resend_verification_email(request):
+    """
+    Re-envia o email de verificação para um email não confirmado.
+    POST /auth/resend-verification-email/
+    """
+    email = request.POST.get("email", "").strip()
+    
+    if not email:
+        return render(request, "auth/resend_verification.html", {
+            "error": "Por favor, informe seu email."
+        })
+    
+    try:
+        user = User.objects.get(email__iexact=email)
+        
+        if user.is_active:
+            # Email já foi verificado
+            return render(request, "auth/resend_verification_success.html", {
+                "email": email,
+                "message": "Este email já foi verificado. Você já pode fazer login!"
+            })
+        
+        # Invalidar tokens anteriores
+        EmailVerificationToken.objects.filter(user=user, verified_at__isnull=True).update(
+            expires_at=timezone.now()
+        )
+        
+        # Enviar novo token
+        EmailService.send_verification_email(user, request)
+        
+        return render(request, "auth/resend_verification_success.html", {
+            "email": email,
+            "message": f"Um novo link de verificação foi enviado para {email}. Verifique sua caixa de entrada."
+        })
+    
+    except User.DoesNotExist:
+        # Não revelar se email existe ou não (segurança)
+        return render(request, "auth/resend_verification_success.html", {
+            "email": email,
+            "message": f"Se este email estiver registrado em nosso sistema, você receberá um link de verificação."
+        })
