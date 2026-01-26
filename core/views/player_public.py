@@ -9,7 +9,7 @@ from ..decorators.rate_limit import rate_limit
 
 
 class PlayerPublicRegistrationForm(forms.Form):
-    """Formulário para registro público de jogadores"""
+    """Formulário simplificado para registro público de jogadores"""
     nome = forms.CharField(
         max_length=255,
         required=True,
@@ -19,14 +19,6 @@ class PlayerPublicRegistrationForm(forms.Form):
             'autofocus': True
         })
     )
-    apelido = forms.CharField(
-        max_length=255,
-        required=True,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Seu apelido no poker'
-        })
-    )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
@@ -34,24 +26,16 @@ class PlayerPublicRegistrationForm(forms.Form):
             'placeholder': 'seu.email@exemplo.com'
         })
     )
-    telefone = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': '(11) 99999-9999'
-        })
-    )
     password = forms.CharField(
-        min_length=6,
+        min_length=8,
         required=True,
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Crie uma senha segura'
+            'placeholder': 'Mínimo 8 caracteres'
         })
     )
     password_confirm = forms.CharField(
-        min_length=6,
+        min_length=8,
         required=True,
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
@@ -68,7 +52,7 @@ class PlayerPublicRegistrationForm(forms.Form):
         if password and password_confirm and password != password_confirm:
             self.add_error('password_confirm', 'As senhas não conferem')
 
-        if email and User.objects.filter(email=email).exists():
+        if email and User.objects.filter(email__iexact=email).exists():
             self.add_error('email', 'Este email já está registrado')
 
         return cleaned_data
@@ -155,27 +139,21 @@ def player_register_public(request, slug):
         
         if form.is_valid():
             try:
+                from ..services.email_service import EmailService
+                
                 with transaction.atomic():
                     # Dados do formulário
                     email = form.cleaned_data['email']
                     password = form.cleaned_data['password']
                     nome = form.cleaned_data['nome']
-                    apelido = form.cleaned_data['apelido']
-                    telefone = form.cleaned_data.get('telefone', '')
                     
-                    # 1. Criar usuário
-                    username = email.split('@')[0]
-                    # Garantir username único
-                    base_username = username
-                    counter = 1
-                    while User.objects.filter(username=username).exists():
-                        username = f"{base_username}{counter}"
-                        counter += 1
-                    
+                    # 1. Criar usuário (inativo até email ser verificado)
                     user = User.objects.create_user(
-                        username=username,
+                        username=email,
                         email=email,
-                        password=password
+                        password=password,
+                        first_name=nome,
+                        is_active=False  # Desativado até email ser verificado
                     )
                     
                     # 2. Vincular usuário ao tenant como jogador
@@ -190,23 +168,19 @@ def player_register_public(request, slug):
                         user=user,
                         tenant=tenant,
                         nome=nome,
-                        apelido=apelido,
+                        apelido=nome,  # Usar nome como apelido por padrão
                         email=email,
-                        telefone=telefone,
                         ativo=True
                     )
                     
-                    # 4. Fazer login automático
-                    user = authenticate(
-                        request,
-                        username=username, 
-                        password=password,
-                        backend='django.contrib.auth.backends.ModelBackend'
-                    )
-                    if user:
-                        login(request, user)
+                    # 4. Enviar email de verificação
+                    EmailService.send_verification_email(user, request)
                     
-                    return redirect('player_home')
+                    # Retornar para página de confirmação de email
+                    return render(request, 'auth/email_verification_pending.html', {
+                        'email': email,
+                        'message': f'Um email de verificação foi enviado para {email}. Clique no link para ativar sua conta.'
+                    })
                     
             except Exception as e:
                 form.add_error(None, f'Erro ao registrar: {str(e)}')
