@@ -1,0 +1,51 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Erro - Poker Ranking{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="card">
+            <div class="card-header text-center">
+                <i class="fas fa-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <div class="card-body p-5">
+                <h3 class="text-center text-danger mb-3">
+                    {% block error_title %}Erro{% endblock %}
+                </h3>
+                
+                {% if error_message %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> {{ error_message }}
+                </div>
+                {% endif %}
+                
+                <p class="text-center text-muted mb-4">
+                    {% block error_description %}Ocorreu um erro ao processar sua solicitação.{% endblock %}
+                </p>
+                
+                {% if action_url and action_text %}
+                <div class="d-grid gap-2">
+                    <a href="{{ action_url }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-redo"></i> {{ action_text }}
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-grid gap-2">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home"></i> Voltar ao Início
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if support_info %}
+        <div class="alert alert-warning mt-4" role="alert">
+            <i class="fas fa-headset"></i> <strong>Precisa de ajuda?</strong><br>
+            {{ support_info|safe }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

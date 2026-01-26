@@ -1,0 +1,60 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Reenviar Email de Verificação - Poker Ranking{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-envelope-circle-check"></i> Reenviar Email de Verificação</h4>
+            </div>
+            <div class="card-body p-5">
+                <p class="text-center text-muted mb-4">
+                    Digite seu email para receber um novo link de verificação
+                </p>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <form method="post" class="needs-validation">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                               placeholder="seu.email@exemplo.com" autocomplete="email">
+                        <small class="form-text text-muted d-block mt-2">
+                            Use o mesmo email que usou ao se registrar
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-envelope"></i> Reenviar Email
+                    </button>
+                </form>
+                
+                <div class="mt-4 text-center">
+                    <p class="text-muted small mb-0">
+                        Já tem uma conta verificada?
+                        <a href="{% url 'player_login' %}" class="link-primary text-decoration-none">
+                            Fazer login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-4" role="alert">
+            <i class="fas fa-shield-alt"></i> <strong>Segurança:</strong><br>
+            Você pode solicitar um novo email de verificação até 3 vezes a cada 5 minutos.
+        </div>
+    </div>
+</div>
+{% endblock %}
