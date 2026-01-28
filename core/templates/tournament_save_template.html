@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Salvar como Template{% endblock %}
+
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'seasons_list' %}">Temporadas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' season.id %}">{{ season.nome }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'tournament_admin' tournament.id %}">{{ tournament.nome }}</a></li>
+    <li class="breadcrumb-item active">Salvar como Template</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-bookmark"></i>
+                        Salvar Configuração como Template
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Torneio Base:</strong> {{ tournament.nome }}
+                        <p class="mb-0 mt-2 small">
+                            A configuração deste torneio será salva como template e poderá ser reutilizada 
+                            em futuras criações de torneios.
+                        </p>
+                    </div>
+
+                    <form id="templateForm" class="needs-validation">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="template_name" class="form-label">Nome do Template</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="template_name" 
+                                name="template_name" 
+                                placeholder="ex: Mega Flop Padrão"
+                                required
+                            >
+                            <small class="text-muted d-block mt-2">
+                                Escolha um nome descritivo para identificar este template depois.
+                            </small>
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Configurações a Serem Salvas</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Tipo:</strong> {{ tournament.tipo.nome }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Entrada:</strong> R$ {{ tournament.entrada|floatformat:2 }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Rake:</strong> R$ {{ tournament.rake|floatformat:2 }}
+                                    </li>
+                                    {% if tournament.blind_structure %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Blind Structure:</strong> {{ tournament.blind_structure.nome }}
+                                    </li>
+                                    {% endif %}
+                                    {% if tournament.produtos.all %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Produtos:</strong>
+                                        {% for p in tournament.produtos.all %}
+                                        <span class="badge bg-secondary ms-1">{{ p.nome }}</span>
+                                        {% endfor %}
+                                    </li>
+                                    {% endif %}
+                                    {% if tournament.staff %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-square text-success"></i>
+                                        <strong>Staff:</strong> {{ tournament.staff }}
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div id="alertContainer"></div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                                <i class="bi bi-download"></i>
+                                Salvar Template
+                            </button>
+                            <a href="{% url 'tournament_admin' tournament.id %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        O que é um Template?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Um template salva a configuração de um torneio para que você possa reutilizá-lo ao criar novos torneios.</p>
+                    <p class="mb-0">Ao criar um novo torneio, você poderá:</p>
+                    <ul>
+                        <li>Selecionar um template existente</li>
+                        <li>As configurações (tipo, entrada, rake, produtos, etc.) serão preenchidas automaticamente</li>
+                        <li>Você poderá então alterar apenas a data e o nome do novo torneio</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('templateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const templateName = document.getElementById('template_name').value;
+    const form = new FormData(this);
+    
+    fetch('{% url "tournament_save_template" tournament.id %}', {
+        method: 'POST',
+        body: form,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const alertContainer = document.getElementById('alertContainer');
+        
+        if (data.success) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.location.href = '{% url "tournament_admin" tournament.id %}';
+            }, 2000);
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        document.getElementById('alertContainer').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-circle"></i> Erro ao salvar template: ${error}
+            </div>
+        `;
+    });
+});
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 16px;
+        }
+        
+        .form-control, .form-label {
+            font-size: 16px;
+        }
+        
+        .btn-lg {
+            min-height: 44px;
+            font-size: 0.95rem;
+        }
+        
+        .d-flex {
+            flex-direction: column;
+        }
+        
+        .d-flex .btn {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .card {
+            border-radius: 0;
+            border: none;
+            margin-bottom: 12px;
+        }
+        
+        .card-header {
+            padding: 12px;
+        }
+        
+        .card-header h4,
+        .card-header h5 {
+            font-size: 1rem;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            font-size: 14px;
+            min-height: 40px;
+        }
+        
+        small {
+            font-size: 12px;
+        }
+        
+        .alert {
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .card-body {
+            padding: 12px;
+        }
+        
+        .btn-lg {
+            font-size: 0.85rem;
+            min-height: 40px;
+            padding: 8px;
+        }
+        
+        ul li {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+    }
+</style>
+{% endblock %}

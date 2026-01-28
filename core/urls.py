@@ -69,6 +69,9 @@ from .views import (
     tournament_result_save,
     tournament_create_wizard_step_data,
     tournament_create_wizard_save,
+    tournament_duplicate,
+    tournament_batch_import,
+    tournament_save_template,
     
     # Produtos de Torneio
     tournament_products_list,
@@ -186,6 +189,13 @@ urlpatterns = [
     path("api/torneio/<int:tournament_id>/resultado/salvar/", tournament_result_save, name="tournament_result_save"),
     path("torneio/<int:tournament_id>/jogadores/", tournament_entries_manage, name="tournament_entries_manage"),
     path("torneio/<int:tournament_id>/lancamento/", tournament_results, name="tournament_results"),
+    
+    # ============================================================
+    #  PHASE 5: BATCH TOURNAMENT CREATION
+    # ============================================================
+    path("torneio/<int:tournament_id>/duplicar/", tournament_duplicate, name="tournament_duplicate"),
+    path("season/<int:season_id>/torneios/importar-csv/", tournament_batch_import, name="tournament_batch_import"),
+    path("torneio/<int:tournament_id>/salvar-template/", tournament_save_template, name="tournament_save_template"),
     
     # ============================================================
     #  PRODUTOS DE TORNEIO

@@ -1606,3 +1606,172 @@ def tournament_create_wizard_save(request, season_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'success': False, 'message': f'Erro ao criar: {str(e)}'})
+
+
+# ============================================================
+# PHASE 5: BATCH TOURNAMENT CREATION
+# ============================================================
+
+@admin_required
+def tournament_duplicate(request, tournament_id):
+    """Duplica um torneio existente com todas as configurações"""
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome', f'{tournament.nome} (Cópia)')
+        data = request.POST.get('data', tournament.data.isoformat())
+        
+        # Criar novo torneio com mesmas configurações
+        novo_torneio = Tournament.objects.create(
+            tenant=request.tenant,
+            temporada=tournament.temporada,
+            nome=nome,
+            data=data,
+            tipo=tournament.tipo,
+            blind_structure=tournament.blind_structure,
+            entrada=tournament.entrada,
+            rake=tournament.rake,
+            hora_inicio=tournament.hora_inicio,
+            hora_termino=tournament.hora_termino,
+            staff=tournament.staff,
+            anotacoes=tournament.anotacoes,
+            status='AGENDADO'
+        )
+        
+        # Duplicar produtos
+        for produto in tournament.produtos.all():
+            novo_torneio.produtos.add(produto)
+        
+        return redirect('tournament_admin', tournament_id=novo_torneio.id)
+    
+    context = {
+        'tournament': tournament,
+        'season': tournament.temporada
+    }
+    return render(request, 'tournament_duplicate.html', context)
+
+
+@admin_required
+def tournament_batch_import(request, season_id):
+    """Importa múltiplos torneios via CSV"""
+    season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        csv_file = request.FILES.get('csv_file')
+        
+        if not csv_file:
+            return render(request, 'tournament_batch_import.html', {
+                'season': season,
+                'error': 'Nenhum arquivo CSV fornecido'
+            })
+        
+        try:
+            import csv
+            tournaments_created = []
+            errors = []
+            
+            # Decodificar arquivo CSV
+            file_content = csv_file.read().decode('utf-8-sig')
+            reader = csv.DictReader(file_content.splitlines())
+            
+            required_fields = ['nome', 'data', 'tipo', 'entrada', 'rake']
+            
+            # Validar headers
+            if not reader.fieldnames or not all(field in reader.fieldnames for field in required_fields):
+                return render(request, 'tournament_batch_import.html', {
+                    'season': season,
+                    'error': f'CSV deve ter as colunas: {", ".join(required_fields)}'
+                })
+            
+            for idx, row in enumerate(reader, 1):
+                try:
+                    # Validar dados obrigatórios
+                    if not all(row.get(field, '').strip() for field in required_fields):
+                        errors.append(f'Linha {idx}: Campos obrigatórios faltando')
+                        continue
+                    
+                    # Parse tipo
+                    tipo = get_object_or_404(TournamentType, id=row['tipo'], tenant=request.tenant)
+                    
+                    # Parse entrada e rake
+                    entrada = Decimal(row['entrada'].replace(',', '.'))
+                    rake = Decimal(row['rake'].replace(',', '.'))
+                    
+                    # Parse blind structure (opcional)
+                    blind_structure = None
+                    if row.get('blind_structure'):
+                        blind_structure = get_object_or_404(BlindStructure, id=row['blind_structure'])
+                    
+                    # Criar torneio
+                    novo = Tournament.objects.create(
+                        tenant=request.tenant,
+                        temporada=season,
+                        nome=row['nome'],
+                        data=row['data'],
+                        tipo=tipo,
+                        blind_structure=blind_structure,
+                        entrada=entrada,
+                        rake=rake,
+                        status='AGENDADO'
+                    )
+                    
+                    tournaments_created.append(novo.nome)
+                    
+                except Exception as e:
+                    errors.append(f'Linha {idx}: {str(e)}')
+            
+            context = {
+                'season': season,
+                'tournaments_created': tournaments_created,
+                'errors': errors,
+                'total': len(tournaments_created)
+            }
+            return render(request, 'tournament_batch_import_result.html', context)
+        
+        except Exception as e:
+            return render(request, 'tournament_batch_import.html', {
+                'season': season,
+                'error': f'Erro ao processar CSV: {str(e)}'
+            })
+    
+    context = {
+        'season': season,
+        'types': TournamentType.objects.filter(tenant=request.tenant),
+        'blind_structures': BlindStructure.objects.all()
+    }
+    return render(request, 'tournament_batch_import.html', context)
+
+
+@admin_required
+def tournament_save_template(request, tournament_id):
+    """Salva configuração de torneio como template reutilizável"""
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        template_name = request.POST.get('template_name')
+        
+        if not template_name:
+            return JsonResponse({'success': False, 'message': 'Nome do template obrigatório'})
+        
+        # Salvar em sessão (em produção, usar banco de dados)
+        if 'tournament_templates' not in request.session:
+            request.session['tournament_templates'] = {}
+        
+        request.session['tournament_templates'][template_name] = {
+            'tipo_id': tournament.tipo.id,
+            'blind_structure_id': tournament.blind_structure.id if tournament.blind_structure else None,
+            'entrada': str(tournament.entrada),
+            'rake': str(tournament.rake),
+            'produtos': [p.id for p in tournament.produtos.all()],
+            'staff': tournament.staff or '',
+            'anotacoes': tournament.anotacoes or ''
+        }
+        request.session.modified = True
+        
+        return JsonResponse({'success': True, 'message': f'Template "{template_name}" salvo com sucesso'})
+    
+    context = {
+        'tournament': tournament,
+        'season': tournament.temporada
+    }
+    return render(request, 'tournament_save_template.html', context)

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Torneios via CSV{% endblock %}
+
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'seasons_list' %}">Temporadas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' season.id %}">{{ season.nome }}</a></li>
+    <li class="breadcrumb-item active">Importar Torneios</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-cloud-upload"></i>
+                        Importar Múltiplos Torneios via CSV
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Instruções</h5>
+                            <ul class="small">
+                                <li><strong>Colunas Obrigatórias:</strong>
+                                    <ul>
+                                        <li><code>nome</code> - Nome do torneio</li>
+                                        <li><code>data</code> - Data (YYYY-MM-DD)</li>
+                                        <li><code>tipo</code> - ID do tipo de torneio</li>
+                                        <li><code>entrada</code> - Buy-in em R$ (use . ou ,)</li>
+                                        <li><code>rake</code> - Rake em R$ (use . ou ,)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Colunas Opcionais:</strong>
+                                    <ul>
+                                        <li><code>blind_structure</code> - ID da blind structure</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Tipos de Torneio Disponíveis</h5>
+                            <div class="card bg-light">
+                                <div class="card-body p-2">
+                                    <ul class="list-unstyled small mb-0">
+                                        {% for type in types %}
+                                        <li><strong>{{ type.id }}:</strong> {{ type.nome }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="csv_file" class="form-label">Arquivo CSV</label>
+                            <input 
+                                type="file" 
+                                class="form-control" 
+                                id="csv_file" 
+                                name="csv_file" 
+                                accept=".csv"
+                                required
+                            >
+                            <small class="text-muted d-block mt-2">
+                                Selecione um arquivo CSV com a estrutura acima. 
+                                <a href="#" onclick="downloadTemplate()" class="text-decoration-none">
+                                    <i class="bi bi-download"></i> Baixar Template
+                                </a>
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bi bi-upload"></i>
+                                Importar
+                            </button>
+                            <a href="{% url 'season_tournaments' season.id %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <div class="alert alert-info">
+                        <h6 class="mb-2"><i class="bi bi-info-circle"></i> Exemplo de CSV</h6>
+                        <code style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; display: block; overflow-x: auto;">
+nome,data,tipo,entrada,rake,blind_structure<br>
+Mega Flop Segunda,2024-01-08,1,100,10,1<br>
+Mega Flop Quarta,2024-01-10,1,100,10,1<br>
+Turbo Sexta,2024-01-12,2,50,5,2<br>
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadTemplate() {
+    const csv = "nome,data,tipo,entrada,rake,blind_structure\n" +
+                "Exemplo 1,2024-01-15,1,100,10,1\n" +
+                "Exemplo 2,2024-01-16,2,50,5,2";
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_torneios.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 16px;
+        }
+        
+        .form-control, .form-label {
+            font-size: 16px;
+        }
+        
+        .btn-lg {
+            min-height: 44px;
+            font-size: 0.95rem;
+        }
+        
+        .row {
+            flex-direction: column;
+        }
+        
+        .col-md-6 {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .card {
+            border-radius: 0;
+            border: none;
+        }
+        
+        .card-header {
+            padding: 12px;
+        }
+        
+        .card-header h4 {
+            font-size: 1rem;
+        }
+        
+        .form-label {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            font-size: 14px;
+            min-height: 40px;
+        }
+        
+        small {
+            font-size: 12px;
+        }
+        
+        .alert {
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        
+        h5 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        
+        .btn-lg {
+            font-size: 0.85rem;
+            min-height: 40px;
+            padding: 8px;
+        }
+        
+        code {
+            font-size: 11px !important;
+        }
+    }
+</style>
+{% endblock %}

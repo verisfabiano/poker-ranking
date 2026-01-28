@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Resultado da Importação{% endblock %}
+
+{% block breadcrumb-items %}
+    <li class="breadcrumb-item"><a href="{% url 'seasons_list' %}">Temporadas</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' season.id %}">{{ season.nome }}</a></li>
+    <li class="breadcrumb-item active">Resultado da Importação</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header {% if errors %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-clipboard-check"></i>
+                        Resultado da Importação
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Importados com Sucesso</h5>
+                                    <h2 class="text-success">{{ total }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        {% if errors %}
+                        <div class="col-6">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h5>Erros</h5>
+                                    <h2 class="text-danger">{{ errors|length }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if tournaments_created %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-check-circle"></i>
+                                Torneios Importados
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                {% for tournament in tournaments_created %}
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <strong>{{ tournament }}</strong>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if errors %}
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-exclamation-circle"></i>
+                                Erros na Importação
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                {% for error in errors %}
+                                <li class="mb-2">
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    <span class="text-muted">{{ error }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        {% if total > 0 %}
+                        Os torneios foram criados e estão disponíveis em <strong>Status: AGENDADO</strong>.
+                        Você pode editá-los e iniciar o processo de entrada de jogadores.
+                        {% else %}
+                        Nenhum torneio foi importado. Verifique os dados do arquivo CSV e tente novamente.
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'season_tournaments' season.id %}" class="btn btn-primary btn-lg flex-grow-1">
+                            <i class="bi bi-arrow-left"></i>
+                            Voltar aos Torneios
+                        </a>
+                        {% if total == 0 %}
+                        <a href="{% url 'tournament_batch_import' season.id %}" class="btn btn-warning btn-lg">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Tentar Novamente
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 16px;
+        }
+        
+        .btn-lg {
+            min-height: 44px;
+            font-size: 0.95rem;
+        }
+        
+        .d-flex {
+            flex-direction: column;
+        }
+        
+        .d-flex .btn {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .card {
+            border-radius: 0;
+            border: none;
+            margin-bottom: 12px;
+        }
+        
+        .card-header {
+            padding: 12px;
+        }
+        
+        .card-header h5 {
+            font-size: 0.9rem;
+        }
+        
+        .card-body {
+            padding: 12px;
+        }
+        
+        h5 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        
+        h2 {
+            font-size: 2rem;
+        }
+        
+        .alert {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-lg {
+            font-size: 0.85rem;
+            min-height: 40px;
+            padding: 8px;
+        }
+        
+        ul li {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
