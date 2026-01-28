@@ -395,15 +395,15 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="acoesBtn">
                     <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_duplicate' tournament.id %}">
+                    <li><a class="dropdown-item" href="/torneio/{{ tournament.id }}/duplicar/">
                         <i class="bi bi-files"></i> Duplicar Torneio
                     </a></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_save_template' tournament.id %}">
+                    <li><a class="dropdown-item" href="/torneio/{{ tournament.id }}/salvar-template/">
                         <i class="bi bi-bookmark"></i> Salvar como Template
                     </a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><h6 class="dropdown-header">Phase 6: Recursos Avançados</h6></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_create_series' tournament.temporada.id %}">
+                    <li><a class="dropdown-item" href="/season/{{ tournament.temporada.id }}/torneios/serie/">
                         <i class="bi bi-calendar-event"></i> Criar Série Recorrente
                     </a></li>
                     {% if tournament.ultima_acao_tipo %}

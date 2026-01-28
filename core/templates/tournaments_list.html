@@ -122,37 +122,37 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'tournament_edit' t.id %}">
+                                                    <a class="dropdown-item" href="/torneio/{{ t.id }}/editar/">
                                                         <i class="bi bi-pencil me-2"></i> Editar Dados
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'tournament_financial' t.id %}">
+                                                    <a class="dropdown-item" href="/torneio/{{ t.id }}/financeiro/">
                                                         <i class="bi bi-cash-coin me-2"></i> Financeiro
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'tournament_duplicate' t.id %}">
+                                                    <a class="dropdown-item" href="/torneio/{{ t.id }}/duplicar/">
                                                         <i class="bi bi-files me-2"></i> Duplicar
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'tournament_save_template' t.id %}">
+                                                    <a class="dropdown-item" href="/torneio/{{ t.id }}/salvar-template/">
                                                         <i class="bi bi-bookmark me-2"></i> Salvar Template
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'ranking_season' season.id %}" target="_blank">
+                                                    <a class="dropdown-item" href="/season/{{ season.id }}/ranking/" target="_blank">
                                                         <i class="bi bi-bar-chart me-2"></i> Ver Ranking
                                                     </a>
                                                 </li>
                                                 {% if t.blind_structure %}
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{% url 'director_panel' t.id %}">
+                                                    <a class="dropdown-item" href="/torneio/{{ t.id }}/telao/">
                                                         <i class="bi bi-display me-2"></i> Abrir Telão (Timer)
                                                     </a>
                                                 </li>
