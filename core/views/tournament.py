@@ -1280,3 +1280,127 @@ def tournament_admin_panel(request, tournament_id):
     }
     
     return render(request, 'tournament_admin_panel.html', context)
+
+
+@admin_required
+def tournament_result_modal(request, tournament_id, player_id):
+    """
+    AJAX endpoint para modal de lançamento de resultado individual.
+    Retorna dados do jogador e resultado atual (se existir).
+    """
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    entry = get_object_or_404(TournamentEntry, tournament=tournament, player_id=player_id)
+    
+    # Buscar resultado existente
+    try:
+        result = TournamentResult.objects.get(tournament=tournament, player_id=player_id)
+        tem_resultado = True
+    except TournamentResult.DoesNotExist:
+        result = None
+        tem_resultado = False
+    
+    # Buscar prêmios disponíveis (para dropdown)
+    from ..models import PrizeStructure
+    try:
+        prize_structure = PrizeStructure.objects.get(tournament=tournament)
+        premios = list(prize_structure.payments.all().order_by('position'))
+    except PrizeStructure.DoesNotExist:
+        premios = []
+    
+    # Buscar outras posições já lançadas (para validação)
+    outras_posicoes = TournamentResult.objects.filter(
+        tournament=tournament
+    ).exclude(
+        player_id=player_id
+    ).values_list('posicao', flat=True).distinct().order_by('posicao')
+    
+    return JsonResponse({
+        'success': True,
+        'player': {
+            'id': entry.player.id,
+            'nome': entry.player.nome,
+            'apelido': entry.player.apelido,
+        },
+        'resultado': {
+            'existe': tem_resultado,
+            'posicao': result.posicao if result else None,
+            'premio': float(result.premiacao_recebida) if result and result.premiacao_recebida else 0,
+            'ajuste': result.pontos_participacao if result else 0,
+            'participou': result.posicao is not None if result else False,
+        },
+        'premios_disponiveis': [
+            {
+                'posicao': p.position,
+                'valor': float(p.amount),
+                'display': f"{p.position}º lugar - R$ {float(p.amount):.2f}"
+            }
+            for p in premios
+        ],
+        'posicoes_ja_lancadas': list(outras_posicoes),
+    })
+
+
+@admin_required
+def tournament_result_save(request, tournament_id):
+    """
+    AJAX endpoint para salvar resultado do torneio via wizard modal.
+    POST: player_id, posicao, premio
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    try:
+        player_id = int(request.POST.get('player_id'))
+        posicao = request.POST.get('posicao')
+        premio_str = request.POST.get('premio', '0').replace(',', '.')
+        premio = Decimal(premio_str) if premio_str else Decimal('0')
+        
+        # Validações
+        if not player_id:
+            return JsonResponse({'success': False, 'message': 'Jogador não informado'})
+        
+        # Verificar se jogador está inscrito
+        entry = get_object_or_404(TournamentEntry, tournament=tournament, player_id=player_id)
+        
+        # Se posicao foi informada, fazer validações
+        if posicao:
+            posicao = int(posicao)
+            
+            # Validar se posição já foi usada
+            ja_existe = TournamentResult.objects.filter(
+                tournament=tournament,
+                posicao=posicao
+            ).exclude(player_id=player_id).exists()
+            
+            if ja_existe:
+                return JsonResponse({'success': False, 'message': f'Posição {posicao} já foi lançada'})
+            
+            if posicao <= 0:
+                return JsonResponse({'success': False, 'message': 'Posição deve ser maior que 0'})
+        
+        if premio < 0:
+            return JsonResponse({'success': False, 'message': 'Prêmio não pode ser negativo'})
+        
+        # Atualizar ou criar resultado
+        result, created = TournamentResult.objects.update_or_create(
+            tournament=tournament,
+            player=entry.player,
+            defaults={
+                'posicao': posicao if posicao else None,
+                'premiacao_recebida': premio,
+                'pontos_participacao': 0,  # Calcular depois se necessário
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Resultado salvo com sucesso',
+            'resultado_id': result.id
+        })
+        
+    except ValueError as e:
+        return JsonResponse({'success': False, 'message': f'Valores inválidos: {str(e)}'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Erro ao salvar: {str(e)}'})

@@ -65,6 +65,8 @@ from .views import (
     tournament_entries_manage,
     tournament_results,
     tournament_admin_panel,
+    tournament_result_modal,
+    tournament_result_save,
     
     # Produtos de Torneio
     tournament_products_list,
@@ -176,6 +178,8 @@ urlpatterns = [
     path("season/<int:season_id>/torneios/novo/", tournament_create, name="tournament_create"),
     path("torneio/<int:tournament_id>/editar/", tournament_edit, name="tournament_edit"),
     path("torneio/<int:tournament_id>/admin/", tournament_admin_panel, name="tournament_admin_panel"),
+    path("api/torneio/<int:tournament_id>/jogador/<int:player_id>/modal-resultado/", tournament_result_modal, name="tournament_result_modal"),
+    path("api/torneio/<int:tournament_id>/resultado/salvar/", tournament_result_save, name="tournament_result_save"),
     path("torneio/<int:tournament_id>/jogadores/", tournament_entries_manage, name="tournament_entries_manage"),
     path("torneio/<int:tournament_id>/lancamento/", tournament_results, name="tournament_results"),
     

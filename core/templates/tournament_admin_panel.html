@@ -327,70 +327,55 @@
         </div>
 
         {% if entries.count > 0 %}
-        <form method="post" action="{% url 'tournament_results' tournament.id %}" class="mt-3">
-            {% csrf_token %}
-            
-            <div class="table-responsive">
-                <table class="table table-hover results-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 5%;">✓</th>
-                            <th style="width: 35%;">Jogador</th>
-                            <th style="width: 15%;">Posição</th>
-                            <th style="width: 20%;">Prêmio (R$)</th>
-                            <th style="width: 25%;">Ajuste</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in entries %}
-                        {% with result=entry.tournamentresult_set.first %}
-                        <tr>
-                            <td class="align-middle">
-                                <input type="checkbox" class="form-check-input" 
-                                       name="participou_{{ entry.player.id }}"
-                                       {% if result %}checked{% endif %}>
-                            </td>
-                            <td class="align-middle">
-                                <strong>{{ entry.player.nome }}</strong><br>
-                                <small class="text-muted">{{ entry.player.apelido }}</small>
-                            </td>
-                            <td class="align-middle">
-                                <input type="number" class="form-control form-control-sm text-center" 
-                                       name="pos_{{ entry.player.id }}"
-                                       min="1" placeholder="-"
-                                       value="{% if result %}{{ result.posicao }}{% endif %}">
-                            </td>
-                            <td class="align-middle">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">R$</span>
-                                    <input type="number" step="0.01" class="form-control text-end"
-                                           name="prize_{{ entry.player.id }}"
-                                           placeholder="0.00"
-                                           value="{% if result %}{{ result.premiacao_recebida|floatformat:2 }}{% endif %}">
-                                </div>
-                            </td>
-                            <td class="align-middle">
-                                <input type="number" class="form-control form-control-sm text-center"
-                                       name="ajuste_{{ entry.player.id }}"
-                                       placeholder="0"
-                                       value="{% if result %}{{ result.pontos_participacao }}{% endif %}">
-                            </td>
-                        </tr>
-                        {% endwith %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> Salvar Resultados
-                </button>
-                <a href="{% url 'tournament_results' tournament.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-eye"></i> Ver Detalhes
-                </a>
-            </div>
-        </form>
+        <p class="text-muted mb-3">
+            <i class="bi bi-lightbulb"></i> Clique no botão ao lado de cada jogador para lançar seu resultado (wizard guiado).
+        </p>
+        
+        <div class="table-responsive">
+            <table class="table table-hover results-table">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 35%;">Jogador</th>
+                        <th style="width: 15%;">Posição</th>
+                        <th style="width: 20%;">Prêmio (R$)</th>
+                        <th style="width: 30%;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    {% with result=entry.tournamentresult_set.first %}
+                    <tr>
+                        <td class="align-middle">
+                            <strong>{{ entry.player.nome }}</strong><br>
+                            <small class="text-muted">{{ entry.player.apelido }}</small>
+                        </td>
+                        <td class="align-middle">
+                            {% if result and result.posicao %}
+                                <span class="badge bg-success">{{ result.posicao }}º lugar</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            {% if result and result.premiacao_recebida %}
+                                <strong class="text-success">R$ {{ result.premiacao_recebida|floatformat:2 }}</strong>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            <button type="button" class="btn btn-sm btn-primary" 
+                                    onclick="abrirModalResultado({{ entry.player.id }}, '{{ entry.player.nome }}')">
+                                <i class="bi bi-pencil-square"></i> 
+                                {% if result %}Editar{% else %}Lançar{% endif %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
         <div class="alert alert-warning">
             <i class="bi bi-exclamation-triangle"></i> Nenhum jogador inscrito
@@ -491,4 +476,383 @@
     </div>
 </div>
 
+<!-- MODAL WIZARD: Lançamento de Resultados -->
+<div class="modal fade" id="modalResultadoWizard" tabindex="-1" aria-labelledby="modalResultadoTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title" id="modalResultadoTitle">Lançar Resultado do Torneio</h5>
+                    <small class="text-muted">Jogador: <span id="playerNomeWizard">-</span></small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="modal-body pt-4 pb-0">
+                <div class="progress mb-4" style="height: 6px;">
+                    <div id="wizardProgress" class="progress-bar bg-success" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+
+                <!-- ETAPA 1: Participação -->
+                <div id="step1" class="wizard-step active">
+                    <div class="text-center mb-4">
+                        <h6 class="text-secondary mb-3">Etapa 1 de 3: Participação</h6>
+                    </div>
+                    
+                    <div class="row gap-3 justify-content-center">
+                        <div class="col-12">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="participou" id="radioSim" value="1">
+                                <label class="form-check-label fw-bold" for="radioSim">
+                                    <i class="bi bi-check-circle text-success"></i> Participou e lançou resultado
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="participou" id="radioNao" value="0">
+                                <label class="form-check-label fw-bold" for="radioNao">
+                                    <i class="bi bi-dash-circle text-danger"></i> Não participou / Saiu cedo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="naoParticipouInfo" class="alert alert-warning mt-3" style="display: none;">
+                        <i class="bi bi-info-circle"></i> O jogador será marcado como não classificado, sem prêmio.
+                    </div>
+                </div>
+
+                <!-- ETAPA 2: Posição -->
+                <div id="step2" class="wizard-step" style="display: none;">
+                    <div class="text-center mb-4">
+                        <h6 class="text-secondary mb-3">Etapa 2 de 3: Posição Final</h6>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mx-auto">
+                            <label for="posicaoSelect" class="form-label">Qual foi a posição do jogador?</label>
+                            <select id="posicaoSelect" class="form-select form-select-lg">
+                                <option value="">-- Selecione a posição --</option>
+                            </select>
+                            <small id="posicaoDuplicadoAlert" class="text-danger" style="display: none;">
+                                <i class="bi bi-exclamation-triangle"></i> Posição já foi lançada!
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 3: Prêmio -->
+                <div id="step3" class="wizard-step" style="display: none;">
+                    <div class="text-center mb-4">
+                        <h6 class="text-secondary mb-3">Etapa 3 de 3: Confirmação</h6>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-3">Resumo do Resultado</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th>Jogador:</th>
+                                            <td id="resumoJogador">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Posição:</th>
+                                            <td id="resumoPosicao">-</td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <th>Prêmio (R$):</th>
+                                            <td id="resumoPremio" style="font-size: 1.3rem; font-weight: bold;">R$ 0,00</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="btnAnterior" style="display: none;">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <button type="button" class="btn btn-primary" id="btnProximo">
+                    Próximo <i class="bi bi-chevron-right"></i>
+                </button>
+                <button type="button" class="btn btn-success" id="btnSalvar" style="display: none;">
+                    <i class="bi bi-save"></i> Salvar Resultado
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos adicionais para o wizard -->
+<style>
+    .wizard-step {
+        min-height: 200px;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .wizard-step.active {
+        display: block;
+    }
+
+    #radioSim, #radioNao {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+</style>
+
+<!-- Script para o wizard -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    let wizardData = {
+        player_id: null,
+        tournament_id: {{ tournament.id }},
+        participou: null,
+        posicao: null,
+        premio: 0
+    };
+
+    // Elementos do modal
+    const modal = new bootstrap.Modal(document.getElementById('modalResultadoWizard'));
+    const btnProximo = document.getElementById('btnProximo');
+    const btnAnterior = document.getElementById('btnAnterior');
+    const btnSalvar = document.getElementById('btnSalvar');
+
+    // Radio buttons de participação
+    const radioSim = document.getElementById('radioSim');
+    const radioNao = document.getElementById('radioNao');
+
+    // Select de posição
+    const posicaoSelect = document.getElementById('posicaoSelect');
+
+    // Event listeners para participação
+    radioSim.addEventListener('change', function() {
+        if (this.checked) {
+            wizardData.participou = true;
+            document.getElementById('naoParticipouInfo').style.display = 'none';
+        }
+    });
+
+    radioNao.addEventListener('change', function() {
+        if (this.checked) {
+            wizardData.participou = false;
+            document.getElementById('naoParticipouInfo').style.display = 'block';
+        }
+    });
+
+    // Validar posição duplicada
+    posicaoSelect.addEventListener('change', function() {
+        const posicao = this.value;
+        if (!posicao) return;
+
+        // Simular validação (em produção, fazer fetch)
+        const jaUsada = wizardData.posicoes_ja_lancadas && 
+                       wizardData.posicoes_ja_lancadas.includes(parseInt(posicao));
+        
+        const alertElement = document.getElementById('posicaoDuplicadoAlert');
+        if (jaUsada) {
+            alertElement.style.display = 'block';
+        } else {
+            alertElement.style.display = 'none';
+            wizardData.posicao = posicao;
+        }
+    });
+
+    // Botão Próximo
+    btnProximo.addEventListener('click', function() {
+        if (!validarStep(currentStep)) return;
+        
+        currentStep++;
+        if (currentStep > 3) currentStep = 3;
+        
+        renderStep();
+    });
+
+    // Botão Anterior
+    btnAnterior.addEventListener('click', function() {
+        currentStep--;
+        if (currentStep < 1) currentStep = 1;
+        
+        renderStep();
+    });
+
+    // Botão Salvar
+    btnSalvar.addEventListener('click', function() {
+        salvarResultado();
+    });
+
+    function validarStep(step) {
+        if (step === 1) {
+            if (wizardData.participou === null) {
+                alert('Selecione se o jogador participou!');
+                return false;
+            }
+            // Se não participou, pular direto para confirmar
+            if (!wizardData.participou) {
+                currentStep = 3;
+                renderStep();
+                return false;
+            }
+        } else if (step === 2) {
+            if (!wizardData.posicao) {
+                alert('Selecione a posição do jogador!');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function renderStep() {
+        // Esconder todos os steps
+        document.querySelectorAll('.wizard-step').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Mostrar step atual
+        document.getElementById(`step${currentStep}`).style.display = 'block';
+
+        // Atualizar progress bar
+        const progress = (currentStep / 3) * 100;
+        document.getElementById('wizardProgress').style.width = progress + '%';
+
+        // Atualizar botões
+        btnAnterior.style.display = currentStep > 1 ? 'block' : 'none';
+        btnProximo.style.display = currentStep < 3 ? 'block' : 'none';
+        btnSalvar.style.display = currentStep === 3 ? 'block' : 'none';
+
+        // Se step 3, carregar dados para resumo
+        if (currentStep === 3) {
+            atualizarResumo();
+        }
+    }
+
+    function atualizarResumo() {
+        const nomeElement = document.getElementById('resumoJogador');
+        const posicaoElement = document.getElementById('resumoPosicao');
+        const premioElement = document.getElementById('resumoPremio');
+
+        if (wizardData.participou === false) {
+            nomeElement.textContent = document.getElementById('playerNomeWizard').textContent;
+            posicaoElement.textContent = 'Não participou';
+            premioElement.textContent = 'R$ 0,00';
+        } else {
+            nomeElement.textContent = document.getElementById('playerNomeWizard').textContent;
+            
+            // Buscar nome da posição e prêmio
+            const selectedOption = posicaoSelect.options[posicaoSelect.selectedIndex];
+            if (selectedOption.text) {
+                posicaoElement.textContent = selectedOption.text;
+            }
+            
+            // Buscar prêmio do objeto premios
+            if (wizardData.premios_disponiveis) {
+                const premio = wizardData.premios_disponiveis.find(p => 
+                    p.posicao === parseInt(wizardData.posicao)
+                );
+                if (premio) {
+                    wizardData.premio = premio.valor;
+                    premioElement.textContent = 'R$ ' + premio.valor.toFixed(2).replace('.', ',');
+                }
+            }
+        }
+    }
+
+    function salvarResultado() {
+        const formData = new FormData();
+        formData.append('player_id', wizardData.player_id);
+        formData.append('posicao', wizardData.participou ? wizardData.posicao : null);
+        formData.append('premio', wizardData.premio);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch(`/api/torneio/${wizardData.tournament_id}/resultado/salvar/`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Resultado salvo com sucesso!');
+                modal.hide();
+                // Recarregar a página para atualizar tabela
+                location.reload();
+            } else {
+                alert('Erro ao salvar: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro de conexão ao salvar resultado');
+        });
+    }
+
+    // Função para abrir modal com dados de um jogador
+    window.abrirModalResultado = function(playerId, playerNome) {
+        wizardData.player_id = playerId;
+        
+        // Resetar form
+        currentStep = 1;
+        wizardData.participou = null;
+        wizardData.posicao = null;
+        document.getElementById('radioSim').checked = false;
+        document.getElementById('radioNao').checked = false;
+        posicaoSelect.value = '';
+
+        // Atualizar nome do jogador
+        document.getElementById('playerNomeWizard').textContent = playerNome;
+
+        // Carregar dados do jogador via AJAX
+        fetch(`/api/torneio/${wizardData.tournament_id}/jogador/${playerId}/modal-resultado/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Carregar prêmios no select
+                    posicaoSelect.innerHTML = '<option value="">-- Selecione a posição --</option>';
+                    data.premios_disponiveis.forEach(premio => {
+                        const option = document.createElement('option');
+                        option.value = premio.posicao;
+                        option.textContent = premio.display;
+                        posicaoSelect.appendChild(option);
+                    });
+
+                    // Armazenar dados para validação
+                    wizardData.premios_disponiveis = data.premios_disponiveis;
+                    wizardData.posicoes_ja_lancadas = data.posicoes_ja_lancadas;
+
+                    // Se já tem resultado, carregar dados
+                    if (data.resultado.existe) {
+                        if (data.resultado.posicao) {
+                            document.getElementById('radioSim').checked = true;
+                            posicaoSelect.value = data.resultado.posicao;
+                        } else {
+                            document.getElementById('radioNao').checked = true;
+                        }
+                    }
+                }
+                
+                // Renderizar step 1
+                renderStep();
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Erro ao carregar dados:', error);
+                alert('Erro ao carregar dados do jogador');
+            });
+    };
+});
+</script>
+
 {% endblock %}
+
