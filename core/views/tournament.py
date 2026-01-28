@@ -236,23 +236,15 @@ def tournament_create(request, season_id):
 
         return HttpResponseRedirect(reverse("season_tournaments", args=[season.id]))
 
+    # GET request - renderizar wizard
     context = {
         "season": season,
         "tournament": None,
-        "data_str": "",
-        "buyin_str": "",
-        "rake_valor_str": "",
-        "rake_percentual_str": "",
-        "rebuy_valor_str": "",
-        "rebuy_duplo_valor_str": "",
-        "addon_valor_str": "",
-        "staff_valor_str": "",
         "tipos": tipos,
         "blind_structures": blind_structures,
         "produtos_disponiveis": produtos_disponiveis,
-        "produtos_selecionados": [],
     }
-    return render(request, "tournament_form.html", context)
+    return render(request, "tournament_create_wizard.html", context)
 
 
 @admin_required
@@ -1404,3 +1396,213 @@ def tournament_result_save(request, tournament_id):
         return JsonResponse({'success': False, 'message': f'Valores inválidos: {str(e)}'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Erro ao salvar: {str(e)}'})
+
+
+# ============================================================
+#  WIZARD: CRIAR NOVO TORNEIO (PHASE 3)
+# ============================================================
+
+@admin_required
+def tournament_create_wizard_step_data(request, season_id, step):
+    """
+    AJAX endpoint para fornecer dados para cada etapa do wizard.
+    Retorna campos necessários, blind structures, tipos, etc.
+    """
+    season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
+    
+    data = {
+        'success': True,
+        'step': step,
+    }
+    
+    if step == 1:
+        # Etapa 1: Básico (tipos, calendário)
+        tipos = list(TournamentType.objects.filter(tenant=request.tenant).values('id', 'nome', 'multiplicador_pontos').order_by('nome'))
+        data['tipos'] = tipos
+        data['campos_requeridos'] = ['nome', 'data', 'tipo_id']
+        
+    elif step == 2:
+        # Etapa 2: Valores (buy-in, rake)
+        data['campos_requeridos'] = ['buyin', 'rake_type', 'rake_valor']
+        data['rake_tipos'] = ['FIXO', 'PERCENTUAL', 'MISTO']
+        
+    elif step == 3:
+        # Etapa 3: Avançado (blind, staff, timechip, produtos)
+        blind_structures = list(BlindStructure.objects.filter(
+            tenant=request.tenant,
+            levels__isnull=False
+        ).distinct().values('id', 'nome').order_by('nome'))
+        
+        produtos = list(TournamentProduct.objects.filter(
+            tenant=request.tenant
+        ).values('id', 'nome', 'valor', 'entra_em_premiacao').order_by('nome'))
+        
+        data['blind_structures'] = blind_structures
+        data['produtos'] = produtos
+        data['campos_requeridos'] = []  # Todos opcionais nesta etapa
+        
+    elif step == 4:
+        # Etapa 4: Revisão (apenas confirma dados)
+        data['campos_requeridos'] = []
+    
+    return JsonResponse(data)
+
+
+@admin_required
+def tournament_create_wizard_save(request, season_id):
+    """
+    AJAX endpoint para salvar novo torneio via wizard.
+    POST body: JSON com dados de todas as 4 etapas
+    
+    Expected body:
+    {
+        "nome": "Terça Turbo",
+        "data": "2026-01-28T20:00",
+        "tipo_id": 1,
+        "buyin": 100,
+        "buyin_chips": 10000,
+        "rake_type": "PERCENTUAL",
+        "rake_valor": 10,
+        "permite_rebuy": true,
+        "rebuy_valor": 100,
+        "permite_rebuy_duplo": false,
+        "rebuy_duplo_valor": 0,
+        "permite_addon": true,
+        "addon_valor": 100,
+        "blind_structure_id": null,
+        "staff_obrigatorio": false,
+        "staff_valor": 0,
+        "timechip_chips": 0,
+        "produtos_ids": [1, 2, 3]
+    }
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+    
+    try:
+        import json
+        data = json.loads(request.body)
+        season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
+        
+        # Validações - Etapa 1
+        nome = data.get('nome', '').strip()
+        if not nome or len(nome) < 3:
+            return JsonResponse({'success': False, 'message': 'Nome deve ter mínimo 3 caracteres'})
+        
+        data_str = data.get('data')
+        if not data_str:
+            return JsonResponse({'success': False, 'message': 'Data é obrigatória'})
+        
+        try:
+            tournament_date = datetime.fromisoformat(data_str)
+            if tournament_date < datetime.now():
+                return JsonResponse({'success': False, 'message': 'Data não pode ser no passado'})
+        except ValueError:
+            return JsonResponse({'success': False, 'message': 'Data inválida'})
+        
+        tipo_id = data.get('tipo_id')
+        if season.tipo_calculo == 'FIXO' and not tipo_id:
+            return JsonResponse({'success': False, 'message': 'Tipo é obrigatório para pontuação FIXA'})
+        
+        if tipo_id:
+            tipo = get_object_or_404(TournamentType, id=tipo_id, tenant=request.tenant)
+        else:
+            tipo = None
+        
+        # Validações - Etapa 2
+        buyin = Decimal(str(data.get('buyin', 0)))
+        if buyin <= 0:
+            return JsonResponse({'success': False, 'message': 'Buy-in deve ser maior que 0'})
+        
+        buyin_chips = data.get('buyin_chips')
+        if buyin_chips:
+            try:
+                buyin_chips = int(buyin_chips)
+                if buyin_chips <= 0:
+                    raise ValueError
+            except (ValueError, TypeError):
+                return JsonResponse({'success': False, 'message': 'Fichas buy-in inválidas'})
+        
+        rake_type = data.get('rake_type', 'PERCENTUAL')
+        if rake_type not in ['FIXO', 'PERCENTUAL', 'MISTO']:
+            rake_type = 'PERCENTUAL'
+        
+        rake_valor = Decimal(str(data.get('rake_valor', 0)))
+        rake_percentual = Decimal('0')
+        
+        if rake_type == 'PERCENTUAL':
+            rake_percentual = rake_valor
+            rake_valor = Decimal('0')
+            if rake_percentual < 0 or rake_percentual > 100:
+                return JsonResponse({'success': False, 'message': 'Percentual rake deve estar entre 0-100'})
+        elif rake_type in ['FIXO', 'MISTO']:
+            if rake_valor < 0:
+                return JsonResponse({'success': False, 'message': 'Rake não pode ser negativo'})
+        
+        # Resto dos campos (opcional)
+        rebuy_valor = Decimal(str(data.get('rebuy_valor', 0)))
+        rebuy_chips = data.get('rebuy_chips')
+        rebuy_duplo_valor = Decimal(str(data.get('rebuy_duplo_valor', 0)))
+        rebuy_duplo_chips = data.get('rebuy_duplo_chips')
+        addon_valor = Decimal(str(data.get('addon_valor', 0)))
+        addon_chips = data.get('addon_chips')
+        
+        permite_rebuy = data.get('permite_rebuy', False)
+        permite_rebuy_duplo = data.get('permite_rebuy_duplo', False)
+        permite_addon = data.get('permite_addon', False)
+        staff_obrigatorio = data.get('staff_obrigatorio', False)
+        staff_valor = Decimal(str(data.get('staff_valor', 0)))
+        staff_chips = data.get('staff_chips')
+        timechip_chips = data.get('timechip_chips')
+        
+        blind_structure_id = data.get('blind_structure_id')
+        produtos_ids = data.get('produtos_ids', [])
+        
+        # Criar torneio
+        tournament = Tournament.objects.create(
+            nome=nome,
+            data=tournament_date,
+            season=season,
+            tipo=tipo,
+            tenant=request.tenant,
+            buyin=buyin,
+            buyin_chips=buyin_chips,
+            rake_type=rake_type,
+            rake_valor=rake_valor,
+            rake_percentual=rake_percentual,
+            rebuy_valor=rebuy_valor,
+            rebuy_chips=rebuy_chips,
+            rebuy_duplo_valor=rebuy_duplo_valor,
+            rebuy_duplo_chips=rebuy_duplo_chips,
+            addon_valor=addon_valor,
+            addon_chips=addon_chips,
+            staff_valor=staff_valor,
+            staff_chips=staff_chips,
+            staff_obrigatorio=staff_obrigatorio,
+            timechip_chips=timechip_chips,
+            permite_rebuy=permite_rebuy,
+            permite_rebuy_duplo=permite_rebuy_duplo,
+            permite_addon=permite_addon,
+            blind_structure_id=blind_structure_id,
+            status='AGENDADO',
+        )
+        
+        # Adicionar produtos
+        if produtos_ids:
+            tournament.produtos.set(produtos_ids)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Torneio criado com sucesso',
+            'tournament_id': tournament.id,
+            'redirect_url': f'/torneio/{tournament.id}/admin/'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'JSON inválido'})
+    except Decimal.InvalidOperation:
+        return JsonResponse({'success': False, 'message': 'Valores monetários inválidos'})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'message': f'Erro ao criar: {str(e)}'})
