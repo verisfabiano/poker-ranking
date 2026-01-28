@@ -32,15 +32,15 @@
                 </button>
                 <ul class="dropdown-menu">
                     <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_batch_import' season.id %}">
+                    <li><a class="dropdown-item" href="/season/{{ season.id }}/torneios/importar-csv/">
                         <i class="bi bi-cloud-upload"></i> Importar CSV
                     </a></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_create_series' season.id %}">
+                    <li><a class="dropdown-item" href="/season/{{ season.id }}/torneios/serie/">
                         <i class="bi bi-calendar-event"></i> Criar Série Recorrente
                     </a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><h6 class="dropdown-header">Phase 3: Criação Normal</h6></li>
-                    <li><a class="dropdown-item" href="{% url 'tournament_create' season.id %}">
+                    <li><a class="dropdown-item" href="/season/{{ season.id }}/torneios/novo/">
                         <i class="bi bi-plus-circle"></i> Novo Torneio (Wizard)
                     </a></li>
                 </ul>
