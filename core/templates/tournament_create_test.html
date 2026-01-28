@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Novo Torneio - Teste{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>Teste de Renderização</h1>
+            <p>Se você vê este texto, o template base e os blocks estão funcionando.</p>
+            <p><strong>Temporada:</strong> {{ season.nome }}</p>
+            <p><strong>Season ID:</strong> {{ season.id }}</p>
+            
+            <div class="alert alert-success">
+                Template está renderizando corretamente!
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
