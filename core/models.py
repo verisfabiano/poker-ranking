@@ -327,6 +327,7 @@ class Tournament(models.Model):
         ('EM_ANDAMENTO', 'Em Andamento'),
         ('ENCERRADO', 'Encerrado'),
         ('CANCELADO', 'Cancelado'),
+        ('RASCUNHO', 'Rascunho'),  # Phase 6: Drafts
     )
 
     RAKE_TYPE_CHOICES = (
@@ -392,6 +393,13 @@ class Tournament(models.Model):
     produtos = models.ManyToManyField(TournamentProduct, blank=True, related_name='tournaments')
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AGENDADO')
+    
+    # Phase 6: Advanced Features
+    parent_tournament = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, help_text="Torneio original se este é uma duplicação")
+    serie_recorrencia = models.CharField(max_length=20, blank=True, choices=[('semanal', 'Semanal'), ('mensal', 'Mensal'), ('bimestral', 'Bimestral')], help_text="Define recorrência da série")
+    serie_proxima_data = models.DateTimeField(null=True, blank=True, help_text="Data do próximo torneio em uma série")
+    ultima_acao_tipo = models.CharField(max_length=50, blank=True, help_text="Tipo da última ação realizada (para undo)")
+    ultima_acao_dados = models.JSONField(null=True, blank=True, help_text="Dados da última ação para possível undo")
     
     # Gestão
     total_jogadores = models.IntegerField(default=0, help_text="Total de jogadores que entraram")

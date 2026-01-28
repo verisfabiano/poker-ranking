@@ -72,6 +72,10 @@ from .views import (
     tournament_duplicate,
     tournament_batch_import,
     tournament_save_template,
+    tournament_draft_save,
+    tournament_undo_action,
+    tournament_create_series,
+    tournament_edit_from_template,
     
     # Produtos de Torneio
     tournament_products_list,
@@ -196,6 +200,14 @@ urlpatterns = [
     path("torneio/<int:tournament_id>/duplicar/", tournament_duplicate, name="tournament_duplicate"),
     path("season/<int:season_id>/torneios/importar-csv/", tournament_batch_import, name="tournament_batch_import"),
     path("torneio/<int:tournament_id>/salvar-template/", tournament_save_template, name="tournament_save_template"),
+    
+    # ============================================================
+    #  PHASE 6: ADVANCED FEATURES
+    # ============================================================
+    path("api/season/<int:season_id>/torneios/rascunho/", tournament_draft_save, name="tournament_draft_save"),
+    path("api/torneio/<int:tournament_id>/desfazer/", tournament_undo_action, name="tournament_undo"),
+    path("season/<int:season_id>/torneios/serie/", tournament_create_series, name="tournament_create_series"),
+    path("torneio/<int:tournament_id>/editar-modelo/", tournament_edit_from_template, name="tournament_edit_template"),
     
     # ============================================================
     #  PRODUTOS DE TORNEIO

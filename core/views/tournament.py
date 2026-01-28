@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.urls import reverse
+from django.utils import timezone
 from io import BytesIO
 from ..models import (
     Season, Tournament, TournamentType, BlindStructure, 
@@ -1775,3 +1776,219 @@ def tournament_save_template(request, tournament_id):
         'season': tournament.temporada
     }
     return render(request, 'tournament_save_template.html', context)
+
+# ============================================================
+# PHASE 6: ADVANCED FEATURES
+# ============================================================
+
+@admin_required
+def tournament_draft_save(request, season_id):
+    """Salva um torneio como rascunho para edição posterior"""
+    season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            
+            # Criar torneio em status RASCUNHO
+            novo_torneio = Tournament.objects.create(
+                tenant=request.tenant,
+                temporada=season,
+                nome=data.get('nome', 'Rascunho'),
+                data=data.get('data', timezone.now()),
+                tipo_id=data.get('tipo_id'),
+                entrada=Decimal(str(data.get('entrada', 0))),
+                rake_valor=Decimal(str(data.get('rake_valor', 0))),
+                status='RASCUNHO'
+            )
+            
+            # Adicionar produtos se informados
+            if data.get('produtos'):
+                for produto_id in data['produtos']:
+                    novo_torneio.produtos.add(produto_id)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Rascunho salvo com sucesso',
+                'tournament_id': novo_torneio.id,
+                'redirect': reverse('tournament_admin', kwargs={'tournament_id': novo_torneio.id})
+            })
+        
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao salvar rascunho: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+
+@admin_required
+def tournament_undo_action(request, tournament_id):
+    """Desfaz a última ação realizada em um torneio"""
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    if not tournament.ultima_acao_tipo or not tournament.ultima_acao_dados:
+        return JsonResponse({
+            'success': False,
+            'message': 'Nenhuma ação para desfazer'
+        })
+    
+    try:
+        acao = tournament.ultima_acao_tipo
+        dados = tournament.ultima_acao_dados
+        
+        if acao == 'adicionar_jogador':
+            # Remover entrada de jogador
+            TournamentEntry.objects.filter(
+                torneio=tournament,
+                jogador_id=dados['player_id']
+            ).delete()
+        
+        elif acao == 'lancar_resultado':
+            # Remover resultado lançado
+            TournamentResult.objects.filter(
+                torneio=tournament,
+                jogador_id=dados['player_id']
+            ).delete()
+        
+        elif acao == 'editar_configuracao':
+            # Restaurar configurações anteriores
+            for field, value in dados.items():
+                if hasattr(tournament, field):
+                    setattr(tournament, field, value)
+            tournament.save()
+        
+        # Limpar ação anterior
+        tournament.ultima_acao_tipo = None
+        tournament.ultima_acao_dados = None
+        tournament.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Ação desfeita: {acao.replace("_", " ").title()}'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Erro ao desfazer: {str(e)}'
+        })
+
+
+@admin_required
+def tournament_create_series(request, season_id):
+    """Cria uma série de torneios recorrentes (semanal, mensal, etc)"""
+    season = get_object_or_404(Season, id=season_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        try:
+            import json
+            from datetime import timedelta
+            
+            data = json.loads(request.body)
+            
+            nome_base = data.get('nome')
+            data_inicio = data.get('data_inicio')
+            recorrencia = data.get('recorrencia')  # semanal, mensal, bimestral
+            quantidade = int(data.get('quantidade', 1))
+            
+            # Mapear recorrência para dias
+            recurr_dias = {
+                'semanal': 7,
+                'mensal': 30,
+                'bimestral': 60
+            }
+            
+            dias_intervalo = recurr_dias.get(recorrencia, 7)
+            tournaments_created = []
+            
+            # Criar série de torneios
+            for i in range(quantidade):
+                offset_dias = dias_intervalo * i
+                nova_data = datetime.fromisoformat(data_inicio) + timedelta(days=offset_dias)
+                
+                novo = Tournament.objects.create(
+                    tenant=request.tenant,
+                    temporada=season,
+                    nome=f'{nome_base} #{i+1}' if quantidade > 1 else nome_base,
+                    data=nova_data,
+                    tipo_id=data.get('tipo_id'),
+                    entrada=Decimal(str(data.get('entrada', 0))),
+                    rake_valor=Decimal(str(data.get('rake_valor', 0))),
+                    serie_recorrencia=recorrencia,
+                    status='AGENDADO'
+                )
+                
+                # Se não é o último, marcar próxima data
+                if i < quantidade - 1:
+                    proximo_offset = dias_intervalo * (i + 1)
+                    novo.serie_proxima_data = datetime.fromisoformat(data_inicio) + timedelta(days=proximo_offset)
+                    novo.save()
+                
+                tournaments_created.append({
+                    'id': novo.id,
+                    'nome': novo.nome,
+                    'data': novo.data.isoformat()
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'{quantidade} torneio(s) criado(s) com sucesso',
+                'tournaments': tournaments_created
+            })
+        
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao criar série: {str(e)}'
+            })
+    
+    context = {
+        'season': season,
+        'types': TournamentType.objects.filter(tenant=request.tenant)
+    }
+    return render(request, 'tournament_create_series.html', context)
+
+
+@admin_required
+def tournament_edit_from_template(request, tournament_id):
+    """Edita um torneio duplicado mantendo referência ao original"""
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    
+    if request.method == 'POST':
+        try:
+            import json
+            dados_anteriores = {
+                'nome': tournament.nome,
+                'data': tournament.data.isoformat(),
+                'entrada': str(tournament.entrada)
+            }
+            
+            # Atualizar campos
+            tournament.nome = request.POST.get('nome', tournament.nome)
+            tournament.data = request.POST.get('data', tournament.data)
+            tournament.entrada = Decimal(request.POST.get('entrada', tournament.entrada))
+            
+            # Salvar última ação para undo
+            tournament.ultima_acao_tipo = 'editar_configuracao'
+            tournament.ultima_acao_dados = dados_anteriores
+            tournament.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Torneio atualizado com sucesso'
+            })
+        
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Erro ao atualizar: {str(e)}'
+            })
+    
+    context = {
+        'tournament': tournament,
+        'season': tournament.temporada
+    }
+    return render(request, 'tournament_edit_template.html', context)
