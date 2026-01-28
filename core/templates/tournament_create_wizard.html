@@ -3,8 +3,8 @@
 {% block title %}Novo Torneio - Wizard{% endblock %}
 
 {% block breadcrumb-items %}
-    <li class="breadcrumb-item"><a href="{% url 'seasons_list' %}">Temporadas</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'season_tournaments' season.id %}">{{ season.nome }}</a></li>
+    <li class="breadcrumb-item"><a href="/temporadas/">Temporadas</a></li>
+    <li class="breadcrumb-item"><a href="/season/{{ season.id }}/torneios/">{{ season.nome }}</a></li>
     <li class="breadcrumb-item active">Novo Torneio</li>
 {% endblock %}
 
@@ -451,7 +451,7 @@
             <div class="alert alert-info">
                 <i class="bi bi-info-circle"></i>
                 <strong>Dica:</strong> Use o assistente guiado para criar seu torneio passo-a-passo! 
-                Ou <a href="{% url 'tournament_create' season.id %}#form-tradicional">pule para o formulário tradicional</a>.
+                Ou <a href="/season/{{ season.id }}/torneios/novo/#form-tradicional">pule para o formulário tradicional</a>.
             </div>
 
         </div>
