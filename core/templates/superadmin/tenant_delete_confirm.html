@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Deletar Tenant - Confirmação{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Deletar Tenant
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        Você está prestes a deletar o tenant:
+                    </p>
+                    <div class="alert alert-light border-2 border-danger mb-4">
+                        <h6 class="mb-1">{{ tenant.nome }}</h6>
+                        <code>{{ tenant.slug }}</code>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-exclamation-circle"></i> Esta ação é irreversível!
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Todos os dados do tenant serão deletados</li>
+                            <li>Todos os usuários associados perderão acesso</li>
+                            <li>Todos os torneios e dados serão removidos</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-3">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                name="confirmacao" 
+                                id="confirmacao"
+                                required
+                            >
+                            <label class="form-check-label" for="confirmacao">
+                                <strong>Entendo que esta ação é irreversível</strong> e desejo deletar este tenant
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Deletar Tenant Permanentemente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'superadmin_tenant_detail' tenant.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

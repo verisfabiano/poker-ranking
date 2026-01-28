@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gerenciar Tenants{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-building"></i> Tenants
+            </h1>
+            <p class="text-muted">Gerenciamento completo de tenants cadastrados</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'superadmin_tenant_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Tenant
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        class="form-control" 
+                        placeholder="Buscar por nome ou slug..."
+                        value="{{ search }}"
+                    >
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Todos os Status</option>
+                        <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Apenas Ativos</option>
+                        <option value="inativo" {% if status == 'inativo' %}selected{% endif %}>Apenas Inativos</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Tenants -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr class="table-light">
+                        <th>Nome</th>
+                        <th>Slug</th>
+                        <th>Email</th>
+                        <th>Usuários</th>
+                        <th>Status</th>
+                        <th>Data de Criação</th>
+                        <th class="text-end" style="width: 180px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants %}
+                    <tr>
+                        <td>
+                            <strong>{{ tenant.nome }}</strong>
+                        </td>
+                        <td>
+                            <code class="text-primary">{{ tenant.slug }}</code>
+                        </td>
+                        <td>
+                            <small>{{ tenant.club_email }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ tenant.total_users }}</span>
+                        </td>
+                        <td>
+                            {% if tenant.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ tenant.criado_em|date:"d/m/Y H:i" }}</small>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'superadmin_tenant_detail' tenant.id %}" class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'superadmin_tenant_edit' tenant.id %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'superadmin_tenant_delete' tenant.id %}" class="btn btn-sm btn-outline-danger" title="Deletar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+                            Nenhum tenant encontrado
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    code {
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}

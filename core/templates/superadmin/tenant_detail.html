@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ tenant.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'superadmin_dashboard' %}">SuperAdmin</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'superadmin_tenants_list' %}">Tenants</a></li>
+            <li class="breadcrumb-item active">{{ tenant.nome }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div>
+                    <h1 class="h3 mb-2">{{ tenant.nome }}</h1>
+                    <p class="text-muted">
+                        Slug: <code>{{ tenant.slug }}</code> | 
+                        Criado em: {{ tenant.criado_em|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                {% if tenant.ativo %}
+                <div class="ms-auto">
+                    <span class="badge bg-success" style="font-size: 1rem;">Ativo</span>
+                </div>
+                {% else %}
+                <div class="ms-auto">
+                    <span class="badge bg-secondary" style="font-size: 1rem;">Inativo</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'superadmin_tenant_edit' tenant.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="{% url 'superadmin_tenant_delete' tenant.id %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Deletar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações do Tenant -->
+        <div class="col-md-8">
+            
+            <!-- Card: Informações Básicas -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações Básicas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Nome</h6>
+                            <p class="fs-6">{{ tenant.nome }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Slug</h6>
+                            <p class="fs-6"><code>{{ tenant.slug }}</code></p>
+                        </div>
+                    </div>
+                    {% if tenant.descricao %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted">Descrição</h6>
+                            <p class="fs-6">{{ tenant.descricao }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card: Contato -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-telephone"></i> Informações de Contato</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Email</h6>
+                            <p class="fs-6">
+                                <a href="mailto:{{ tenant.club_email }}">{{ tenant.club_email }}</a>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Telefone</h6>
+                            <p class="fs-6">{{ tenant.club_phone or '—' }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">CNPJ</h6>
+                            <p class="fs-6">{{ tenant.club_cnpj or '—' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Website</h6>
+                            <p class="fs-6">
+                                {% if tenant.club_website %}
+                                    <a href="{{ tenant.club_website }}" target="_blank">{{ tenant.club_website }}</a>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Administradores -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Administradores do Tenant</h5>
+                    <a href="{% url 'superadmin_tenant_admin_add' tenant.id %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Adicionar Admin
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Nome de Usuário</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for admin in admins %}
+                            <tr>
+                                <td>
+                                    <strong>{{ admin.user.username }}</strong>
+                                </td>
+                                <td>{{ admin.user.email }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ admin.role }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'superadmin_tenant_admin_remove' tenant.id admin.user.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Remover
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Nenhum administrador associado
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar: Resumo -->
+        <div class="col-md-4">
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Resumo</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Status</h6>
+                    <p class="mb-3">
+                        {% if tenant.ativo %}
+                            <span class="badge bg-success">Ativo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inativo</span>
+                        {% endif %}
+                    </p>
+
+                    <h6 class="text-muted mb-2">Total de Administradores</h6>
+                    <p class="fs-5 mb-3">
+                        <strong>{{ admins.count }}</strong>
+                    </p>
+
+                    <hr>
+
+                    <h6 class="text-muted mb-2">Criado em</h6>
+                    <p class="small">{{ tenant.criado_em|date:"d \d\e M \d\e Y \à\s H:i" }}</p>
+                </div>
+            </div>
+
+            {% if not tenant.ativo %}
+            <div class="alert alert-warning">
+                <h6 class="alert-heading">
+                    <i class="bi bi-exclamation-triangle"></i> Atenção
+                </h6>
+                <p class="small mb-0">
+                    Este tenant está <strong>inativo</strong> e não pode ser acessado por usuários.
+                </p>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    code {
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}

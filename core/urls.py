@@ -3,7 +3,16 @@ from django.views.generic import RedirectView
 from django.shortcuts import render
 
 from .views.public import landing_page, signup_club, login_view
-from .views.superadmin import clientes_list, cliente_detail, cliente_slug_update, cliente_toggle_status
+from .views.superadmin import (
+    superadmin_dashboard,
+    superadmin_tenants_list,
+    superadmin_tenant_create,
+    superadmin_tenant_detail,
+    superadmin_tenant_edit,
+    superadmin_tenant_delete,
+    superadmin_tenant_admin_add,
+    superadmin_tenant_admin_remove,
+)
 from .views.player_public import player_register_public, player_login_club
 from .views.documentacao import documentacao_ranking
 from .views.financial_enhanced import (
@@ -119,12 +128,16 @@ urlpatterns = [
     path("redirect/", home_redirect, name="home_redirect"),
 
     # ============================================================
-    #  SUPERADMIN - GERENCIAMENTO DE CLIENTES
+    #  SUPERADMIN - GERENCIAMENTO DE TENANTS
     # ============================================================
-    path("superadmin/clientes/", clientes_list, name="clientes_list"),
-    path("superadmin/clientes/<int:cliente_id>/", cliente_detail, name="cliente_detail"),
-    path("superadmin/clientes/<int:cliente_id>/slug/", cliente_slug_update, name="cliente_slug_update"),
-    path("superadmin/clientes/<int:cliente_id>/status/", cliente_toggle_status, name="cliente_toggle_status"),
+    path("superadmin/", superadmin_dashboard, name="superadmin_dashboard"),
+    path("superadmin/tenants/", superadmin_tenants_list, name="superadmin_tenants_list"),
+    path("superadmin/tenants/novo/", superadmin_tenant_create, name="superadmin_tenant_create"),
+    path("superadmin/tenants/<int:tenant_id>/", superadmin_tenant_detail, name="superadmin_tenant_detail"),
+    path("superadmin/tenants/<int:tenant_id>/editar/", superadmin_tenant_edit, name="superadmin_tenant_edit"),
+    path("superadmin/tenants/<int:tenant_id>/deletar/", superadmin_tenant_delete, name="superadmin_tenant_delete"),
+    path("superadmin/tenants/<int:tenant_id>/admin/adicionar/", superadmin_tenant_admin_add, name="superadmin_tenant_admin_add"),
+    path("superadmin/tenants/<int:tenant_id>/admin/<int:user_id>/remover/", superadmin_tenant_admin_remove, name="superadmin_tenant_admin_remove"),
 
     # ============================================================
     #  ADMIN - PAINEL

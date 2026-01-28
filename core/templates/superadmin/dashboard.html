@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SuperAdmin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">
+                <i class="bi bi-speedometer2"></i> SuperAdmin Dashboard
+            </h1>
+            <p class="text-muted">Gerenciamento centralizado de tenants</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'superadmin_tenant_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Tenant
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Total de Tenants</h6>
+                            <h3 class="mb-0">{{ stats.total_tenants }}</h3>
+                        </div>
+                        <div class="text-primary" style="font-size: 2.5rem;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Ativos</h6>
+                            <h3 class="mb-0 text-success">{{ stats.tenants_ativos }}</h3>
+                        </div>
+                        <div class="text-success" style="font-size: 2.5rem;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Inativos</h6>
+                            <h3 class="mb-0 text-danger">{{ stats.tenants_inativos }}</h3>
+                        </div>
+                        <div class="text-danger" style="font-size: 2.5rem;">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-2">Total de Usuários</h6>
+                            <h3 class="mb-0">{{ stats.total_usuarios }}</h3>
+                        </div>
+                        <div class="text-info" style="font-size: 2.5rem;">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenants Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0">Tenants Recentes</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr class="table-light">
+                        <th>Nome</th>
+                        <th>Slug</th>
+                        <th>Usuários</th>
+                        <th>Status</th>
+                        <th>Data de Criação</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tenant in tenants %}
+                    <tr>
+                        <td>
+                            <strong>{{ tenant.nome }}</strong>
+                        </td>
+                        <td>
+                            <code>{{ tenant.slug }}</code>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ tenant.total_users }}</span>
+                        </td>
+                        <td>
+                            {% if tenant.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ tenant.criado_em|date:"d/m/Y" }}</small>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'superadmin_tenant_detail' tenant.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Nenhum tenant registrado
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-light text-end py-3">
+            <a href="{% url 'superadmin_tenants_list' %}" class="btn btn-sm btn-outline-secondary">
+                Ver Todos &rarr;
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+{% endblock %}
