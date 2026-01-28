@@ -25,6 +25,27 @@
         </div>
         
         <div class="d-flex gap-2">
+            <!-- Dropdown Criação em Lote (Phase 5-6) -->
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-lightning-charge"></i> Ações Rápidas
+                </button>
+                <ul class="dropdown-menu">
+                    <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_batch_import' season.id %}">
+                        <i class="bi bi-cloud-upload"></i> Importar CSV
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_create_series' season.id %}">
+                        <i class="bi bi-calendar-event"></i> Criar Série Recorrente
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Phase 3: Criação Normal</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_create' season.id %}">
+                        <i class="bi bi-plus-circle"></i> Novo Torneio (Wizard)
+                    </a></li>
+                </ul>
+            </div>
+            
             <a href="{% url 'season_tournaments' season.id %}" class="btn btn-outline-secondary d-none d-md-inline-block">
                 <i class="bi bi-arrow-clockwise"></i> Atualizar
             </a>
@@ -108,6 +129,18 @@
                                                 <li>
                                                     <a class="dropdown-item" href="{% url 'tournament_financial' t.id %}">
                                                         <i class="bi bi-cash-coin me-2"></i> Financeiro
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'tournament_duplicate' t.id %}">
+                                                        <i class="bi bi-files me-2"></i> Duplicar
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'tournament_save_template' t.id %}">
+                                                        <i class="bi bi-bookmark me-2"></i> Salvar Template
                                                     </a>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>

@@ -387,6 +387,37 @@
             <span class="badge badge-lg bg-{{ tournament.status|lower }}">
                 {{ tournament.get_status_display }}
             </span>
+            
+            <!-- Dropdown Ações Avançadas (Phase 5-6) -->
+            <div class="btn-group ms-2" role="group">
+                <button id="acoesBtn" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear"></i> Ações
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="acoesBtn">
+                    <li><h6 class="dropdown-header">Phase 5: Criação em Lote</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_duplicate' tournament.id %}">
+                        <i class="bi bi-files"></i> Duplicar Torneio
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_save_template' tournament.id %}">
+                        <i class="bi bi-bookmark"></i> Salvar como Template
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Phase 6: Recursos Avançados</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_create_series' tournament.temporada.id %}">
+                        <i class="bi bi-calendar-event"></i> Criar Série Recorrente
+                    </a></li>
+                    {% if tournament.ultima_acao_tipo %}
+                    <li><a class="dropdown-item text-warning" href="#" onclick="undoLastAction()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Desfazer Última Ação
+                    </a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'tournament_edit' tournament.id %}">
+                        <i class="bi bi-pencil"></i> Editar Torneio
+                    </a></li>
+                </ul>
+            </div>
+            
             <a href="{% url 'tournament_dashboard' %}" class="btn btn-outline-secondary ms-2">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
@@ -1291,6 +1322,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     };
 });
+
+// Função para desfazer última ação (Phase 6)
+function undoLastAction() {
+    if (!confirm('Desfazer última ação? Esta ação não pode ser revertida novamente.')) return;
+    
+    fetch(`/api/torneio/{{ tournament.id }}/desfazer/`, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✓ ' + data.message);
+            location.reload();
+        } else {
+            alert('✗ ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao desfazer:', error);
+        alert('Erro ao desfazer ação');
+    });
+}
 </script>
 
 {% endblock %}
