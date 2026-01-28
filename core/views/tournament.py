@@ -1207,3 +1207,76 @@ def tournament_poster(request, tournament_id):
             'error': str(e),
             'traceback': traceback.format_exc()
         }, status=500)
+
+
+# ============================================================
+#  PAINEL UNIFICADO DE ADMINISTRAÇÃO DE TORNEIO
+# ============================================================
+
+@admin_required
+def tournament_admin_panel(request, tournament_id):
+    """
+    Painel unificado para administrar um torneio.
+    Integra: Jogadores, Premiação, Resultados e Financeiro
+    """
+    from ..models import PrizeStructure, PrizePayment
+    from ..views.financial import calcular_financeiro_torneio
+    from ..views.prize import PrizeStructure as PrizeModel
+    
+    tournament = get_object_or_404(Tournament, id=tournament_id, tenant=request.tenant)
+    season = tournament.season
+    
+    # Dados de jogadores
+    entries = TournamentEntry.objects.filter(tournament=tournament).select_related('player')
+    confirmados = entries.filter(confirmado_pelo_admin=True).count()
+    
+    # Dados de resultados
+    results = TournamentResult.objects.filter(tournament=tournament).select_related('player')
+    resultados_lancados = results.count()
+    
+    # Dados de premiação
+    try:
+        prize_structure = PrizeStructure.objects.get(tournament=tournament)
+        pagamentos_premia = list(prize_structure.payments.all().order_by('position'))
+        premiacao_definida = len(pagamentos_premia) > 0
+    except PrizeStructure.DoesNotExist:
+        prize_structure = None
+        pagamentos_premia = []
+        premiacao_definida = False
+    
+    # Financeiro
+    financeiro = calcular_financeiro_torneio(tournament)
+    
+    # Checklist de Progresso
+    checklist = {
+        'torneio_criado': True,  # Sempre verdade (já estamos vendo o torneio)
+        'jogadores_inscritos': entries.count() > 0,
+        'premios_definidos': premiacao_definida,
+        'resultados_lancados': resultados_lancados == entries.count() and entries.count() > 0,
+        'torneio_finalizado': tournament.status == 'FINALIZADO',
+    }
+    
+    # Percentual de conclusão
+    progresso_total = sum([
+        1 if checklist['jogadores_inscritos'] else 0,
+        1 if checklist['premios_definidos'] else 0,
+        1 if checklist['resultados_lancados'] else 0,
+        1 if checklist['torneio_finalizado'] else 0,
+    ]) * 25  # 4 etapas
+    
+    context = {
+        'tournament': tournament,
+        'season': season,
+        'entries': entries,
+        'confirmados': confirmados,
+        'results': results,
+        'resultados_lancados': resultados_lancados,
+        'prize_structure': prize_structure,
+        'pagamentos_premia': pagamentos_premia,
+        'premiacao_definida': premiacao_definida,
+        'financeiro': financeiro,
+        'checklist': checklist,
+        'progresso_total': progresso_total,
+    }
+    
+    return render(request, 'tournament_admin_panel.html', context)
