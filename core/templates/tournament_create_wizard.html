@@ -134,10 +134,300 @@
         justify-content: space-between;
     }
 
+    .modal-footer {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
     .btn-navigation {
         min-width: 140px;
     }
-</style>
+
+    /* ============================================================
+       MOBILE OPTIMIZATION - Phase 4
+       ============================================================ */
+    
+    @media (max-width: 768px) {
+        /* Modal responsivo */
+        .modal-lg,
+        .modal-dialog {
+            max-width: 95vw;
+            margin: 10px auto;
+        }
+        
+        .modal-content {
+            border-radius: 12px;
+        }
+        
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 16px;
+        }
+        
+        .modal-header h5 {
+            font-size: 1.1rem;
+        }
+        
+        /* Aumentar touch targets */
+        .btn {
+            min-height: 44px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+        }
+        
+        .form-check-input,
+        .form-select,
+        .form-control {
+            min-height: 44px;
+            font-size: 16px; /* Evita zoom iOS */
+        }
+        
+        /* Form sections */
+        .form-section {
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-section h5 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+        
+        /* Botões no footer */
+        .modal-footer {
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .modal-footer .btn {
+            flex: 0 1 auto;
+            min-width: 120px;
+            min-height: 44px;
+        }
+        
+        .btn-navigation {
+            min-width: 100px;
+            flex: 1;
+        }
+        
+        /* Card summary */
+        .card-summary {
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .card-summary-value {
+            font-size: 1.1rem;
+        }
+        
+        /* Progress bar */
+        .step-indicator {
+            font-size: 0.8rem;
+            gap: 4px;
+        }
+        
+        .step-number {
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            line-height: 20px;
+        }
+        
+        /* Input groups */
+        .input-group {
+            flex-direction: column;
+        }
+        
+        .input-group .input-group-text {
+            border-radius: 4px 4px 0 0;
+            padding: 8px;
+        }
+        
+        .input-group .form-control {
+            border-radius: 0 0 4px 4px;
+            border-top: none;
+        }
+        
+        /* Row spacing */
+        .row > [class*=col-] {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+        
+        .g-3 {
+            gap: 12px !important;
+        }
+        
+        /* Badges */
+        .badge-lg {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+        }
+        
+        /* Wizard header */
+        .wizard-header {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .wizard-header h2 {
+            font-size: 1.3rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Extra small screens */
+        .modal-dialog {
+            max-width: 100vw;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-content {
+            border-radius: 0;
+            margin: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            flex-shrink: 0;
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px;
+        }
+        
+        .modal-footer {
+            flex-shrink: 0;
+            padding: 12px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .form-section {
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+        
+        .form-section h5 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+        
+        .btn {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            min-height: 40px;
+        }
+        
+        .btn-navigation {
+            min-width: 90px;
+            flex: 1;
+            min-height: 40px;
+            font-size: 0.85rem;
+        }
+        
+        /* Stack columns */
+        .col-md-6,
+        .col-md-8 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .row > [class*=col-] {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        /* Full width inputs */
+        .input-group {
+            width: 100%;
+        }
+        
+        .form-control,
+        .form-select {
+            width: 100%;
+        }
+        
+        /* Progress indicator mobile */
+        .progress {
+            height: 4px;
+        }
+        
+        .step-indicator {
+            font-size: 0.7rem;
+            justify-content: space-around;
+        }
+        
+        .step-number {
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
+            line-height: 18px;
+        }
+        
+        /* Card summary compact */
+        .card-summary {
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .card-summary-label {
+            font-size: 0.75rem;
+        }
+        
+        .card-summary-value {
+            font-size: 0.95rem;
+            margin-top: 2px;
+        }
+        
+        /* Checkboxes larger */
+        .form-check {
+            padding-left: 0;
+            margin-bottom: 12px;
+        }
+        
+        .form-check-input {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .form-check-label {
+            margin-bottom: 0;
+            cursor: pointer;
+            padding-top: 2px;
+        }
+        
+        /* Alert boxes */
+        .alert {
+            padding: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        
+        /* Readable text */
+        body {
+            font-size: 14px;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.3;
+        }
+    }
 {% endblock %}
 
 {% block content %}
