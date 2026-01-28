@@ -744,11 +744,22 @@ document.addEventListener('DOMContentLoaded', function() {
         produtos_ids: []
     };
 
-    // Elementos DOM
+    // Elementos DOM - com proteção contra elementos não encontrados
     const btnProximo = document.getElementById('btnProximo');
     const btnAnterior = document.getElementById('btnAnterior');
     const btnCriar = document.getElementById('btnCriar');
-    const wizardModal = new bootstrap.Modal(document.getElementById('wizardTournamentModal'));
+    
+    if (!btnProximo || !btnAnterior || !btnCriar) {
+        console.error('Botões do wizard não encontrados');
+        return;
+    }
+    
+    const wizardModalElement = document.getElementById('wizardTournamentModal');
+    if (!wizardModalElement) {
+        console.error('Modal wizard não encontrado');
+        return;
+    }
+    const wizardModal = new bootstrap.Modal(wizardModalElement);
 
     // Form inputs
     const inputNome = document.getElementById('wizardNome');
@@ -764,37 +775,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const chkStaff = document.getElementById('wizardStaffObrigatorio');
 
     // Event listeners para Rebuy/Addon/Staff
-    chkRebuy.addEventListener('change', function() {
-        document.getElementById('rebuyFields').style.display = this.checked ? 'block' : 'none';
-        wizardData.permite_rebuy = this.checked;
-    });
-
-    chkAddon.addEventListener('change', function() {
-        document.getElementById('addonFields').style.display = this.checked ? 'block' : 'none';
-        wizardData.permite_addon = this.checked;
-    });
-
-    chkStaff.addEventListener('change', function() {
-        document.getElementById('staffFields').style.display = this.checked ? 'block' : 'none';
-        wizardData.staff_obrigatorio = this.checked;
-    });
+    if (chkRebuy) {
+        chkRebuy.addEventListener('change', function() {
+            const rebuyFields = document.getElementById('rebuyFields');
+            if (rebuyFields) rebuyFields.style.display = this.checked ? 'block' : 'none';
+            wizardData.permite_rebuy = this.checked;
+        });
+    }
+    
+    if (chkAddon) {
+        chkAddon.addEventListener('change', function() {
+            const addonFields = document.getElementById('addonFields');
+            if (addonFields) addonFields.style.display = this.checked ? 'block' : 'none';
+            wizardData.permite_addon = this.checked;
+        });
+    }
+    
+    if (chkStaff) {
+        chkStaff.addEventListener('change', function() {
+            const staffFields = document.getElementById('staffFields');
+            if (staffFields) staffFields.style.display = this.checked ? 'block' : 'none';
+            wizardData.staff_obrigatorio = this.checked;
+        });
+    }
 
     // Event listeners para rake
     selectRakeType.forEach(radio => {
         radio.addEventListener('change', function() {
             wizardData.rake_type = this.value;
             const label = document.getElementById('rakeTypeLabel');
-            label.textContent = this.value === 'PERCENTUAL' ? '%' : 'R$';
+            if (label) label.textContent = this.value === 'PERCENTUAL' ? '%' : 'R$';
             calcularPote();
         });
     });
 
-    inputBuyin.addEventListener('change', calcularPote);
-    inputRakeValor.addEventListener('change', calcularPote);
+    if (inputBuyin) inputBuyin.addEventListener('change', calcularPote);
+    if (inputRakeValor) inputRakeValor.addEventListener('change', calcularPote);
 
     function calcularPote() {
-        const buyin = parseFloat(inputBuyin.value) || 0;
-        const rake = parseFloat(inputRakeValor.value) || 0;
+        const buyin = parseFloat(inputBuyin?.value || 0) || 0;
+        const rake = parseFloat(inputRakeValor?.value || 0) || 0;
         
         let pote;
         if (wizardData.rake_type === 'PERCENTUAL') {
@@ -803,13 +823,14 @@ document.addEventListener('DOMContentLoaded', function() {
             pote = buyin - rake;
         }
         
-        document.getElementById('poteEstimado').textContent = 'R$ ' + pote.toFixed(2).replace('.', ',');
+        const poteEstimado = document.getElementById('poteEstimado');
+        if (poteEstimado) poteEstimado.textContent = 'R$ ' + pote.toFixed(2).replace('.', ',');
     }
 
     // Botões navegação
-    btnProximo.addEventListener('click', proximoStep);
-    btnAnterior.addEventListener('click', anteriorStep);
-    btnCriar.addEventListener('click', criarTorneio);
+    if (btnProximo) btnProximo.addEventListener('click', proximoStep);
+    if (btnAnterior) btnAnterior.addEventListener('click', anteriorStep);
+    if (btnCriar) btnCriar.addEventListener('click', criarTorneio);
 
     function proximoStep() {
         if (!validarStep(currentStep)) return;
