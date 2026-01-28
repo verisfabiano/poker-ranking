@@ -721,11 +721,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
     const seasonId = {{ season.id }};
+    const tipoCalculo = '{{ season.tipo_calculo | default:"" }}';
     
     const wizardData = {
         nome: '',
         data: '',
-        tipo_id: '{{ season.tipo_calculo }}' === 'FIXO' ? '' : null,
+        tipo_id: tipoCalculo === 'FIXO' ? '' : null,
         buyin: 0,
         buyin_chips: 0,
         rake_type: 'PERCENTUAL',
@@ -836,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Data e hora são obrigatórias');
                 return false;
             }
-            if ('{{ season.tipo_calculo }}' === 'FIXO' && !inputTipo.value) {
+            if (tipoCalculo === 'FIXO' && !inputTipo.value) {
                 alert('Tipo de torneio é obrigatório');
                 return false;
             }
@@ -934,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function carregarTipos() {
-        if ('{{ season.tipo_calculo }}' !== 'FIXO') return;
+        if (tipoCalculo !== 'FIXO') return;
         
         fetch(`/api/season/${seasonId}/tournament/wizard/step/1/`)
             .then(r => r.json())
